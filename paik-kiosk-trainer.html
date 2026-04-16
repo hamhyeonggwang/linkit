@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>빽다방 키오스크 훈련</title>
+<script src="kiosk-image-save.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --yellow:#FFE800;
+  --navy:#001F60;
+  --yellow-light:#FFFDE7;
+  --yellow-mid:#FFF9C4;
+  --yellow-light:#FFFDE7;
+  --yellow-mid:#FFF9C4;
+  --yellow:#FFD600;
+  --black:#1A1A1A;
+  --g1:#F7F7F7;
+  --g2:#EBEBEB;
+  --g3:#BDBDBD;
+  --g4:#757575;
+  --tx:#1A1A1A;
+  --tx2:#616161;
+  --grn:#1B8C3E;
+  --grn2:#E8F5EC;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:#2a2a2a;min-height:100vh;display:flex;}
+
+/* ====== LAYOUT ====== */
+#root{display:flex;width:100%;min-height:100vh;}
+
+/* ====== SIDEBAR ====== */
+#tp{width:268px;min-width:268px;background:#1a1a2e;color:white;display:flex;flex-direction:column;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s;overflow:hidden;position:sticky;top:0;height:100vh;}
+#tp.col{width:0;min-width:0;}
+.tphd{background:#0f0f1a;padding:14px 14px 10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.tplb{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;}
+.tpnm{font-size:15px;font-weight:900;color:var(--yellow);margin-top:2px;white-space:nowrap;}
+.tpbd{flex:1;overflow-y:auto;}
+.tpbd::-webkit-scrollbar{width:3px;}
+.tpbd::-webkit-scrollbar-thumb{background:rgba(255,232,0,.2);}
+.tpsec{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.tpst{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.tgr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px;}
+.tgi{flex:1;}
+.tgl{font-size:12px;font-weight:700;white-space:nowrap;}
+.tgs{font-size:10px;color:rgba(255,255,255,.4);}
+.sw{width:38px;height:20px;border-radius:10px;background:rgba(255,255,255,.2);border:none;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0;}
+.sw.on{background:#001F60;}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;transition:transform .25s;}
+.sw.on::after{transform:translateX(18px);}
+.dfr{display:flex;gap:5px;}
+.dfb{flex:1;padding:7px 0;text-align:center;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);font-size:11px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.5);background:transparent;font-family:'Noto Sans KR',sans-serif;transition:all .2s;white-space:nowrap;}
+.dfb.ae{border-color:#4ade80;background:rgba(74,222,128,.2);color:#4ade80;}
+.dfb.am{border-color:#fbbf24;background:rgba(251,191,36,.2);color:#fbbf24;}
+.dfb.ah{border-color:#f87171;background:rgba(248,113,113,.2);color:#f87171;}
+
+/* diff desc card */
+.ddc{margin-top:8px;background:rgba(232,0,61,.1);border:1px solid rgba(0,31,96,.3);border-radius:10px;padding:10px 12px;}
+.ddt{font-size:11px;font-weight:900;color:var(--yellow);margin-bottom:4px;}
+.ddb{font-size:11px;color:rgba(255,255,255,.55);line-height:1.6;}
+.ddb b{color:rgba(255,255,255,.85);}
+
+.stg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.stc{background:rgba(255,255,255,.08);border-radius:8px;padding:8px 4px;text-align:center;}
+.stn{font-size:22px;font-weight:900;color:var(--yellow);}
+.stl{font-size:9px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;}
+.tpbtn{margin:6px 14px 0;padding:10px 14px;border-radius:10px;border:none;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 28px);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;white-space:nowrap;}
+.tpbtn:hover{opacity:.85;}
+.tpbtn-r{background:linear-gradient(135deg,#001F60,#003080);color:white;}
+.tpbtn-g{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1.5px solid rgba(255,255,255,.2);margin-top:6px;}
+.tpbtn-sv{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1.5px solid rgba(255,255,255,.28);margin-top:8px;}
+
+#ptbtn{position:fixed;top:14px;left:14px;z-index:300;width:42px;height:42px;border-radius:11px;background:var(--navy);border:2px solid rgba(255,232,0,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:white;box-shadow:0 4px 14px rgba(0,0,0,.5);transition:left .35s cubic-bezier(.4,0,.2,1);}
+#ptbtn.open{left:280px;}
+
+/* ====== KIOSK WRAP ====== */
+#kwrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px 16px 40px;min-height:100vh;}
+
+/* WM BAR */
+#wmbar{width:100%;max-width:480px;margin-bottom:10px;padding-left:58px;}
+.wmi{background:linear-gradient(135deg,#001F60,#003080);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,31,96,.35);border:1px solid rgba(255,232,0,.2);}
+.wmico{font-size:22px;flex-shrink:0;}
+.wmtx{flex:1;}
+.wmlb{font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.wmtask{font-size:14px;font-weight:700;color:white;margin-top:1px;}
+.wmtask.blr{filter:blur(5px);user-select:none;}
+.wmrev{padding:5px 12px;border-radius:20px;background:rgba(255,232,0,.25);border:1px solid rgba(255,232,0,.6);color:white;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
+/* KIOSK FRAME */
+#kframe{width:100%;max-width:480px;background:white;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);min-height:720px;display:flex;flex-direction:column;border:3px solid #001F60;}
+
+/* ====== HEADER ====== */
+.pkh{background:#001F60;padding:0;flex-shrink:0;}
+.pkh-top{padding:10px 18px 8px;display:flex;align-items:center;justify-content:space-between;}
+.pklogo{display:flex;align-items:center;gap:10px;}
+.pklb{background:white;border-radius:8px;padding:4px 12px;}
+.pklt{font-size:20px;font-weight:900;color:var(--yellow);letter-spacing:-0.5px;line-height:1;}
+.pklsb{font-size:10px;color:var(--yellow);font-weight:700;margin-top:1px;}
+.pktime{font-size:18px;font-weight:700;color:white;font-variant-numeric:tabular-nums;}
+
+/* step bar */
+.pksteps{background:rgba(0,0,0,.25);padding:6px 16px;display:flex;align-items:center;}
+.pkstep{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.45);flex-shrink:0;}
+.pkstep.act{color:white;}
+.pkstep.dn{color:#86efac;}
+.pksd{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0;}
+.pkstep.act .pksd{background:var(--yellow);color:#001F60;}
+.pkstep.dn .pksd{background:#86efac;color:#14532d;}
+.pksl{flex:1;height:1px;background:rgba(255,255,255,.2);margin:0 3px;}
+.pksl.dn{background:#86efac;}
+.pkstep span{white-space:nowrap;}
+
+/* body */
+.pkbody{flex:1;overflow-y:auto;background:#FAFAFA;}
+.pkbody::-webkit-scrollbar{width:4px;}
+.pkbody::-webkit-scrollbar-thumb{background:var(--yellow-mid);border-radius:2px;}
+.fe{animation:feIn .3s ease;}
+@keyframes feIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ====================================================
+   SCREEN: IDLE
+   ==================================================== */
+.sc-idle{
+  background:linear-gradient(180deg,#001F60 0%,#001040 100%);
+  min-height:660px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 28px;text-align:center;gap:20px;
+  position:relative;overflow:hidden;
+}
+.idle-deco{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.idle-circle{position:absolute;border-radius:50%;background:rgba(255,255,255,.04);}
+.idle-c1{width:300px;height:300px;top:-80px;right:-80px;}
+.idle-c2{width:200px;height:200px;bottom:-60px;left:-60px;}
+.idle-logo-wrap{background:white;border-radius:20px;padding:16px 32px;box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.idle-logo-main{font-size:36px;font-weight:900;color:#001F60;letter-spacing:-1px;}
+.idle-logo-sub{font-size:12px;font-weight:700;color:var(--yellow);opacity:.7;margin-top:2px;}
+.idle-msg{font-size:16px;font-weight:700;color:rgba(255,255,255,.85);line-height:1.6;}
+.idle-touch-btn{
+  background:var(--yellow);color:#001F60;
+  border:none;border-radius:18px;
+  padding:22px 56px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:24px;font-weight:900;cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  animation:idlepulse 2.5s infinite;
+  transition:transform .15s;letter-spacing:-.5px;
+}
+.idle-touch-btn:hover{transform:scale(1.04);}
+@keyframes idlepulse{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.35);}50%{box-shadow:0 8px 40px rgba(0,0,0,.5),0 0 0 10px rgba(255,255,255,.08);}}
+.idle-hint{font-size:12px;color:rgba(255,255,255,.5);}
+
+/* ====================================================
+   SCREEN: MENU (탭 + 그리드)
+   ==================================================== */
+.sc-menu{background:#FAFAFA;min-height:660px;display:flex;flex-direction:column;}
+
+/* category tabs */
+.menu-tabs{background:white;border-bottom:2px solid var(--g2);display:flex;overflow-x:auto;flex-shrink:0;}
+.menu-tabs::-webkit-scrollbar{display:none;}
+.mtab{padding:12px 16px;font-size:13px;font-weight:700;color:var(--g3);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;flex-shrink:0;}
+.mtab.act{color:var(--yellow);border-color:#001F60;}
+
+/* cart mini bar */
+.cart-mini{
+  background:#001F60;padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.cm-info{color:white;font-size:13px;font-weight:700;}
+.cm-total{color:white;font-size:16px;font-weight:900;}
+.cm-btn{background:white;color:var(--yellow);border:none;border-radius:8px;padding:7px 14px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:900;cursor:pointer;transition:opacity .2s;}
+.cm-btn:hover{opacity:.85;}
+
+/* menu grid */
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;flex:1;}
+@media(max-width:400px){.menu-grid{grid-template-columns:repeat(2,1fr);}}
+.menu-card{
+  background:white;border:1px solid var(--g2);
+  padding:14px 10px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;transition:all .18s;position:relative;
+}
+.menu-card:hover{background:#FFFDE7;z-index:1;}
+.menu-card.sold-out{opacity:.45;pointer-events:none;}
+.mc-emoji{font-size:38px;line-height:1;}
+.mc-hot{position:absolute;top:6px;left:6px;background:#001F60;color:white;font-size:9px;font-weight:900;padding:2px 6px;border-radius:20px;}
+.mc-new{position:absolute;top:6px;left:6px;background:#1B8C3E;color:white;font-size:9px;font-weight:900;padding:2px 6px;border-radius:20px;}
+.mc-best{position:absolute;top:6px;right:6px;background:var(--yellow);color:#001F60;font-size:9px;font-weight:900;padding:2px 6px;border-radius:20px;}
+.mc-name{font-size:12px;font-weight:700;color:var(--tx);text-align:center;line-height:1.3;}
+.mc-price{font-size:13px;font-weight:900;color:var(--yellow);}
+.mc-temp{font-size:10px;color:var(--g3);font-weight:600;}
+
+/* ====================================================
+   OPTION BOTTOM SHEET
+   ==================================================== */
+.opt-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.55);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.opt-overlay.show{opacity:1;pointer-events:all;}
+.opt-sheet{
+  background:white;border-radius:22px 22px 0 0;
+  width:100%;max-width:480px;
+  padding:0 0 32px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:85vh;overflow-y:auto;
+}
+.opt-sheet::-webkit-scrollbar{width:4px;}
+.opt-sheet::-webkit-scrollbar-thumb{background:var(--yellow-mid);}
+.opt-overlay.show .opt-sheet{transform:translateY(0);}
+
+.opt-handle{width:40px;height:4px;background:var(--g2);border-radius:2px;margin:12px auto 0;}
+.opt-hd{padding:16px 20px 12px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--g2);}
+.opt-hd-emoji{font-size:36px;}
+.opt-hd-name{font-size:17px;font-weight:900;color:var(--tx);}
+.opt-hd-price{font-size:14px;font-weight:700;color:var(--yellow);margin-top:2px;}
+
+.opt-sec{padding:14px 20px 0;}
+.opt-sec-t{font-size:12px;font-weight:900;color:var(--g4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+
+/* temp toggle */
+.temp-row{display:flex;gap:10px;}
+.temp-btn{
+  flex:1;padding:12px;border-radius:12px;
+  border:2.5px solid var(--g2);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:15px;font-weight:900;cursor:pointer;
+  transition:all .18s;background:white;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.temp-btn.sel-ice{border-color:#2563EB;background:#EFF6FF;color:#1565C0;}
+.temp-btn.sel-hot{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow);}
+
+/* size pills */
+.size-row{display:flex;gap:8px;}
+.size-btn{
+  flex:1;padding:10px 6px;border-radius:10px;
+  border:2.5px solid var(--g2);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;
+  text-align:center;transition:all .18s;background:white;
+}
+.size-btn.sel{border-color:#001F60;background:#FFFDE7;color:var(--yellow);}
+.size-badge{font-size:10px;color:var(--g4);display:block;margin-top:2px;font-weight:400;}
+
+/* option checkboxes */
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opt-check{
+  padding:10px 12px;border-radius:10px;
+  border:2.5px solid var(--g2);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .18s;background:white;
+}
+.opt-check.sel{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow);}
+.opt-add-price{font-size:11px;color:var(--g4);font-weight:400;}
+.opt-check.sel .opt-add-price{color:var(--yellow);}
+
+/* qty row */
+.qty-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-top:1px solid var(--g2);border-bottom:1px solid var(--g2);margin-top:14px;}
+.qty-label{font-size:14px;font-weight:700;flex:1;}
+.qty-ctrl{display:flex;align-items:center;gap:10px;}
+.qty-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--g2);background:white;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.qty-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.qty-num{font-size:20px;font-weight:900;min-width:28px;text-align:center;}
+
+/* add to cart btn */
+.opt-add-btn{
+  margin:16px 20px 0;width:calc(100% - 40px);padding:16px;
+  background:#001F60;border:none;border-radius:14px;
+  color:white;font-family:'Noto Sans KR',sans-serif;
+  font-size:17px;font-weight:900;cursor:pointer;
+  transition:opacity .2s;
+}
+.opt-add-btn:hover{opacity:.88;}
+
+/* ====================================================
+   SCREEN: CART
+   ==================================================== */
+.sc-cart{background:#FAFAFA;min-height:660px;padding:0;}
+.cart-hd{background:white;padding:14px 20px;border-bottom:2px solid var(--g2);display:flex;align-items:center;gap:12px;}
+.cart-hd-back{width:36px;height:36px;border-radius:10px;background:var(--g1);border:1.5px solid var(--g2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cart-hd-t{font-size:18px;font-weight:900;}
+.cart-hd-cnt{background:#001F60;color:white;font-size:12px;font-weight:900;padding:2px 10px;border-radius:20px;margin-left:4px;}
+
+.cart-items{padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.cart-item{background:white;border-radius:14px;border:1.5px solid var(--g2);padding:14px 16px;display:flex;gap:14px;align-items:flex-start;}
+.ci-emoji{font-size:30px;flex-shrink:0;}
+.ci-info{flex:1;}
+.ci-name{font-size:14px;font-weight:900;}
+.ci-opts{font-size:11px;color:var(--g4);margin-top:3px;line-height:1.5;}
+.ci-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.ci-price{font-size:16px;font-weight:900;color:var(--yellow);}
+.ci-qty-row{display:flex;align-items:center;gap:8px;}
+.ciqb{width:28px;height:28px;border-radius:8px;background:var(--g1);border:1.5px solid var(--g2);font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ciqb:hover{border-color:var(--yellow);color:var(--yellow);}
+.ciqn{font-size:15px;font-weight:900;min-width:22px;text-align:center;}
+
+.cart-total-box{background:white;border-top:2px solid var(--g2);padding:16px 20px;margin:0 16px;border-radius:14px;border:1.5px solid var(--g2);}
+.ctb-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--tx2);}
+.ctb-row.total{font-size:18px;font-weight:900;color:var(--tx);padding-top:10px;margin-top:6px;border-top:2px solid var(--g2);}
+.ctb-row.total span:last-child{color:var(--yellow);}
+
+.cart-btns{padding:14px 16px 20px;display:flex;gap:10px;}
+.cart-more-btn{flex:1;padding:15px;background:var(--g1);border:2px solid var(--g2);border-radius:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;color:var(--tx2);transition:all .2s;}
+.cart-more-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.cart-pay-btn{flex:2;padding:15px;background:var(--navy);border:none;border-radius:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:900;cursor:pointer;color:white;box-shadow:0 4px 14px rgba(232,0,61,.35);transition:opacity .2s;}
+.cart-pay-btn:hover{opacity:.88;}
+
+/* ====================================================
+   SCREEN: DINE / TAKEOUT
+   ==================================================== */
+.sc-dine{background:#FAFAFA;min-height:660px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:22px;text-align:center;}
+.dine-icon{font-size:64px;}
+.dine-q{font-size:22px;font-weight:900;color:var(--tx);}
+.dine-sub{font-size:13px;color:var(--tx2);}
+.dine-btns{display:flex;gap:14px;width:100%;}
+.dine-btn{flex:1;padding:22px 16px;border-radius:18px;border:3px solid var(--g2);background:white;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.dine-btn:hover{border-color:var(--yellow);box-shadow:0 6px 20px rgba(0,31,96,.15);}
+.dine-btn.sel{border-color:var(--yellow);background:var(--yellow-light);}
+.dine-btn-ico{font-size:40px;}
+.dine-btn-nm{font-size:16px;font-weight:900;color:var(--tx);}
+.dine-btn-desc{font-size:11px;color:var(--g4);}
+
+/* ====================================================
+   SCREEN: MEMBERSHIP
+   ==================================================== */
+.sc-ms{background:#FAFAFA;min-height:660px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;}
+.ms-icon{font-size:60px;margin-bottom:8px;}
+.ms-q{font-size:22px;font-weight:900;text-align:center;margin-bottom:6px;}
+.ms-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:20px;line-height:1.6;}
+.ms-skip-row{display:flex;gap:10px;width:100%;margin-bottom:20px;}
+.ms-no{flex:1;padding:15px;background:var(--g2);border:none;border-radius:14px;font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:900;cursor:pointer;color:var(--g4);transition:background .2s;}
+.ms-no:hover{background:#d0d0d0;}
+.ms-yes{flex:2;padding:15px;background:var(--navy);border:none;border-radius:14px;font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:900;cursor:pointer;color:white;box-shadow:0 4px 12px rgba(0,31,96,.35);transition:opacity .2s;}
+.ms-yes:hover{opacity:.88;}
+
+/* phone display */
+.phone-box{width:100%;background:white;border:3px solid #001F60;border-radius:16px;padding:16px 20px;text-align:center;margin-bottom:16px;}
+.phone-lbl{font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:6px;}
+.phone-num{font-size:32px;font-weight:900;color:var(--tx);letter-spacing:3px;min-height:44px;display:flex;align-items:center;justify-content:center;}
+.phone-cursor{display:inline-block;width:2px;height:36px;background:var(--navy);animation:blink .8s infinite;vertical-align:middle;margin-left:2px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.phone-len{font-size:12px;color:var(--g3);margin-top:4px;}
+
+/* numpad */
+.numpad{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.nb{padding:0;aspect-ratio:1.5/1;background:white;border:2px solid var(--g2);border-radius:14px;font-family:'Noto Sans KR',sans-serif;font-size:24px;font-weight:900;color:var(--tx);cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.05);}
+.nb:hover{background:var(--yellow-light);border-color:var(--yellow);}
+.nb:active{transform:scale(.94);background:var(--yellow-mid);}
+.nb.del{background:var(--g1);font-size:20px;}
+.nb.del:hover{background:#ffd6d6;border-color:var(--yellow);}
+.nb.ok{background:#001F60;color:var(--yellow);border-color:#001F60;font-size:16px;}
+.nb.ok:hover{background:var(--navy);}
+.nb.ok:disabled{background:var(--g2);color:var(--g3);border-color:var(--g2);cursor:not-allowed;}
+
+/* ====================================================
+   SCREEN: PAYMENT
+   ==================================================== */
+.sc-pay{background:#000D2E;min-height:660px;padding:24px 20px;display:flex;flex-direction:column;gap:14px;}
+.pay-t{font-size:20px;font-weight:900;color:white;}
+.pay-s{font-size:13px;color:rgba(255,255,255,.5);margin-top:2px;}
+.pay-amt{background:#000820;border-radius:16px;padding:20px;text-align:center;border:1px solid #333;}
+.pay-amt-l{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:4px;}
+.pay-amt-n{font-size:46px;font-weight:900;color:var(--yellow);}
+.pay-ms-chip{background:rgba(232,0,61,.12);border:1.5px solid rgba(232,0,61,.3);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:rgba(255,255,255,.8);}
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pay-m{background:#111;border:2.5px solid #2a2a2a;border-radius:14px;padding:16px 12px;cursor:pointer;transition:all .2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.pay-m:hover{border-color:var(--yellow);}
+.pay-m.sel{border-color:var(--yellow);background:rgba(255,232,0,.08);}
+.pay-m-ico{font-size:30px;}
+.pay-m-nm{font-size:13px;font-weight:700;color:white;}
+.pay-m-ds{font-size:10px;color:rgba(255,255,255,.45);}
+.pay-sim-btn{margin-top:auto;width:100%;padding:17px;background:var(--navy);border:none;border-radius:14px;color:white;font-family:'Noto Sans KR',sans-serif;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(255,232,0,.15);transition:opacity .2s;}
+.pay-sim-btn:hover{opacity:.88;}
+.pay-sim-btn:disabled{background:#444;box-shadow:none;cursor:not-allowed;}
+
+/* ====================================================
+   SCREEN: COMPLETE
+   ==================================================== */
+.sc-comp{background:linear-gradient(180deg,#001F60 0%,#001040 100%);min-height:660px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;gap:16px;text-align:center;}
+.comp-circle{width:86px;height:86px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:42px;animation:popin .5s cubic-bezier(.4,0,.2,1);}
+@keyframes popin{from{transform:scale(.3);opacity:0;}60%{transform:scale(1.15);}to{transform:scale(1);opacity:1;}}
+.comp-t{font-size:30px;font-weight:900;color:white;}
+.comp-s{font-size:14px;color:rgba(255,255,255,.75);}
+.comp-numbox{background:white;border-radius:16px;padding:16px 32px;}
+.comp-num-l{font-size:12px;color:var(--yellow);font-weight:700;}
+.comp-num-n{font-size:52px;font-weight:900;color:var(--yellow);line-height:1.1;}
+.comp-receipt{background:rgba(255,255,255,.12);border-radius:16px;padding:16px 20px;width:100%;text-align:left;}
+.crt{font-size:11px;color:rgba(255,255,255,.45);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.crr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;color:rgba(255,255,255,.8);}
+.crr:last-child{border-bottom:none;}
+.crtotal{display:flex;justify-content:space-between;padding:10px 0 0;margin-top:8px;border-top:2px solid rgba(255,255,255,.2);}
+.crtotal-l{font-size:14px;font-weight:900;color:white;}
+.crtotal-n{font-size:22px;font-weight:900;color:var(--yellow);}
+.comp-ms{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:8px;width:100%;}
+.comp-btns{display:flex;gap:10px;width:100%;}
+.comp-rec-btn{flex:1;padding:13px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:12px;color:white;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.comp-home-btn{flex:2;padding:13px;background:white;border:none;border-radius:12px;color:var(--yellow);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;}
+
+/* ====================================================
+   QUIZ + TOAST
+   ==================================================== */
+.quiz-ov{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.quiz-ov.show{opacity:1;pointer-events:all;}
+.quiz-box{background:white;border-radius:22px;padding:26px 22px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4);border:4px solid #001F60;transform:scale(.92);transition:transform .25s;}
+.quiz-ov.show .quiz-box{transform:scale(1);}
+.quiz-ico{font-size:46px;text-align:center;margin-bottom:6px;}
+.quiz-t{font-size:20px;font-weight:900;text-align:center;margin-bottom:4px;}
+.quiz-s{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:16px;}
+.quiz-choices{display:flex;flex-direction:column;gap:8px;}
+.qchoice{padding:13px 16px;border-radius:12px;border:2px solid var(--g2);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;background:#fafafa;transition:all .2s;font-family:'Noto Sans KR',sans-serif;}
+.qchoice:hover:not(:disabled){border-color:var(--yellow);background:var(--yellow-light);}
+.qchoice.ok{border-color:var(--grn);background:#E8F5EC;color:#1B8C3E;}
+.qchoice.no{border-color:var(--yellow);background:var(--yellow-light);color:var(--yellow);}
+.qfb{margin-top:10px;padding:11px 14px;border-radius:12px;font-size:14px;font-weight:700;text-align:center;display:none;}
+.qfb.show.g{display:block;background:var(--grn2);color:var(--grn);}
+.qfb.show.b{display:block;background:var(--yellow-light);color:var(--yellow);}
+.qnxt{margin-top:10px;width:100%;padding:12px;background:var(--navy);border:none;border-radius:12px;color:white;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:none;}
+.qnxt.show{display:block;}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(26,26,26,.95);color:white;padding:12px 22px;border-radius:50px;font-size:14px;font-weight:700;z-index:700;pointer-events:none;transition:transform .35s cubic-bezier(.4,0,.2,1);white-space:nowrap;border:2px solid rgba(255,232,0,.15);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="root">
+
+<!-- ===== SIDEBAR ===== -->
+<div id="tp">
+  <div class="tphd">
+    <div class="tplb">치료사 컨트롤</div>
+    <div class="tpnm">☕ 빽다방 키오스크 훈련</div>
+  </div>
+  <div class="tpbd">
+    <div class="tpsec">
+      <div class="tpst">🧠 워킹메모리 옵션</div>
+      <div class="tgr"><div class="tgi"><div class="tgl">미션 제시</div><div class="tgs">주문 전 목표</div></div><button class="sw on" id="sw-ms" onclick="togOpt('mission',this)"></button></div>
+      <div class="tgr"><div class="tgi"><div class="tgl">지연회상 퀴즈</div><div class="tgs">완료 후 테스트</div></div><button class="sw on" id="sw-qz" onclick="togOpt('quiz',this)"></button></div>
+      <div class="tgr"><div class="tgi"><div class="tgl">미션 숨김</div><div class="tgs">기억 후 블러</div></div><button class="sw" id="sw-hd" onclick="togOpt('hide',this)"></button></div>
+    </div>
+    <div class="tpsec">
+      <div class="tpst">⚡ 난이도</div>
+      <div class="dfr">
+        <button class="dfb ae" onclick="setDiff('e',this)">쉬움</button>
+        <button class="dfb" onclick="setDiff('m',this)">보통</button>
+        <button class="dfb" onclick="setDiff('h',this)">어려움</button>
+      </div>
+      <div class="ddc">
+        <div class="ddt" id="ddt">🟢 쉬움</div>
+        <div class="ddb" id="ddb">음료 <b>1잔</b>만 주문하는 훈련이에요.<br>ICE/HOT 선택만 포함됩니다.</div>
+      </div>
+    </div>
+    <div class="tpsec">
+      <div class="tpst">📊 세션 기록</div>
+      <div class="stg">
+        <div class="stc"><div class="stn" id="st-t">0</div><div class="stl">시도</div></div>
+        <div class="stc"><div class="stn" id="st-c">0</div><div class="stl">정답</div></div>
+        <div class="stc"><div class="stn" id="st-p">0%</div><div class="stl">정확도</div></div>
+      </div>
+      <button type="button" class="tpbtn tpbtn-sv" onclick="kioskSaveResultScreen('paik',showToast)">📷 결과 화면 저장</button>
+    </div>
+  </div>
+  <div style="padding:8px 0 14px;">
+    <button class="tpbtn tpbtn-r" onclick="resetAll()">🔄 새 세션 시작</button>
+  </div>
+</div>
+
+<button id="ptbtn" class="open" onclick="togPanel()">☰</button>
+
+<!-- ===== KIOSK WRAP ===== -->
+<div id="kwrap">
+  <div id="wmbar">
+    <div class="wmi">
+      <span class="wmico">🎯</span>
+      <div class="wmtx">
+        <div class="wmlb">오늘의 미션</div>
+        <div class="wmtask" id="wmtask">아이스 아메리카노 1잔을 주문하세요!</div>
+      </div>
+      <button class="wmrev" id="wmrev" onclick="revealMs()" style="display:none">보기</button>
+    </div>
+  </div>
+
+  <div id="kframe">
+    <!-- HEADER -->
+    <div class="pkh">
+      <div class="pkh-top">
+        <div class="pklogo">
+          <div class="pklb">
+            <div class="pklt">빽다방</div>
+            <div class="pklsb">PAIK'S COFFEE</div>
+          </div>
+        </div>
+        <div class="pktime" id="pktime">00:00</div>
+      </div>
+      <div class="pksteps" id="pksteps"></div>
+    </div>
+    <div class="pkbody fe" id="pkbody"></div>
+  </div>
+</div>
+</div><!-- /root -->
+
+<!-- OPTION SHEET -->
+<div class="opt-overlay" id="opt-ov" onclick="closeOpt(event)">
+  <div class="opt-sheet" id="opt-sheet">
+    <div class="opt-handle"></div>
+    <div id="opt-content"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-ov" id="quiz-ov">
+  <div class="quiz-box">
+    <div class="quiz-ico">🧠</div>
+    <div class="quiz-t" id="quiz-t">기억해 볼까요?</div>
+    <div class="quiz-s" id="quiz-s">방금 주문한 내용을 떠올려 보세요!</div>
+    <div class="quiz-choices" id="quiz-choices"></div>
+    <div class="qfb" id="qfb"></div>
+    <button class="qnxt" id="qnxt" onclick="closeQuiz()">다음 →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================
+   MENUS DATA
+   ============================================= */
+const MENUS = {
+  best: [
+    {id:'am1',name:'빽사이즈 아메리카노',emoji:'☕',priceIce:3500,priceHot:null,hasHot:false,isBest:true,desc:'에스프레소 4샷 진한 맛'},
+    {id:'wc1',name:'원조커피',emoji:'🧋',priceIce:2500,priceHot:null,hasHot:false,isBest:true,desc:'빽다방 시그니처'},
+    {id:'cl1',name:'카페라떼',emoji:'🥛',priceIce:3500,priceHot:2500,hasHot:true,isBest:true,desc:'부드러운 우유+에스프레소'},
+    {id:'cm1',name:'카라멜마키아또',emoji:'🍯',priceIce:3500,priceHot:3000,hasHot:true,isNew:false,desc:'달콤한 카라멜'},
+  ],
+  coffee: [
+    {id:'am2',name:'앗메리카노',emoji:'☕',priceIce:2000,priceHot:1700,hasHot:true,desc:'깊고 진한 아메리카노'},
+    {id:'dl1',name:'달달연유라떼',emoji:'🍶',priceIce:3500,priceHot:3500,hasHot:true,desc:'베트남식 연유라떼'},
+    {id:'cb1',name:'콜드브루',emoji:'🫙',priceIce:4000,priceHot:null,hasHot:false,desc:'12시간 콜드브루'},
+    {id:'cb2',name:'콜드브루라떼',emoji:'🥛',priceIce:4500,priceHot:null,hasHot:false,desc:'부드러운 콜드브루라떼'},
+  ],
+  drink: [
+    {id:'it1',name:'달콤아이스티',emoji:'🍵',priceIce:3000,priceHot:null,hasHot:false,isBest:true,desc:'시원달콤한 아이스티'},
+    {id:'ms1',name:'밀크쉐이크',emoji:'🥤',priceIce:3000,priceHot:null,hasHot:false,desc:'부드러운 밀크쉐이크'},
+    {id:'st1',name:'딸기라떼',emoji:'🍓',priceIce:3500,priceHot:3500,hasHot:true,isNew:true,desc:'달콤한 딸기라떼'},
+    {id:'ch1',name:'초코라떼',emoji:'🍫',priceIce:3500,priceHot:3500,hasHot:true,desc:'진한 초코라떼'},
+  ],
+  smoothie: [
+    {id:'bc1',name:'빽스치노',emoji:'🧊',priceIce:3000,priceHot:null,hasHot:false,isBest:true,desc:'원조커피 스무디'},
+    {id:'pp1',name:'퐁당치노',emoji:'🍪',priceIce:3500,priceHot:null,hasHot:false,desc:'죠리퐁 스무디'},
+    {id:'mg1',name:'망고스무디',emoji:'🥭',priceIce:4000,priceHot:null,hasHot:false,desc:'달콤한 망고스무디'},
+    {id:'st2',name:'딸기스무디',emoji:'🍓',priceIce:4000,priceHot:null,hasHot:false,isNew:true,desc:'상큼한 딸기스무디'},
+  ],
+  dessert: [
+    {id:'ds1',name:'소프트아이스크림',emoji:'🍦',priceIce:2500,priceHot:null,hasHot:false,desc:'시그니처 소프트콘'},
+    {id:'ds2',name:'맛카롱',emoji:'🎀',priceIce:2500,priceHot:null,hasHot:false,desc:'크림가득 마카롱'},
+    {id:'ds3',name:'사라다빵',emoji:'🥪',priceIce:3000,priceHot:null,hasHot:false,desc:'추억의 감자 사라다빵'},
+    {id:'ds4',name:'크리미슈',emoji:'🍮',priceIce:2500,priceHot:null,hasHot:false,desc:'촉촉한 크림슈'},
+  ]
+};
+
+const CAT_LABELS = {best:'BEST 🔥',coffee:'커피',drink:'음료',smoothie:'스무디',dessert:'디저트'};
+
+// All menus flat
+const ALL_MENUS = Object.values(MENUS).flat();
+
+/* =============================================
+   STATE
+   ============================================= */
+const S = {
+  screen:'idle',
+  cart:[],
+  dine:null,
+  phone:'',
+  doMs:false,
+  payMethod:null,
+  difficulty:'e',
+  mission:'',
+  activeTab:'best',
+  opts:{mission:true,quiz:true,hide:false},
+  stats:{trials:0,correct:0},
+  panelOpen:true,
+  // option sheet state
+  optItem:null,
+  optTemp:'ice',
+  optSize:'reg',
+  optShot:false,
+  optSyrup:false,
+  optPearl:false,
+  optQty:1,
+  _msPhase:0, // 0=ask, 1=numpad
+};
+
+const STEPS = ['메뉴','카트','식사장소','멤버십','결제','완료'];
+const SCREEN_STEP = {idle:-1,menu:0,cart:1,dine:2,membership:3,payment:4,complete:5};
+
+/* =============================================
+   MISSIONS by difficulty
+   ============================================= */
+const MISSIONS = {
+  e:[
+    {text:'아이스 아메리카노 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('아메리카노')&&i.temp==='ice')},
+    {text:'따뜻한 카페라떼 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('카페라떼')&&i.temp==='hot')},
+    {text:'원조커피 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('원조커피'))},
+    {text:'딸기라떼 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('딸기라떼'))},
+    {text:'아이스 달콤아이스티 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('아이스티'))},
+  ],
+  m:[
+    {text:'아이스 아메리카노 1잔 + 카페라떼 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('아메리카노'))&&cart.some(i=>i.name.includes('카페라떼'))},
+    {text:'빽스치노 1잔 + 소프트아이스크림 1개를 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('빽스치노'))&&cart.some(i=>i.name.includes('아이스크림'))},
+    {text:'따뜻한 음료 1잔 + 아이스 음료 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.temp==='hot')&&cart.some(i=>i.temp==='ice')},
+    {text:'음료 2잔을 모두 아이스로 주문하세요!', check:(cart)=>{const drinks=cart.filter(i=>!['소프트아이스크림','맛카롱','사라다빵','크리미슈'].includes(i.name));return drinks.length>=2&&drinks.every(i=>i.temp==='ice');}},
+  ],
+  h:[
+    {text:'아이스 아메리카노 2잔 + 맛카롱 1개를 주문하세요!', check:(cart)=>{const am=cart.find(i=>i.name.includes('아메리카노')&&i.temp==='ice');return am&&am.qty>=2&&cart.some(i=>i.name.includes('맛카롱'));}},
+    {text:'샷 추가한 카페라떼 1잔 + 원조커피 1잔을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('카페라떼')&&i.shot)&&cart.some(i=>i.name.includes('원조커피'))},
+    {text:'서로 다른 음료 3잔을 주문하세요!', check:(cart)=>cart.reduce((s,i)=>s+i.qty,0)>=3},
+    {text:'빽사이즈 아메리카노 1잔 + 디저트 2종을 주문하세요!', check:(cart)=>cart.some(i=>i.name.includes('빽사이즈'))&&cart.filter(i=>['소프트아이스크림','맛카롱','사라다빵','크리미슈'].some(d=>i.name.includes(d))).length>=2},
+  ],
+};
+
+const DIFF_INFO = {
+  e:{tag:'🟢 쉬움',desc:'음료 <b>1잔</b>만 주문하는 훈련이에요.<br>ICE/HOT 선택만 포함됩니다.'},
+  m:{tag:'🟡 보통',desc:'음료 <b>2잔</b> 조건 주문 훈련이에요.<br>ICE/HOT + 사이즈 + 수량이 포함됩니다.'},
+  h:{tag:'🔴 어려움',desc:'음료 <b>3잔</b> 또는 <b>옵션 조건</b> 훈련이에요.<br>샷추가·시럽·사이즈 모두 포함됩니다.'},
+};
+
+/* =============================================
+   CLOCK
+   ============================================= */
+setInterval(()=>{const n=new Date();const e=document.getElementById('pktime');if(e)e.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');},1000);
+
+/* =============================================
+   STEP BAR
+   ============================================= */
+function renderSteps(){
+  const cur=SCREEN_STEP[S.screen]??-1;
+  document.getElementById('pksteps').innerHTML=STEPS.map((s,i)=>{
+    const cls=i<cur?'dn':i===cur?'act':'';
+    const dot=i<cur?'✓':(i+1);
+    const line=i<STEPS.length-1?`<div class="pksl ${i<cur?'dn':''}"></div>`:'';
+    return `<div class="pkstep ${cls}"><div class="pksd">${dot}</div><span>${s}</span></div>${line}`;
+  }).join('');
+}
+
+/* =============================================
+   TOAST
+   ============================================= */
+let toastT;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* =============================================
+   RENDER ROUTER
+   ============================================= */
+function render(){
+  renderSteps();
+  const body=document.getElementById('pkbody');
+  body.className='pkbody fe';void body.offsetWidth;
+  switch(S.screen){
+    case 'idle':render_idle(body);break;
+    case 'menu':render_menu(body);break;
+    case 'cart':render_cart(body);break;
+    case 'dine':render_dine(body);break;
+    case 'membership':render_ms(body);break;
+    case 'payment':render_pay(body);break;
+    case 'complete':render_comp(body);if(S.opts.quiz)setTimeout(triggerQuiz,1900);break;
+  }
+}
+
+/* =============================================
+   IDLE
+   ============================================= */
+function render_idle(body){
+  body.innerHTML=`<div class="sc-idle">
+    <div class="idle-deco"><div class="idle-circle idle-c1"></div><div class="idle-circle idle-c2"></div></div>
+    <div class="idle-logo-wrap">
+      <div class="idle-logo-main">빽다방</div>
+      <div class="idle-logo-sub">PAIK'S COFFEE</div>
+    </div>
+    <div class="idle-msg">싸다, 크다, 맛있다!<br>백종원의 커피전문점</div>
+    <button class="idle-touch-btn" onclick="goScr('menu')">화면을 터치하여 주문 시작</button>
+    <div class="idle-hint">🔴 키오스크로 쉽고 빠르게 주문하세요</div>
+  </div>`;
+}
+
+/* =============================================
+   MENU
+   ============================================= */
+function render_menu(body){
+  const tabs=Object.entries(CAT_LABELS).map(([k,v])=>
+    `<div class="mtab ${S.activeTab===k?'act':''}" onclick="setTab('${k}')">${v}</div>`).join('');
+  const items=MENUS[S.activeTab].map(m=>`
+    <div class="menu-card" onclick="openOpt('${m.id}')">
+      ${m.isBest?'<div class="mc-best">BEST</div>':''}
+      ${m.isNew?'<div class="mc-new">NEW</div>':''}
+      <div class="mc-emoji">${m.emoji}</div>
+      <div class="mc-name">${m.name}</div>
+      <div class="mc-price">${m.priceIce?m.priceIce.toLocaleString()+'원':''}</div>
+      <div class="mc-temp">${m.hasHot?'ICE·HOT':'ICE only'}</div>
+    </div>`).join('');
+  const cartCount=S.cart.reduce((s,i)=>s+i.qty,0);
+  const cartTotal=cartTotal_fn();
+  body.innerHTML=`<div class="sc-menu">
+    ${cartCount>0?`<div class="cart-mini">
+      <span class="cm-info">🛒 ${cartCount}잔 담겨있어요</span>
+      <span class="cm-total">${cartTotal.toLocaleString()}원</span>
+      <button class="cm-btn" onclick="goScr('cart')">카트 보기</button>
+    </div>`:''}
+    <div class="menu-tabs">${tabs}</div>
+    <div class="menu-grid">${items}</div>
+  </div>`;
+}
+
+function setTab(k){S.activeTab=k;render();}
+
+/* =============================================
+   OPTION SHEET
+   ============================================= */
+function openOpt(id){
+  const m=ALL_MENUS.find(x=>x.id===id);
+  if(!m) return;
+  S.optItem=m;
+  S.optTemp=m.hasHot?'ice':'ice';
+  S.optSize='reg';
+  S.optShot=false;
+  S.optSyrup=false;
+  S.optPearl=false;
+  S.optQty=1;
+  renderOptSheet();
+  document.getElementById('opt-ov').classList.add('show');
+}
+
+function renderOptSheet(){
+  const m=S.optItem;
+  const basePrice=S.optTemp==='hot'&&m.priceHot?m.priceHot:m.priceIce;
+  const sizeAdd=S.optSize==='paik'?500:0;
+  const shotAdd=S.optShot?500:0;
+  const syrupAdd=S.optSyrup?300:0;
+  const pearlAdd=S.optPearl?500:0;
+  const unitPrice=(basePrice+sizeAdd+shotAdd+syrupAdd+pearlAdd);
+  const total=unitPrice*S.optQty;
+
+  // difficulty-based option visibility
+  const showSize = S.difficulty!=='e';
+  const showExtras = S.difficulty==='h';
+
+  document.getElementById('opt-content').innerHTML=`
+    <div class="opt-hd">
+      <span class="opt-hd-emoji">${m.emoji}</span>
+      <div>
+        <div class="opt-hd-name">${m.name}</div>
+        <div class="opt-hd-price">${unitPrice.toLocaleString()}원</div>
+      </div>
+    </div>
+
+    ${m.hasHot?`
+    <div class="opt-sec">
+      <div class="opt-sec-t">온도</div>
+      <div class="temp-row">
+        <button class="temp-btn ${S.optTemp==='ice'?'sel-ice':''}" onclick="setOptTemp('ice')">🧊 ICE</button>
+        <button class="temp-btn ${S.optTemp==='hot'?'sel-hot':''}" onclick="setOptTemp('hot')">🔥 HOT</button>
+      </div>
+    </div>`:`
+    <div class="opt-sec">
+      <div class="opt-sec-t">온도</div>
+      <div style="background:#EFF6FF;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#1D4ED8;">🧊 ICE only — 이 메뉴는 아이스만 가능해요</div>
+    </div>`}
+
+    ${showSize?`
+    <div class="opt-sec" style="margin-top:14px;">
+      <div class="opt-sec-t">사이즈</div>
+      <div class="size-row">
+        <button class="size-btn ${S.optSize==='reg'?'sel':''}" onclick="setOptSize('reg')">
+          기본<span class="size-badge">625ml</span>
+        </button>
+        <button class="size-btn ${S.optSize==='paik'?'sel':''}" onclick="setOptSize('paik')" ${S.optTemp==='hot'?'disabled style="opacity:.4"':''}>
+          빽사이즈<span class="size-badge">950ml +500원</span>
+        </button>
+      </div>
+    </div>`:''}
+
+    ${showExtras?`
+    <div class="opt-sec" style="margin-top:14px;">
+      <div class="opt-sec-t">추가 옵션</div>
+      <div class="opt-grid">
+        <button class="opt-check ${S.optShot?'sel':''}" onclick="togOptCheck('shot')">
+          ☕ 샷 추가<span class="opt-add-price">+500원</span>
+        </button>
+        <button class="opt-check ${S.optSyrup?'sel':''}" onclick="togOptCheck('syrup')">
+          🍯 시럽 추가<span class="opt-add-price">+300원</span>
+        </button>
+        <button class="opt-check ${S.optPearl?'sel':''}" onclick="togOptCheck('pearl')">
+          🫧 펄 추가<span class="opt-add-price">+500원</span>
+        </button>
+        <button class="opt-check" style="opacity:.4;cursor:not-allowed;">
+          🥛 두유 변경<span class="opt-add-price">준비중</span>
+        </button>
+      </div>
+    </div>`:''}
+
+    <div class="qty-row">
+      <span class="qty-label">수량</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="setOptQty(-1)">−</button>
+        <span class="qty-num">${S.optQty}</span>
+        <button class="qty-btn" onclick="setOptQty(1)">+</button>
+      </div>
+    </div>
+
+    <button class="opt-add-btn" onclick="addToCart()">
+      카트 담기 — ${total.toLocaleString()}원
+    </button>`;
+}
+
+function setOptTemp(t){S.optTemp=t;if(t==='hot')S.optSize='reg';renderOptSheet();}
+function setOptSize(s){S.optSize=s;renderOptSheet();}
+function togOptCheck(k){
+  if(k==='shot')S.optShot=!S.optShot;
+  else if(k==='syrup')S.optSyrup=!S.optSyrup;
+  else if(k==='pearl')S.optPearl=!S.optPearl;
+  renderOptSheet();
+}
+function setOptQty(d){S.optQty=Math.max(1,S.optQty+d);renderOptSheet();}
+
+function addToCart(){
+  const m=S.optItem;
+  const basePrice=S.optTemp==='hot'&&m.priceHot?m.priceHot:m.priceIce;
+  const sizeAdd=S.optSize==='paik'?500:0;
+  const shotAdd=S.optShot?500:0;
+  const syrupAdd=S.optSyrup?300:0;
+  const pearlAdd=S.optPearl?500:0;
+  const unitPrice=basePrice+sizeAdd+shotAdd+syrupAdd+pearlAdd;
+
+  const opts=[];
+  if(S.optTemp==='hot') opts.push('HOT');
+  else opts.push('ICE');
+  if(S.optSize==='paik') opts.push('빽사이즈');
+  if(S.optShot) opts.push('샷추가');
+  if(S.optSyrup) opts.push('시럽추가');
+  if(S.optPearl) opts.push('펄추가');
+
+  // check if identical item already in cart
+  const key=`${m.id}_${S.optTemp}_${S.optSize}_${S.optShot}_${S.optSyrup}_${S.optPearl}`;
+  const existing=S.cart.find(c=>c.key===key);
+  if(existing){existing.qty+=S.optQty;}
+  else{S.cart.push({key,id:m.id,name:m.name,emoji:m.emoji,temp:S.optTemp,size:S.optSize,shot:S.optShot,syrup:S.optSyrup,pearl:S.optPearl,unitPrice,qty:S.optQty,opts:opts.join(' · ')});}
+
+  closeOptSheet();
+  showToast(`🛒 ${m.name} 담았어요!`);
+  render();
+}
+
+function closeOptSheet(){document.getElementById('opt-ov').classList.remove('show');}
+function closeOpt(e){if(e.target===document.getElementById('opt-ov'))closeOptSheet();}
+
+function cartTotal_fn(){return S.cart.reduce((s,i)=>s+i.unitPrice*i.qty,0);}
+
+/* =============================================
+   CART
+   ============================================= */
+function render_cart(body){
+  const total=cartTotal_fn();
+  const itemsHTML=S.cart.map(i=>`
+    <div class="cart-item">
+      <span class="ci-emoji">${i.emoji}</span>
+      <div class="ci-info">
+        <div class="ci-name">${i.name}</div>
+        <div class="ci-opts">${i.opts}</div>
+        <div class="ci-bottom">
+          <span class="ci-price">${(i.unitPrice*i.qty).toLocaleString()}원</span>
+          <div class="ci-qty-row">
+            <button class="ciqb" onclick="chQty('${i.key}',-1)">−</button>
+            <span class="ciqn">${i.qty}</span>
+            <button class="ciqb" onclick="chQty('${i.key}',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  body.innerHTML=`<div class="sc-cart">
+    <div class="cart-hd">
+      <button class="cart-hd-back" onclick="goScr('menu')">←</button>
+      <span class="cart-hd-t">주문 내역</span>
+      <span class="cart-hd-cnt">${S.cart.reduce((s,i)=>s+i.qty,0)}잔</span>
+    </div>
+    <div class="cart-items">${itemsHTML}</div>
+    <div style="padding:0 16px;">
+      <div class="cart-total-box">
+        ${S.cart.map(i=>`<div class="ctb-row"><span>${i.emoji} ${i.name} × ${i.qty}</span><span>${(i.unitPrice*i.qty).toLocaleString()}원</span></div>`).join('')}
+        <div class="ctb-row total"><span>합계</span><span>${total.toLocaleString()}원</span></div>
+      </div>
+    </div>
+    <div class="cart-btns">
+      <button class="cart-more-btn" onclick="goScr('menu')">+ 더 담기</button>
+      <button class="cart-pay-btn" onclick="goScr('dine')">다음(결제하기) →</button>
+    </div>
+  </div>`;
+}
+
+function chQty(key,d){
+  const i=S.cart.find(c=>c.key===key);
+  if(!i)return;
+  i.qty+=d;
+  if(i.qty<=0)S.cart=S.cart.filter(c=>c.key!==key);
+  render();
+}
+
+/* =============================================
+   DINE / TAKEOUT
+   ============================================= */
+function render_dine(body){
+  body.innerHTML=`<div class="sc-dine">
+    <div class="dine-icon">🏠</div>
+    <div class="dine-q">식사 장소를 선택해주세요</div>
+    <div class="dine-sub">매장 식사 또는 포장(테이크아웃)을 선택하세요</div>
+    <div class="dine-btns">
+      <div class="dine-btn ${S.dine==='in'?'sel':''}" onclick="selDine('in')">
+        <span class="dine-btn-ico">🪑</span>
+        <span class="dine-btn-nm">매장 식사</span>
+        <span class="dine-btn-desc">For Here</span>
+      </div>
+      <div class="dine-btn ${S.dine==='out'?'sel':''}" onclick="selDine('out')">
+        <span class="dine-btn-ico">🛍️</span>
+        <span class="dine-btn-nm">포장</span>
+        <span class="dine-btn-desc">Take Out</span>
+      </div>
+    </div>
+  </div>`;
+}
+function selDine(v){S.dine=v;goScr('membership');}
+
+/* =============================================
+   MEMBERSHIP
+   ============================================= */
+function render_ms(body){
+  if(S._msPhase===1){
+    // numpad
+    const raw=S.phone;
+    let disp='';
+    if(raw.length<=3)disp=raw;
+    else if(raw.length<=7)disp=raw.slice(0,3)+'-'+raw.slice(3);
+    else disp=raw.slice(0,3)+'-'+raw.slice(3,7)+'-'+raw.slice(7);
+    const done=raw.length===11;
+    body.innerHTML=`<div class="sc-ms">
+      <div class="ms-icon">📱</div>
+      <div class="ms-q">빽다방 멤버십 번호 입력</div>
+      <div class="ms-sub">선생님이 불러주시는 번호를<br>눌러주세요 (010-XXXX-XXXX)</div>
+      <div class="phone-box">
+        <div class="phone-lbl">입력 중인 번호</div>
+        <div class="phone-num">${disp||' '}${!done?'<span class="phone-cursor"></span>':''}</div>
+        <div class="phone-len">${raw.length}/11자리</div>
+      </div>
+      <div class="numpad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="nb" onclick="numIn('${n}')">${n}</button>`).join('')}
+        <button class="nb del" onclick="numDel()">⌫</button>
+        <button class="nb" onclick="numIn('0')">0</button>
+        <button class="nb ok" onclick="numOk()" ${!done?'disabled':''}>확인</button>
+      </div>
+    </div>`;
+    return;
+  }
+  body.innerHTML=`<div class="sc-ms">
+    <div class="ms-icon">⭐</div>
+    <div class="ms-q">빽다방 멤버십을<br>적립하시겠어요?</div>
+    <div class="ms-sub">휴대폰 번호로 포인트를 적립하면<br>다음 방문 시 혜택을 받을 수 있어요!</div>
+    <div class="ms-skip-row">
+      <button class="ms-no" onclick="skipMs()">아니오</button>
+      <button class="ms-yes" onclick="startMs()">네, 적립할게요 ⭐</button>
+    </div>
+  </div>`;
+}
+function skipMs(){S.doMs=false;S._msPhase=0;goScr('payment');}
+function startMs(){S._msPhase=1;S.phone='';render();}
+function numIn(n){if(S.phone.length>=11)return;S.phone+=n;render();}
+function numDel(){S.phone=S.phone.slice(0,-1);render();}
+function numOk(){if(S.phone.length!==11)return;S.doMs=true;showToast('⭐ 멤버십 적립 완료!');goScr('payment');}
+
+/* =============================================
+   PAYMENT
+   ============================================= */
+const PAY_METHODS=[
+  {ico:'💳',nm:'신용 / 체크카드',ds:'카드를 단말기에 삽입'},
+  {ico:'📱',nm:'삼성페이',ds:'NFC 태그 결제'},
+  {ico:'🍀',nm:'카카오페이',ds:'QR 또는 바코드'},
+  {ico:'🅃',nm:'토스페이',ds:'바코드 스캔 결제'},
+];
+function render_pay(body){
+  const total=cartTotal_fn();
+  const fmtPhone=S.phone.length===11?S.phone.slice(0,3)+'-'+S.phone.slice(3,7)+'-'+S.phone.slice(7):'';
+  body.innerHTML=`<div class="sc-pay">
+    <div>
+      <div class="pay-t">결제를 진행하세요</div>
+      <div class="pay-s">결제 수단을 선택해주세요</div>
+    </div>
+    <div class="pay-amt">
+      <div class="pay-amt-l">최종 결제 금액</div>
+      <div class="pay-amt-n">${total.toLocaleString()}원</div>
+    </div>
+    ${S.doMs?`<div class="pay-ms-chip">⭐ <span>멤버십 적립: ${fmtPhone}</span></div>`:''}
+    <div class="pay-methods">
+      ${PAY_METHODS.map((p,i)=>`
+        <div class="pay-m ${S.payMethod===i?'sel':''}" onclick="selPay(${i})">
+          <div class="pay-m-ico">${p.ico}</div>
+          <div class="pay-m-nm">${p.nm}</div>
+          <div class="pay-m-ds">${p.ds}</div>
+        </div>`).join('')}
+    </div>
+    <button class="pay-sim-btn" onclick="goScr('complete')" ${S.payMethod===null?'disabled':''}>
+      💳 결제 완료 (시뮬레이션)
+    </button>
+  </div>`;
+}
+function selPay(i){S.payMethod=i;render();}
+
+/* =============================================
+   COMPLETE
+   ============================================= */
+function render_comp(body){
+  const total=cartTotal_fn();
+  const pm=PAY_METHODS[S.payMethod]||PAY_METHODS[0];
+  const orderNum=Math.floor(Math.random()*89)+10;
+  S._lastOrderNo=String(orderNum);
+  const fmtPhone=S.phone.length===11?S.phone.slice(0,3)+'-'+S.phone.slice(3,7)+'-'+S.phone.slice(7):'';
+  S.stats.trials++;updateStats();
+  body.innerHTML=`<div class="sc-comp">
+    <div id="kiosk-result-capture">
+      <div class="comp-circle">✅</div>
+      <div class="comp-t">주문 완료!</div>
+      <div class="comp-s">${pm.nm}으로 결제되었습니다</div>
+      <div class="comp-numbox">
+        <div class="comp-num-l">대기 번호</div>
+        <div class="comp-num-n">${orderNum}</div>
+      </div>
+      <div class="comp-receipt">
+        <div class="crt">주문 내역</div>
+        ${S.cart.map(i=>`
+          <div class="crr">
+            <span>${i.emoji} ${i.name} (${i.opts}) × ${i.qty}</span>
+            <span>${(i.unitPrice*i.qty).toLocaleString()}원</span>
+          </div>`).join('')}
+        <div class="crtotal">
+          <span class="crtotal-l">합계</span>
+          <span class="crtotal-n">${total.toLocaleString()}원</span>
+        </div>
+      </div>
+      ${S.doMs?`<div class="comp-ms">⭐ <span>멤버십 적립 완료 · ${fmtPhone}</span></div>`:''}
+    </div>
+    <div class="comp-btns">
+      <button class="comp-rec-btn" onclick="paikOpenReceiptPrint()">영수증 출력</button>
+      <button class="comp-home-btn" onclick="resetAll()">🔄 처음으로</button>
+    </div>
+  </div>`;
+}
+
+function paikOpenReceiptPrint(){
+  if(S.screen!=='complete'){showToast('완료 화면에서 출력해 주세요');return;}
+  const total=cartTotal_fn();
+  const items=S.cart.map(function(i){
+    return{name:i.emoji+' '+i.name+' ('+i.opts+')',unitPrice:i.unitPrice,qty:i.qty,lineTotal:i.unitPrice*i.qty};
+  });
+  openKioskReceiptModal({
+    toast:showToast,
+    filenameBase:'paik-receipt',
+    orderNo:S._lastOrderNo,
+    purchaseDate:new Date(),
+    items:items,
+    total:total
+  });
+}
+
+/* =============================================
+   QUIZ (지연회상)
+   ============================================= */
+function triggerQuiz(){
+  if(!S.cart.length) return;
+  // 현재 미션 달성 여부 질문
+  const m=S.mission_obj;
+  if(!m) return;
+
+  // 주문한 음료 이름 중 하나 맞추기
+  const drinks=S.cart.filter(i=>!['소프트아이스크림','맛카롱','사라다빵','크리미슈'].some(d=>i.name.includes(d)));
+  if(!drinks.length) return;
+  const correct=drinks[Math.floor(Math.random()*drinks.length)];
+  const distractors=ALL_MENUS.filter(p=>p.id!==correct.id&&!['ds1','ds2','ds3','ds4'].includes(p.id)).sort(()=>Math.random()-.5).slice(0,3);
+  const choices=[...distractors.map(p=>({name:p.name,emoji:p.emoji,c:false})),{name:correct.name,emoji:correct.emoji,c:true}].sort(()=>Math.random()-.5);
+
+  document.getElementById('quiz-t').textContent='아까 주문한 음료가 뭐였지?';
+  document.getElementById('quiz-s').textContent='방금 결제한 내용을 떠올려 보세요!';
+  document.getElementById('quiz-choices').innerHTML=choices.map(c=>`
+    <button class="qchoice" onclick="ansQ(this,${c.c})" data-c="${c.c}">
+      <span>${c.emoji}</span>${c.name}
+    </button>`).join('');
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('qnxt').className='qnxt';
+  document.getElementById('quiz-ov').classList.add('show');
+}
+function ansQ(el,ok){
+  document.querySelectorAll('.qchoice').forEach(b=>{b.disabled=true;if(b.dataset.c==='true')b.classList.add('ok');});
+  if(!ok)el.classList.add('no');
+  const fb=document.getElementById('qfb');
+  if(ok){fb.textContent='🎉 정답! 기억력이 좋아요!';fb.className='qfb show g';S.stats.correct++;}
+  else{fb.textContent='🤔 아쉬워요! 다시 도전해봐요!';fb.className='qfb show b';}
+  document.getElementById('qnxt').className='qnxt show';
+  updateStats();
+}
+function closeQuiz(){document.getElementById('quiz-ov').classList.remove('show');}
+
+/* =============================================
+   NAV / CONTROLS
+   ============================================= */
+function goScr(s){S.screen=s;render();}
+
+function resetAll(){
+  S.screen='idle';S.cart=[];S.dine=null;S.phone='';S.doMs=false;
+  S.payMethod=null;S._msPhase=0;S.activeTab='best';
+  setMission();render();showToast('🔄 새 세션 시작!');
+}
+
+/* =============================================
+   PANEL / OPTIONS
+   ============================================= */
+function togPanel(){
+  const p=document.getElementById('tp');
+  const b=document.getElementById('ptbtn');
+  p.classList.toggle('col');
+  S.panelOpen=!p.classList.contains('col');
+  b.classList.toggle('open',S.panelOpen);
+}
+
+function togOpt(k,el){
+  S.opts[k]=!S.opts[k];el.classList.toggle('on');
+  if(k==='mission')document.getElementById('wmbar').style.display=S.opts.mission?'block':'none';
+  if(k==='hide')updateWmBar();
+}
+
+function setDiff(d,el){
+  S.difficulty=d;
+  document.querySelectorAll('.dfb').forEach(b=>b.className='dfb');
+  el.className=`dfb a${d}`;
+  document.getElementById('ddt').textContent=DIFF_INFO[d].tag;
+  document.getElementById('ddb').innerHTML=DIFF_INFO[d].desc;
+  setMission();
+}
+
+function setMission(){
+  const list=MISSIONS[S.difficulty];
+  const m=list[Math.floor(Math.random()*list.length)];
+  S.mission=m.text;
+  S.mission_obj=m;
+  updateWmBar();
+}
+
+function updateWmBar(){
+  const t=document.getElementById('wmtask');
+  const r=document.getElementById('wmrev');
+  if(!t)return;
+  t.textContent=S.mission;
+  if(S.opts.hide){t.classList.add('blr');r.style.display='block';}
+  else{t.classList.remove('blr');r.style.display='none';}
+  document.getElementById('wmbar').style.display=S.opts.mission?'block':'none';
+}
+
+function revealMs(){
+  const t=document.getElementById('wmtask');
+  const r=document.getElementById('wmrev');
+  t.classList.remove('blr');r.style.display='none';
+  setTimeout(()=>{if(S.opts.hide){t.classList.add('blr');r.style.display='block';}},3000);
+}
+
+function updateStats(){
+  document.getElementById('st-t').textContent=S.stats.trials;
+  document.getElementById('st-c').textContent=S.stats.correct;
+  const p=S.stats.trials>0?Math.round(S.stats.correct/S.stats.trials*100):0;
+  document.getElementById('st-p').textContent=p+'%';
+}
+
+/* =============================================
+   INIT
+   ============================================= */
+setMission();
+render();
+</script>
+</body>
+</html>

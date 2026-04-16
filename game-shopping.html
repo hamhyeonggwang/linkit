@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link IT 2.0 — SHOPPING</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #0D2B4E;
+    --blue:   #1B4F8A;
+    --sky:    #4A9ECA;
+    --mint:   #00C9A7;
+    --white:  #FFFFFF;
+    --text:   #E8F2FF;
+    --muted:  rgba(232,242,255,0.5);
+    --glass:  rgba(255,255,255,0.06);
+    --glass2: rgba(255,255,255,0.11);
+    --border: rgba(74,158,202,0.15);
+
+    /* 쿠팡 스타일 */
+    --cp-bg:    #F5F6F8;
+    --cp-white: #FFFFFF;
+    --cp-red:   #E52222;
+    --cp-orange:#FF6B00;
+    --cp-text:  #1A1A1A;
+    --cp-gray:  #767676;
+    --cp-border:#E8E8E8;
+    --cp-bg2:   #F0F1F3;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:'Noto Sans KR',sans-serif;
+    background:var(--navy);
+    color:var(--text);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; opacity:.4;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:sticky; top:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 32px; height:56px;
+    background:rgba(13,43,78,0.9); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-left { display:flex; align-items:center; gap:12px; }
+  .nav-back {
+    width:32px; height:32px; border-radius:9px;
+    background:var(--glass2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:14px; color:var(--muted);
+    transition:all .2s; text-decoration:none;
+  }
+  .nav-back:hover { color:var(--text); border-color:rgba(74,158,202,0.4); }
+  .nav-logo-mark {
+    width:28px; height:28px; border-radius:8px;
+    background:linear-gradient(135deg,var(--mint),var(--sky));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--navy);
+  }
+  .nav-title { font-size:15px; font-weight:700; color:var(--white); }
+  .nav-sub   { font-size:11px; color:var(--mint); font-weight:500; }
+
+  /* ── GAME SHELL ── */
+  .game-shell {
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns:300px 1fr 300px;
+    gap:0;
+    min-height:calc(100vh - 56px);
+  }
+
+  /* ── LEFT PANEL: 미션 ── */
+  .panel-mission {
+    border-right:1px solid var(--border);
+    padding:24px 20px;
+    display:flex; flex-direction:column; gap:16px;
+    background:rgba(13,43,78,0.4);
+  }
+
+  .mission-header { display:flex; flex-direction:column; gap:4px; }
+  .mission-tag { font-size:10px; font-weight:700; color:var(--mint); letter-spacing:2px; text-transform:uppercase; }
+  .mission-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--white); }
+
+  .mission-card {
+    background:rgba(0,201,167,0.08);
+    border:1px solid rgba(0,201,167,0.25);
+    border-radius:14px; padding:16px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .mission-label { font-size:10px; font-weight:700; color:var(--mint); letter-spacing:1.5px; text-transform:uppercase; }
+  .mission-text  { font-size:14px; font-weight:600; color:var(--white); line-height:1.55; }
+  .mission-detail{ font-size:12px; color:var(--muted); line-height:1.6; font-weight:300; }
+
+  /* 진행 스텝 */
+  .steps-wrap { display:flex; flex-direction:column; gap:0; }
+  .step-item {
+    display:flex; gap:12px; align-items:flex-start;
+    padding:10px 0; position:relative;
+  }
+  .step-item:not(:last-child)::after {
+    content:''; position:absolute;
+    left:15px; top:34px; bottom:-10px; width:2px;
+    background:rgba(74,158,202,0.15);
+  }
+  .step-num {
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+    border:2px solid rgba(74,158,202,0.2);
+    color:var(--muted); background:var(--glass);
+    transition:all .3s; position:relative; z-index:1;
+  }
+  .step-num.done  { background:rgba(0,201,167,0.2); border-color:var(--mint); color:var(--mint); }
+  .step-num.active{ background:rgba(74,158,202,0.2); border-color:var(--sky); color:var(--sky); animation:stepPulse 1.5s infinite; }
+  @keyframes stepPulse { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,202,0.4)} 50%{box-shadow:0 0 0 6px rgba(74,158,202,0)} }
+  .step-info { flex:1; padding-top:5px; }
+  .step-name { font-size:13px; font-weight:600; color:var(--text); }
+  .step-desc { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.5; }
+  .step-name.active-text { color:var(--sky); }
+  .step-name.done-text   { color:var(--mint); }
+
+  /* 스코어보드 */
+  .score-board {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:14px; padding:16px;
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
+    margin-top:auto;
+  }
+  .score-item { display:flex; flex-direction:column; gap:3px; }
+  .score-label{ font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+  .score-value{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:600; color:var(--white); }
+  .score-value.green { color:var(--mint); }
+  .score-value.blue  { color:var(--sky); }
+
+  /* 힌트 버튼 */
+  .hint-btn {
+    width:100%; padding:10px;
+    background:rgba(74,158,202,0.1); border:1px solid rgba(74,158,202,0.2);
+    border-radius:10px; color:var(--sky); font-size:13px; font-weight:600;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .hint-btn:hover { background:rgba(74,158,202,0.18); }
+  .hint-box {
+    background:rgba(74,158,202,0.08); border:1px solid rgba(74,158,202,0.2);
+    border-radius:10px; padding:12px; font-size:12px; color:var(--sky);
+    line-height:1.65; display:none;
+  }
+  .hint-box.show { display:block; animation:fadeIn .3s ease; }
+
+  /* ── CENTER: 앱 시뮬레이터 ── */
+  .simulator-wrap {
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:flex-start; padding:28px 24px;
+    background:rgba(13,43,78,0.2);
+  }
+
+  .phone-frame {
+    width:360px; border-radius:36px;
+    background:#111; overflow:hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+    position:relative; flex-shrink:0;
+  }
+  .phone-notch {
+    height:28px; background:#111;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .notch-pill {
+    width:100px; height:12px; background:#1a1a1a; border-radius:10px;
+  }
+  .phone-screen {
+    background:var(--cp-bg); min-height:680px;
+    overflow:hidden; position:relative;
+  }
+
+  /* ── APP SCREENS ── */
+  .app-screen {
+    position:absolute; inset:0;
+    background:var(--cp-bg);
+    overflow-y:auto; overflow-x:hidden;
+    display:none; flex-direction:column;
+    animation:slideIn .25s ease;
+  }
+  .app-screen.active { display:flex; }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateX(18px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  @keyframes fadeIn  {
+    from { opacity:0; transform:translateY(6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* APP HEADER */
+  .app-header {
+    background:var(--cp-white); padding:12px 16px 10px;
+    border-bottom:1px solid var(--cp-border);
+    flex-shrink:0;
+  }
+  .app-header-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .app-logo {
+    font-size:22px; font-weight:900; color:var(--cp-red);
+    letter-spacing:-1px; font-family:'Noto Sans KR',sans-serif;
+  }
+  .app-icons { display:flex; gap:14px; font-size:18px; }
+  .search-bar {
+    display:flex; align-items:center; gap:8px;
+    background:var(--cp-bg2); border-radius:8px;
+    padding:8px 12px; cursor:pointer;
+  }
+  .search-bar span { font-size:12px; color:var(--cp-gray); }
+
+  /* HOME SCREEN */
+  .home-banner {
+    background:linear-gradient(135deg,#FF6B00,#FF3D00);
+    padding:14px 16px; color:#fff;
+  }
+  .banner-tag { font-size:10px; font-weight:700; letter-spacing:1px; opacity:.8; }
+  .banner-title { font-size:16px; font-weight:700; margin-top:2px; }
+  .banner-sub { font-size:11px; opacity:.8; margin-top:2px; }
+
+  .section-title-bar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px 8px; background:var(--cp-white);
+    margin-top:8px;
+  }
+  .section-title-bar strong { font-size:14px; font-weight:700; color:var(--cp-text); }
+  .section-title-bar span   { font-size:12px; color:var(--cp-gray); }
+
+  .product-row {
+    display:flex; gap:0; overflow-x:hidden;
+    padding:0 16px 16px; background:var(--cp-white);
+  }
+  .prod-card {
+    width:140px; flex-shrink:0; cursor:pointer;
+    border-radius:8px; overflow:hidden;
+    transition:transform .15s;
+    margin-right:10px;
+  }
+  .prod-card:hover { transform:scale(1.02); }
+  .prod-card:active { transform:scale(0.98); }
+  .prod-thumb {
+    width:140px; height:140px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:52px; background:var(--cp-bg2);
+    margin-bottom:6px;
+  }
+  .prod-name { font-size:12px; color:var(--cp-text); line-height:1.4; font-weight:400; }
+  .prod-price{ font-size:14px; font-weight:700; color:var(--cp-text); margin-top:4px; }
+  .prod-badge{
+    display:inline-block; font-size:10px; font-weight:700;
+    padding:1px 5px; border-radius:3px;
+    background:#FFF0F0; color:var(--cp-red); margin-bottom:3px;
+  }
+
+  /* SEARCH SCREEN */
+  .search-screen-header {
+    background:var(--cp-white); padding:12px;
+    display:flex; align-items:center; gap:10px;
+    border-bottom:1px solid var(--cp-border); flex-shrink:0;
+  }
+  .search-back { font-size:18px; cursor:pointer; color:var(--cp-text); }
+  .search-input-real {
+    flex:1; background:var(--cp-bg2); border:none; outline:none;
+    border-radius:8px; padding:9px 12px; font-size:13px;
+    font-family:'Noto Sans KR',sans-serif; color:var(--cp-text);
+  }
+  .search-btn {
+    background:var(--cp-red); color:#fff; border:none;
+    border-radius:8px; padding:9px 14px; font-size:13px;
+    font-family:'Noto Sans KR',sans-serif; font-weight:700; cursor:pointer;
+  }
+  .search-keyword-wrap { padding:14px 16px; background:var(--cp-white); flex-shrink:0; }
+  .search-keyword-title { font-size:12px; font-weight:700; color:var(--cp-text); margin-bottom:10px; }
+  .keyword-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .keyword-chip {
+    padding:6px 12px; border-radius:20px;
+    border:1px solid var(--cp-border); background:var(--cp-white);
+    font-size:12px; color:var(--cp-text); cursor:pointer;
+    transition:all .15s;
+  }
+  .keyword-chip:hover, .keyword-chip.target {
+    background:#FFF0F0; border-color:var(--cp-red); color:var(--cp-red);
+  }
+  .keyword-chip.target { font-weight:700; }
+
+  /* PRODUCT LIST */
+  .filter-bar {
+    display:flex; gap:8px; padding:10px 14px;
+    background:var(--cp-white); border-bottom:1px solid var(--cp-border);
+    overflow-x:auto; flex-shrink:0;
+  }
+  .filter-chip {
+    flex-shrink:0; padding:5px 12px; border-radius:20px;
+    border:1px solid var(--cp-border); font-size:11px; color:var(--cp-gray);
+    cursor:pointer; white-space:nowrap; transition:all .15s;
+  }
+  .filter-chip.active { border-color:var(--cp-red); color:var(--cp-red); font-weight:600; }
+  .product-list { display:flex; flex-direction:column; gap:1px; flex:1; }
+  .list-item {
+    background:var(--cp-white); padding:14px;
+    display:flex; gap:12px; cursor:pointer; transition:background .15s;
+  }
+  .list-item:hover { background:#FAFAFA; }
+  .list-item:active { background:#F5F5F5; }
+  .list-thumb {
+    width:80px; height:80px; border-radius:8px; flex-shrink:0;
+    background:var(--cp-bg2); display:flex; align-items:center; justify-content:center;
+    font-size:34px;
+  }
+  .list-info { flex:1; }
+  .list-name { font-size:13px; color:var(--cp-text); line-height:1.45; }
+  .list-price{ font-size:16px; font-weight:700; color:var(--cp-text); margin-top:6px; }
+  .list-sub  { font-size:11px; color:var(--cp-gray); margin-top:3px; }
+  .list-tag  { font-size:10px; font-weight:700; color:var(--cp-red); margin-bottom:3px; }
+  .rocket-badge {
+    display:inline-flex; align-items:center; gap:3px;
+    font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px;
+    background:#EDF5FF; color:#1460CC;
+  }
+
+  /* PRODUCT DETAIL */
+  .detail-header {
+    background:var(--cp-white); padding:10px 14px;
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--cp-border); flex-shrink:0;
+  }
+  .detail-back { font-size:20px; cursor:pointer; color:var(--cp-text); }
+  .detail-title-small { font-size:13px; color:var(--cp-text); font-weight:500; flex:1; line-height:1.3; }
+
+  .detail-image {
+    width:100%; height:200px; background:var(--cp-bg2);
+    display:flex; align-items:center; justify-content:center; font-size:80px;
+    flex-shrink:0;
+  }
+  .detail-body { background:var(--cp-white); padding:16px; flex:1; }
+  .detail-brand { font-size:11px; color:var(--cp-gray); margin-bottom:4px; }
+  .detail-name  { font-size:15px; font-weight:600; color:var(--cp-text); line-height:1.45; margin-bottom:10px; }
+  .detail-price-wrap { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .detail-discount { font-size:20px; font-weight:700; color:var(--cp-red); }
+  .detail-price-main{ font-size:22px; font-weight:700; color:var(--cp-text); }
+  .detail-price-orig{ font-size:13px; color:var(--cp-gray); text-decoration:line-through; }
+  .detail-rocket {
+    display:inline-flex; align-items:center; gap:4px;
+    background:#EDF5FF; color:#1460CC;
+    font-size:11px; font-weight:700; padding:4px 10px; border-radius:4px;
+    margin-bottom:14px;
+  }
+  .detail-divider { height:1px; background:var(--cp-border); margin:14px 0; }
+  .option-row {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px;
+  }
+  .option-label { font-size:13px; color:var(--cp-gray); }
+  .qty-control  {
+    display:flex; align-items:center; gap:0;
+    border:1px solid var(--cp-border); border-radius:6px; overflow:hidden;
+  }
+  .qty-btn {
+    width:32px; height:32px; background:var(--cp-bg2);
+    border:none; font-size:16px; cursor:pointer; color:var(--cp-text);
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s;
+  }
+  .qty-btn:hover { background:#E0E0E0; }
+  .qty-num {
+    width:36px; height:32px; background:var(--cp-white);
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:600; color:var(--cp-text);
+    border-left:1px solid var(--cp-border); border-right:1px solid var(--cp-border);
+  }
+  .detail-footer {
+    background:var(--cp-white); padding:12px 14px;
+    display:flex; gap:8px; flex-shrink:0;
+    border-top:1px solid var(--cp-border);
+    position:sticky; bottom:0;
+  }
+  .btn-cart {
+    flex:1; padding:13px; border-radius:8px;
+    background:var(--cp-white); border:2px solid var(--cp-red);
+    color:var(--cp-red); font-size:14px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+  }
+  .btn-cart:hover { background:#FFF0F0; }
+  .btn-buy {
+    flex:1.5; padding:13px; border-radius:8px;
+    background:var(--cp-red); border:none;
+    color:#fff; font-size:14px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+  }
+  .btn-buy:hover { background:#CC1A1A; }
+
+  /* CART SCREEN */
+  .cart-header {
+    background:var(--cp-white); padding:14px 16px;
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--cp-border); flex-shrink:0;
+  }
+  .cart-title { font-size:16px; font-weight:700; color:var(--cp-text); flex:1; }
+  .cart-item-wrap { background:var(--cp-white); margin-bottom:8px; }
+  .cart-item {
+    padding:16px; display:flex; gap:12px; align-items:flex-start;
+  }
+  .cart-check {
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid var(--cp-red); margin-top:4px; flex-shrink:0;
+    background:#FFF0F0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--cp-red);
+  }
+  .cart-thumb {
+    width:70px; height:70px; border-radius:6px; flex-shrink:0;
+    background:var(--cp-bg2); display:flex; align-items:center; justify-content:center;
+    font-size:28px;
+  }
+  .cart-info { flex:1; }
+  .cart-name  { font-size:13px; color:var(--cp-text); line-height:1.4; }
+  .cart-price { font-size:15px; font-weight:700; color:var(--cp-text); margin-top:6px; }
+  .cart-qty   {
+    display:flex; align-items:center; gap:0;
+    border:1px solid var(--cp-border); border-radius:4px; overflow:hidden;
+    margin-top:8px; width:fit-content;
+  }
+  .cqty-btn {
+    width:26px; height:26px; background:var(--cp-bg2); border:none;
+    font-size:14px; cursor:pointer; color:var(--cp-text);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cqty-num {
+    width:32px; height:26px; background:var(--cp-white);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:600; color:var(--cp-text);
+    border-left:1px solid var(--cp-border); border-right:1px solid var(--cp-border);
+  }
+  .price-summary {
+    background:var(--cp-white); padding:16px; margin-bottom:8px;
+  }
+  .price-row {
+    display:flex; justify-content:space-between;
+    font-size:13px; color:var(--cp-gray); margin-bottom:8px;
+  }
+  .price-row.total { font-size:15px; font-weight:700; color:var(--cp-text); margin-top:10px; padding-top:10px; border-top:1px solid var(--cp-border); }
+  .price-row.total span:last-child { color:var(--cp-red); }
+  .cart-bottom {
+    background:var(--cp-white); padding:14px 16px;
+    position:sticky; bottom:0;
+    border-top:1px solid var(--cp-border); flex-shrink:0;
+  }
+  .cart-buy-btn {
+    width:100%; padding:15px; border-radius:8px;
+    background:var(--cp-red); border:none; color:#fff;
+    font-size:15px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+  }
+  .cart-buy-btn:hover { background:#CC1A1A; }
+
+  /* ORDER COMPLETE */
+  .complete-wrap {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:32px 24px; text-align:center;
+    background:var(--cp-bg);
+  }
+  .complete-icon {
+    width:80px; height:80px; border-radius:50%;
+    background:linear-gradient(135deg,#00C9A7,#4A9ECA);
+    display:flex; align-items:center; justify-content:center;
+    font-size:36px; margin-bottom:16px;
+    animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { transform:scale(0); opacity:0; }
+    to   { transform:scale(1); opacity:1; }
+  }
+  .complete-title { font-size:18px; font-weight:700; color:var(--cp-text); margin-bottom:8px; }
+  .complete-sub   { font-size:13px; color:var(--cp-gray); line-height:1.6; }
+  .order-box {
+    background:var(--cp-white); border-radius:10px; padding:16px;
+    width:100%; margin-top:20px; text-align:left;
+    border:1px solid var(--cp-border);
+  }
+  .order-box-row {
+    display:flex; justify-content:space-between;
+    font-size:13px; color:var(--cp-gray); margin-bottom:6px;
+  }
+  .order-box-row span:last-child { color:var(--cp-text); font-weight:600; }
+
+  /* ── RIGHT PANEL: 피드백 ── */
+  .panel-feedback {
+    border-left:1px solid var(--border);
+    padding:24px 20px;
+    display:flex; flex-direction:column; gap:16px;
+    background:rgba(13,43,78,0.4);
+  }
+  .feedback-tag { font-size:10px; font-weight:700; color:var(--sky); letter-spacing:2px; text-transform:uppercase; }
+  .feedback-title{ font-size:16px; font-weight:700; color:var(--white); }
+
+  /* 행동 로그 */
+  .action-log {
+    display:flex; flex-direction:column; gap:6px;
+    flex:1; overflow-y:auto; max-height:360px;
+  }
+  .log-item {
+    display:flex; align-items:flex-start; gap:10px;
+    padding:9px 12px; border-radius:10px;
+    background:var(--glass); border:1px solid var(--border);
+    animation:fadeIn .3s ease;
+  }
+  .log-item.correct { border-color:rgba(0,201,167,0.3); background:rgba(0,201,167,0.07); }
+  .log-item.wrong   { border-color:rgba(255,107,122,0.3); background:rgba(255,107,122,0.07); }
+  .log-icon { font-size:14px; flex-shrink:0; margin-top:1px; }
+  .log-text { font-size:12px; color:var(--text); line-height:1.5; }
+  .log-text em { font-style:normal; color:var(--mint); font-weight:600; }
+  .log-time {
+    font-family:'JetBrains Mono',monospace; font-size:10px;
+    color:var(--muted); margin-left:auto; flex-shrink:0;
+  }
+
+  /* 결과 팝업 */
+  .result-overlay {
+    position:fixed; inset:0; z-index:300;
+    background:rgba(13,43,78,0.8); backdrop-filter:blur(8px);
+    display:none; align-items:center; justify-content:center;
+  }
+  .result-overlay.show { display:flex; }
+  .result-modal {
+    background:linear-gradient(145deg,#0D2B4E,#1B4F8A);
+    border:1px solid rgba(74,158,202,0.3);
+    border-radius:24px; padding:40px 36px;
+    text-align:center; max-width:420px; width:90%;
+    animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .result-stars { font-size:40px; letter-spacing:4px; margin-bottom:16px; }
+  .result-title { font-family:'DM Serif Display',serif; font-size:28px; color:var(--white); margin-bottom:8px; }
+  .result-sub   { font-size:14px; color:var(--muted); margin-bottom:28px; }
+  .result-scores {
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;
+    margin-bottom:28px;
+  }
+  .rs-item { display:flex; flex-direction:column; gap:4px; }
+  .rs-val {
+    font-family:'JetBrains Mono',monospace;
+    font-size:24px; font-weight:600; color:var(--white);
+  }
+  .rs-val span { font-size:14px; color:var(--muted); }
+  .rs-label { font-size:11px; color:var(--muted); letter-spacing:0.5px; }
+  .result-btn {
+    width:100%; padding:14px; border-radius:12px;
+    background:linear-gradient(135deg,var(--mint),#00A88E);
+    border:none; color:var(--navy); font-size:15px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer;
+    transition:all .25s;
+  }
+  .result-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,201,167,0.35); }
+  .result-btn-sec {
+    width:100%; padding:12px; border-radius:12px; margin-top:8px;
+    background:var(--glass2); border:1px solid var(--border);
+    color:var(--muted); font-size:13px; font-weight:500;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:3px; height:3px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(74,158,202,0.3); border-radius:2px; }
+
+/* ═══ V2 DESIGN SYSTEM — Purme assess-beige unified ═══ */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+  --navy:#F2F4FF !important;
+  --blue:#7B68EE !important;
+  --sky:#9B8BF4 !important;
+  --mint:#0EA5A0 !important;
+  --text:#1A1B2E !important;
+  --muted:#9093B0 !important;
+  --glass:rgba(123,104,238,0.06) !important;
+  --glass2:rgba(123,104,238,0.10) !important;
+  --border:rgba(123,104,238,0.18) !important;
+  --white:#FFFFFF !important;
+  --amber:#F59E0B !important;
+  --rose:#F04438 !important;
+  --purp:#9B6EFF !important;
+
+  /* v2 tokens */
+  --bg:#F2F4FF;
+  --surface:#FFFFFF;
+  --surface-alt:#F8F9FF;
+  --b:#E2E5F4;
+  --b-mid:#C8CEEA;
+  --accent:#7B68EE;
+  --accent-2:#9B8BF4;
+  --accent-dim:#F0EEFF;
+  --accent-ring:rgba(123,104,238,.18);
+  --accent-dark:#5A4BD1;
+  --teal:#0EA5A0;
+  --teal-dim:#F0FAFA;
+  --green:#12B76A;
+  --green-dim:#ECFDF5;
+  --red:#F04438;
+  --red-dim:#FEF3F2;
+  --t1:#1A1B2E;
+  --t2:#4A4E6B;
+  --t3:#9093B0;
+  --t4:#C5C8DC;
+  --font:'Pretendard',-apple-system,sans-serif !important;
+  --sh-xs:0 1px 3px rgba(30,30,80,.06);
+  --sh:0 3px 14px rgba(30,30,80,.08);
+  --sh-lg:0 8px 32px rgba(30,30,80,.12);
+}
+
+/* ─ Base overrides ─ */
+body {
+  background: #F2F4FF !important;
+  color: #1A1B2E !important;
+  font-family: 'Pretendard', -apple-system, sans-serif !important;
+}
+body::before { display:none !important; }
+
+/* ─ NAV ─ */
+nav {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E2E5F4 !important;
+  box-shadow: 0 1px 3px rgba(30,30,80,.06) !important;
+  backdrop-filter: none !important;
+}
+.nav-logo-mark, .logo-mark {
+  background: linear-gradient(135deg,#7B68EE,#9B8BF4) !important;
+}
+.nav-logo-text, .nav-title, .nav-brand { color: #1A1B2E !important; }
+.nav-links a { color: #4A4E6B !important; }
+.nav-links a:hover, .nav-links a.active { color: #7B68EE !important; background: #F0EEFF !important; }
+.nav-back { color:#9093B0 !important; border-color:#E2E5F4 !important; background:none !important; }
+.nav-back:hover { color:#7B68EE !important; border-color:rgba(123,104,238,.3) !important; }
+.user-chip { background:#F8F9FF !important; border-color:#E2E5F4 !important; color:#4A4E6B !important; }
+
+/* ─ GAME SHELL panels ─ */
+.panel-left, .panel-mission, .panel-feedback,
+.panel-right, .sidebar { 
+  background: #FFFFFF !important; 
+  border-color: #E2E5F4 !important;
+}
+
+/* ─ Cards / surfaces ─ */
+.mission-card, .howto-card, .rule-card.go-card, .rule-card.nogo-card,
+.score-board, .trial-track, .round-info, .pip-card,
+.cog-box, .cognition-box, .match-progress, .strategy-box,
+.order-summary, .level-grid > *, .session-row,
+.rec-item, .rec-list > * {
+  background: #F8F9FF !important;
+  border-color: #E2E5F4 !important;
+}
+.rule-card.go-card   { background: #ECFDF5 !important; border-color: rgba(18,183,106,.25) !important; }
+.rule-card.nogo-card { background: #FEF3F2 !important; border-color: rgba(240,68,56,.25) !important; }
+.howto-card { background: #F3EFFF !important; border-color: rgba(155,110,255,.2) !important; }
+
+/* ─ GAME BOARD / ARENA ─ */
+.game-board, .card-arena, .stim-stage, .stimulus-arena, .arena {
+  background: #FFFFFF !important;
+  border-color: #E2E5F4 !important;
+  box-shadow: 0 3px 14px rgba(30,30,80,.08) !important;
+}
+
+/* ─ Board overlay ─ */
+.board-overlay, .stage-overlay { 
+  background: rgba(248,249,255,0.96) !important; 
+}
+.overlay-title, .ov-title { color: #1A1B2E !important; }
+.overlay-sub,   .ov-sub   { color: #4A4E6B !important; }
+.overlay-btn, .ov-btn {
+  background: #7B68EE !important;
+  box-shadow: 0 4px 12px rgba(123,104,238,.3) !important;
+  color: #fff !important;
+}
+.overlay-btn:hover, .ov-btn:hover { background: #5A4BD1 !important; }
+.overlay-btn.green, .ov-btn.green { background: linear-gradient(135deg,#0EA5A0,#0CC5BE) !important; color:#fff !important; }
+
+/* ─ Shape cells / game cards ─ */
+.shape-cell, .game-card, .mem-card .card-back {
+  background: #F8F9FF !important;
+  border-color: #E2E5F4 !important;
+}
+.shape-cell:hover { background: #F0EEFF !important; border-color: #C8CEEA !important; }
+.shape-cell.correct-flash, .shape-cell.flash-ok {
+  background: #ECFDF5 !important;
+  border-color: #12B76A !important;
+}
+.shape-cell.wrong-flash, .shape-cell.flash-fail {
+  background: #FEF3F2 !important;
+  border-color: #F04438 !important;
+}
+
+/* ─ Stimulus elements ─ */
+.stim-box { border-color: rgba(123,104,238,.3) !important; background: #F0EEFF !important; }
+.stim-box.show-stim { border-color: rgba(123,104,238,.6) !important; background: #F0EEFF !important; box-shadow: 0 0 24px rgba(123,104,238,.15) !important; }
+.stim-circle { border-color: #E2E5F4 !important; background: #F8F9FF !important; }
+.stim-circle.go-style   { border-color: rgba(18,183,106,.5) !important; background: #ECFDF5 !important; }
+.stim-circle.nogo-style { border-color: rgba(240,68,56,.5) !important;  background: #FEF3F2 !important; }
+
+/* ─ Action log items ─ */
+.log-item { background: #F8F9FF !important; border-color: #E2E5F4 !important; color: #4A4E6B !important; }
+.log-item.correct, .log-item.c, .log-item.match  { background: #ECFDF5 !important; border-color: rgba(18,183,106,.2) !important; }
+.log-item.wrong,   .log-item.w, .log-item.fail    { background: #FEF3F2 !important; border-color: rgba(240,68,56,.2) !important; }
+.log-item.info,    .log-item.m, .log-item.time    { background: #FFFBEB !important; border-color: rgba(245,158,11,.2) !important; }
+.log-item.n                                        { background: #F3EFFF !important; border-color: rgba(155,110,255,.2) !important; }
+.log-text, .li-text { color: #4A4E6B !important; }
+.log-text em, .li-text em { color: #7B68EE !important; }
+
+/* ─ Result overlay ─ */
+.result-overlay { background: rgba(242,244,255,.88) !important; backdrop-filter: blur(10px) !important; }
+.result-modal {
+  background: #FFFFFF !important;
+  border-color: #E2E5F4 !important;
+  box-shadow: 0 8px 32px rgba(30,30,80,.12) !important;
+}
+.result-title, .r-title { color: #1A1B2E !important; }
+.result-sub,   .r-sub   { color: #9093B0 !important; }
+.result-btn,   .r-btn {
+  background: #7B68EE !important;
+  box-shadow: 0 4px 12px rgba(123,104,238,.3) !important;
+  color: #fff !important;
+}
+.result-btn:hover, .r-btn:hover { background: #5A4BD1 !important; }
+.result-btn-sec, .r-btn-sec { border-color: #E2E5F4 !important; color: #4A4E6B !important; background: none !important; }
+.result-scores, .r-scores { color: #1A1B2E !important; }
+
+/* ─ Match card front/back ─ */
+.card-face.card-back   { background: linear-gradient(145deg,#F8F9FF,#F0EEFF) !important; border-color: rgba(123,104,238,.2) !important; }
+.card-back::after      { color: rgba(123,104,238,.35) !important; }
+.card-face.card-front  { background: #F8F9FF !important; border-color: #E2E5F4 !important; }
+.mem-card.matched .card-front { background: #ECFDF5 !important; border-color: rgba(14,165,160,.4) !important; }
+.card-name, .card-label { color: #4A4E6B !important; }
+.mem-card.matched .card-label { color: #0EA5A0 !important; }
+
+/* ─ Kiosk frame ─ */
+.kiosk-frame   { box-shadow: var(--sh-lg) !important; }
+.kiosk-top-bar { background: #1A1B2E !important; }
+.kiosk-brand   { color: #F59E0B !important; }
+.kiosk-brand span { color: #F04438 !important; }
+.phone-frame   { box-shadow: var(--sh-lg) !important; }
+
+/* ─ Histogram / sparkline ─ */
+.rt-bar.ok, .rt-fill.ok, .go-bar   { background: rgba(123,104,238,.65) !important; }
+.rt-bar.slow, .miss-bar             { background: rgba(245,158,11,.65) !important; }
+.rt-bar.fa, .nogo-bar               { background: rgba(240,68,56,.6) !important; }
+
+/* ─ Top color strip ─ */
+body > .top-strip:first-child,
+nav + .top-strip { display: block !important; }
+
+/* ─ Pie / ring ─ */
+.ring-fg    { stroke: #7B68EE !important; }
+.d-match    { stroke: #7B68EE !important; }
+
+/* ─ Misc text ─ */
+.panel-title, .mission-title, .feedback-title, .pr-title { color: #1A1B2E !important; }
+.panel-tag, .mission-tag, .pr-tag { color: #9093B0 !important; }
+.score-label, .sb-label, .kpi-label { color: #9093B0 !important; }
+.score-value, .sb-value, .kpi-value { color: #1A1B2E !important; }
+.sv-green, .score-value.green { color: #12B76A !important; }
+.sv-accent { color: #7B68EE !important; }
+.sv-amber  { color: #F59E0B !important; }
+.sv-teal, .mint-text { color: #0EA5A0 !important; }
+
+/* ─ Hints ─ */
+.hint-box { background: #FFFBEB !important; border-color: rgba(245,158,11,.2) !important; color: #4A4E6B !important; }
+.hint-btn { border-color: #E2E5F4 !important; color: #4A4E6B !important; background: none !important; }
+.hint-btn:hover { border-color: #F59E0B !important; color: #F59E0B !important; background: #FFFBEB !important; }
+
+/* ─ Sequence history (N-Back) ─ */
+.seq-card { background: #F8F9FF !important; border-color: #E2E5F4 !important; }
+.seq-item.n-back-mark .seq-card { background: #F0EEFF !important; border-color: rgba(123,104,238,.5) !important; }
+.seq-idx { color: #9093B0 !important; }
+
+/* ─ Match button (N-Back) ─ */
+.match-btn.yes-btn { background: #ECFDF5 !important; border-color: rgba(14,165,160,.4) !important; color: #0EA5A0 !important; }
+.match-btn.yes-btn:hover { background: #0EA5A0 !important; color: #fff !important; }
+.match-btn.no-btn  { background: #F8F9FF !important; border-color: #E2E5F4 !important; color: #9093B0 !important; }
+
+/* ─ Donut ring ─ */
+.d-bg  { stroke: #E2E5F4 !important; }
+.r-bg  { stroke: #E2E5F4 !important; }
+.ring-pct, .donut-pct { color: #1A1B2E !important; }
+.ring-sub2, .donut-sub { color: #9093B0 !important; }
+
+/* ─ Scrollbar ─ */
+::-webkit-scrollbar-thumb { background: #C8CEEA !important; }
+
+</style>
+</head>
+<body>
+<div style="height:3px;background:linear-gradient(90deg,#7B68EE,#9B8BF4,#0EA5A0);"></div>
+
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a href="hub.html" class="nav-back">←</a>
+    <div class="nav-logo-mark">LIT</div>
+    <div>
+      <div class="nav-title">쇼핑몰 앱 사용</div>
+      <div class="nav-sub">D6 · 일상참여 훈련 · ⭐⭐ 중급</div>
+    </div>
+  </div>
+</nav>
+
+<!-- GAME SHELL -->
+<div class="game-shell">
+
+  <!-- ── LEFT: 미션 패널 ── -->
+  <aside class="panel-mission">
+    <div class="mission-header">
+      <div class="mission-tag">Mission D6</div>
+      <div class="mission-title">쇼핑몰 앱 사용</div>
+    </div>
+
+    <div class="mission-card">
+      <div class="mission-label">🎯 오늘의 미션</div>
+      <div class="mission-text">엄마 생신 선물로<br>무선 이어폰을 주문해봐요!</div>
+      <div class="mission-detail">쇼핑몰 앱에서 무선 이어폰을 검색하고, 장바구니에 담은 뒤 주문하는 과정을 완성하세요.</div>
+    </div>
+
+    <div class="steps-wrap" id="stepsWrap">
+      <div class="step-item">
+        <div class="step-num active" id="step1">1</div>
+        <div class="step-info">
+          <div class="step-name active-text" id="step1name">검색창 찾기</div>
+          <div class="step-desc">앱 상단 검색창을 눌러요</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="step2">2</div>
+        <div class="step-info">
+          <div class="step-name" id="step2name">상품 검색</div>
+          <div class="step-desc">"무선 이어폰" 키워드 선택</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="step3">3</div>
+        <div class="step-info">
+          <div class="step-name" id="step3name">상품 선택</div>
+          <div class="step-desc">원하는 상품 눌러보기</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="step4">4</div>
+        <div class="step-info">
+          <div class="step-name" id="step4name">장바구니 담기</div>
+          <div class="step-desc">장바구니 버튼 누르기</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="step5">5</div>
+        <div class="step-info">
+          <div class="step-name" id="step5name">주문하기</div>
+          <div class="step-desc">장바구니에서 구매하기</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-board">
+      <div class="score-item">
+        <div class="score-label">진행 단계</div>
+        <div class="score-value blue" id="stepCount">1 / 5</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">정확도</div>
+        <div class="score-value green" id="accuracy">100%</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">경과 시간</div>
+        <div class="score-value" id="timer">00:00</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">실수 횟수</div>
+        <div class="score-value" id="mistakes">0</div>
+      </div>
+    </div>
+
+    <button class="hint-btn" onclick="toggleHint()">💡 힌트 보기</button>
+    <div class="hint-box" id="hintBox">검색창은 앱 상단에 있어요. 돋보기 모양 옆의 긴 네모를 눌러보세요!</div>
+  </aside>
+
+  <!-- ── CENTER: 스마트폰 시뮬레이터 ── -->
+  <div class="simulator-wrap">
+    <div class="phone-frame">
+      <div class="phone-notch"><div class="notch-pill"></div></div>
+      <div class="phone-screen">
+
+        <!-- SCREEN 1: 홈 -->
+        <div class="app-screen active" id="screen-home">
+          <div class="app-header">
+            <div class="app-header-top">
+              <div class="app-logo">쿠팡</div>
+              <div class="app-icons">🔔 🛒</div>
+            </div>
+            <div class="search-bar" onclick="goToSearch()" id="searchBarBtn">
+              <span>🔍</span>
+              <span>찾고 싶은 상품을 검색해봐요</span>
+            </div>
+          </div>
+          <div class="home-banner">
+            <div class="banner-tag">⚡ 오늘의 특가</div>
+            <div class="banner-title">로켓배송 최대 50% 할인</div>
+            <div class="banner-sub">오늘 주문 시 내일 도착!</div>
+          </div>
+          <div class="section-title-bar">
+            <strong>추천 상품</strong>
+            <span>더보기 ›</span>
+          </div>
+          <div class="product-row">
+            <div class="prod-card" onclick="wrongClick('홈 상품 카드')">
+              <div class="prod-thumb">👟</div>
+              <div class="prod-badge">50%</div>
+              <div class="prod-name">러닝화 경량 스니커즈</div>
+              <div class="prod-price">39,900원</div>
+            </div>
+            <div class="prod-card" onclick="wrongClick('홈 상품 카드')">
+              <div class="prod-thumb">🎮</div>
+              <div class="prod-badge">30%</div>
+              <div class="prod-name">게임 컨트롤러</div>
+              <div class="prod-price">28,500원</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN 2: 검색 -->
+        <div class="app-screen" id="screen-search">
+          <div class="search-screen-header">
+            <div class="search-back" onclick="goBack('screen-home')">←</div>
+            <input class="search-input-real" type="text" id="searchInput" placeholder="상품, 브랜드 검색" readonly>
+            <button class="search-btn">검색</button>
+          </div>
+          <div class="search-keyword-wrap">
+            <div class="search-keyword-title">최근 검색어</div>
+            <div class="keyword-chips">
+              <div class="keyword-chip" onclick="wrongClick('다른 검색어')">운동화</div>
+              <div class="keyword-chip target" id="earphoneChip" onclick="searchEarphone()">무선 이어폰</div>
+              <div class="keyword-chip" onclick="wrongClick('다른 검색어')">책상 램프</div>
+              <div class="keyword-chip" onclick="wrongClick('다른 검색어')">물통</div>
+              <div class="keyword-chip" onclick="wrongClick('다른 검색어')">노트북 거치대</div>
+            </div>
+          </div>
+          <div style="padding:12px 16px;background:var(--cp-bg2);border-top:1px solid var(--cp-border);">
+            <div style="font-size:11px;color:var(--cp-gray);">💡 검색어를 눌러 바로 검색할 수 있어요</div>
+          </div>
+        </div>
+
+        <!-- SCREEN 3: 상품 목록 -->
+        <div class="app-screen" id="screen-list">
+          <div class="search-screen-header">
+            <div class="search-back" onclick="goBack('screen-search')">←</div>
+            <input class="search-input-real" type="text" value="무선 이어폰" readonly>
+            <button class="search-btn">검색</button>
+          </div>
+          <div class="filter-bar">
+            <div class="filter-chip active">추천순</div>
+            <div class="filter-chip">낮은가격순</div>
+            <div class="filter-chip">높은가격순</div>
+            <div class="filter-chip">🚀 로켓배송</div>
+          </div>
+          <div class="product-list">
+            <div class="list-item" id="targetProduct" onclick="selectProduct()">
+              <div class="list-thumb">🎧</div>
+              <div class="list-info">
+                <div class="list-tag">로켓배송</div>
+                <div class="list-name">삼성 갤럭시 버즈 무선 블루투스 이어폰 노이즈캔슬링</div>
+                <div class="list-price">89,000원 <span style="font-size:12px;color:var(--cp-gray);font-weight:400;text-decoration:line-through;">149,000원</span></div>
+                <div class="list-sub"><span class="rocket-badge">🚀 로켓배송</span> 내일(화) 도착</div>
+              </div>
+            </div>
+            <div class="list-item" onclick="wrongClick('다른 상품')">
+              <div class="list-thumb">🎵</div>
+              <div class="list-info">
+                <div class="list-name">JBL 튠 무선이어폰 방수기능 운동용</div>
+                <div class="list-price">45,900원</div>
+                <div class="list-sub">모레(수) 도착</div>
+              </div>
+            </div>
+            <div class="list-item" onclick="wrongClick('다른 상품')">
+              <div class="list-thumb">🎶</div>
+              <div class="list-info">
+                <div class="list-name">소니 WF-C500 무선 이어폰 10시간 재생</div>
+                <div class="list-price">67,000원</div>
+                <div class="list-sub">모레(수) 도착</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN 4: 상품 상세 -->
+        <div class="app-screen" id="screen-detail">
+          <div class="detail-header">
+            <div class="detail-back" onclick="goBack('screen-list')">←</div>
+            <div class="detail-title-small">삼성 갤럭시 버즈 무선 이어폰</div>
+          </div>
+          <div class="detail-image">🎧</div>
+          <div class="detail-body">
+            <div class="detail-brand">삼성전자</div>
+            <div class="detail-name">삼성 갤럭시 버즈 무선 블루투스 이어폰 노이즈캔슬링 ANC</div>
+            <div class="detail-price-wrap">
+              <div class="detail-discount">40%</div>
+              <div class="detail-price-main">89,000원</div>
+              <div class="detail-price-orig">149,000원</div>
+            </div>
+            <div class="detail-rocket">🚀 로켓배송 · 내일(화) 도착</div>
+            <div class="detail-divider"></div>
+            <div class="option-row">
+              <div class="option-label">수량</div>
+              <div class="qty-control">
+                <button class="qty-btn" onclick="changeQty(-1)">−</button>
+                <div class="qty-num" id="qtyNum">1</div>
+                <button class="qty-btn" onclick="changeQty(1)">+</button>
+              </div>
+            </div>
+            <div class="option-row">
+              <div class="option-label">색상</div>
+              <div style="font-size:13px;color:var(--cp-text);font-weight:600;">그래파이트</div>
+            </div>
+          </div>
+          <div class="detail-footer">
+            <button class="btn-cart" onclick="addToCart()">🛒 장바구니</button>
+            <button class="btn-buy" onclick="wrongClick('바로구매 버튼')">바로구매</button>
+          </div>
+        </div>
+
+        <!-- SCREEN 5: 장바구니 -->
+        <div class="app-screen" id="screen-cart">
+          <div class="cart-header">
+            <div class="detail-back" onclick="goBack('screen-detail')">←</div>
+            <div class="cart-title">장바구니</div>
+            <div style="font-size:12px;color:var(--cp-gray);">1개</div>
+          </div>
+          <div class="cart-item-wrap">
+            <div class="cart-item">
+              <div class="cart-check">✓</div>
+              <div class="cart-thumb">🎧</div>
+              <div class="cart-info">
+                <div class="cart-name">삼성 갤럭시 버즈 무선 블루투스 이어폰</div>
+                <div class="cart-price">89,000원</div>
+                <div class="cart-qty">
+                  <button class="cqty-btn">−</button>
+                  <div class="cqty-num">1</div>
+                  <button class="cqty-btn">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="price-summary">
+            <div class="price-row"><span>상품금액</span><span>89,000원</span></div>
+            <div class="price-row"><span>배송비</span><span>무료</span></div>
+            <div class="price-row"><span>할인금액</span><span style="color:var(--cp-red);">−60,000원</span></div>
+            <div class="price-row total"><span>결제금액</span><span>89,000원</span></div>
+          </div>
+          <div class="cart-bottom">
+            <button class="cart-buy-btn" onclick="placeOrder()">89,000원 주문하기</button>
+          </div>
+        </div>
+
+        <!-- SCREEN 6: 주문 완료 -->
+        <div class="app-screen" id="screen-complete">
+          <div class="app-header">
+            <div class="app-header-top">
+              <div class="app-logo">쿠팡</div>
+            </div>
+          </div>
+          <div class="complete-wrap">
+            <div class="complete-icon">✅</div>
+            <div class="complete-title">주문이 완료되었어요!</div>
+            <div class="complete-sub">삼성 갤럭시 버즈 무선 이어폰<br>내일 도착 예정이에요 🚀</div>
+            <div class="order-box">
+              <div class="order-box-row"><span>주문번호</span><span>2026-0325-7891</span></div>
+              <div class="order-box-row"><span>결제금액</span><span>89,000원</span></div>
+              <div class="order-box-row"><span>배송 예정</span><span>내일 (화) 도착</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /phone-screen -->
+    </div><!-- /phone-frame -->
+  </div>
+
+  <!-- ── RIGHT: 피드백 패널 ── -->
+  <aside class="panel-feedback">
+    <div>
+      <div class="feedback-tag">Live Feedback</div>
+      <div class="feedback-title">행동 기록</div>
+    </div>
+    <div class="action-log" id="actionLog">
+      <div class="log-item">
+        <span class="log-icon">🎮</span>
+        <div class="log-text">훈련을 시작했습니다. 미션을 확인하고 앱을 사용해봐요!</div>
+        <span class="log-time">00:00</span>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px;">
+      <div style="padding:12px;background:var(--glass);border:1px solid var(--border);border-radius:12px;">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">인지 기능 분석</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--muted);">절차적 기억</span>
+            <span id="proc" style="color:var(--mint);font-weight:600;">측정중</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--muted);">순서화</span>
+            <span id="seq" style="color:var(--mint);font-weight:600;">측정중</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--muted);">주의집중</span>
+            <span id="attn" style="color:var(--mint);font-weight:600;">측정중</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--muted);">의사결정</span>
+            <span id="deci" style="color:var(--mint);font-weight:600;">측정중</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</div><!-- /game-shell -->
+
+<!-- RESULT OVERLAY -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-modal">
+    <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+    <div class="result-title" id="resultTitle">훈련 완료!</div>
+    <div class="result-sub" id="resultSub">쇼핑몰 앱 사용을 잘 완성했어요</div>
+    <div class="result-scores">
+      <div class="rs-item">
+        <div class="rs-val" id="resAcc">—<span>%</span></div>
+        <div class="rs-label">정확도</div>
+      </div>
+      <div class="rs-item">
+        <div class="rs-val" id="resTime">—<span>초</span></div>
+        <div class="rs-label">소요시간</div>
+      </div>
+      <div class="rs-item">
+        <div class="rs-val" id="resMist">—<span>회</span></div>
+        <div class="rs-label">실수</div>
+      </div>
+    </div>
+    <button class="result-btn" onclick="restartGame()">🔄 다시 훈련하기</button>
+    <button class="result-btn-sec" onclick="location.href='hub.html'">← 허브로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let currentStep = 1;
+  let mistakeCount = 0;
+  let totalClicks = 0;
+  let startTime = Date.now();
+  let timerInterval;
+  let qty = 1;
+
+  // ── TIMER ──
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+    const s = String(elapsed%60).padStart(2,'0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }, 1000);
+
+  // ── HINTS per step ──
+  const hints = [
+    '검색창은 앱 상단에 있어요. 돋보기 옆 긴 네모를 눌러보세요!',
+    '"무선 이어폰" 키워드가 파란색으로 표시된 것을 눌러봐요!',
+    '첫 번째 상품(삼성 갤럭시 버즈)을 눌러보세요!',
+    '하단에 있는 🛒 장바구니 버튼을 찾아봐요!',
+    '화면 아래쪽 "89,000원 주문하기" 버튼을 눌러요!',
+  ];
+
+  function toggleHint() {
+    const box = document.getElementById('hintBox');
+    box.textContent = hints[currentStep - 1];
+    box.classList.toggle('show');
+  }
+
+  // ── NAVIGATION ──
+  function showScreen(id) {
+    document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function goBack(screenId) {
+    addLog('↩️', `뒤로 이동`, '', false);
+    showScreen(screenId);
+  }
+
+  // ── STEP MANAGER ──
+  function advanceStep(stepNum) {
+    // Mark done
+    const prevNum = document.getElementById('step' + stepNum);
+    const prevName = document.getElementById('step' + stepNum + 'name');
+    prevNum.classList.remove('active');
+    prevNum.classList.add('done');
+    prevNum.textContent = '✓';
+    prevName.classList.remove('active-text');
+    prevName.classList.add('done-text');
+
+    currentStep = stepNum + 1;
+    document.getElementById('stepCount').textContent = `${Math.min(currentStep,5)} / 5`;
+
+    if (currentStep <= 5) {
+      const nextNum  = document.getElementById('step' + currentStep);
+      const nextName = document.getElementById('step' + currentStep + 'name');
+      if (nextNum)  { nextNum.classList.add('active'); }
+      if (nextName) { nextName.classList.add('active-text'); }
+    }
+
+    // Update cognitive analysis
+    updateCognition(stepNum);
+  }
+
+  function updateCognition(step) {
+    const vals = {
+      1: {proc:'관찰중', seq:'관찰중', attn:'관찰중', deci:'관찰중'},
+      2: {proc:'활성화', seq:'관찰중', attn:'활성화', deci:'관찰중'},
+      3: {proc:'활성화', seq:'활성화', attn:'활성화', deci:'관찰중'},
+      4: {proc:'활성화', seq:'활성화', attn:'활성화', deci:'활성화'},
+      5: {proc:'완료 ✓', seq:'완료 ✓', attn:'완료 ✓', deci:'완료 ✓'},
+    };
+    const v = vals[step] || vals[1];
+    document.getElementById('proc').textContent = v.proc;
+    document.getElementById('seq').textContent  = v.seq;
+    document.getElementById('attn').textContent = v.attn;
+    document.getElementById('deci').textContent = v.deci;
+  }
+
+  // ── STEP ACTIONS ──
+  function goToSearch() {
+    if (currentStep !== 1) return;
+    addLog('✅', '검색창을 눌렀어요!', '정확한 선택', true);
+    advanceStep(1);
+    showScreen('screen-search');
+  }
+
+  function searchEarphone() {
+    if (currentStep !== 2) return wrongClick('"무선 이어폰" 외 검색어');
+    document.getElementById('searchInput').value = '무선 이어폰';
+    addLog('✅', '"무선 이어폰"을 검색했어요!', '올바른 키워드', true);
+    advanceStep(2);
+    setTimeout(() => showScreen('screen-list'), 300);
+  }
+
+  function selectProduct() {
+    if (currentStep !== 3) return wrongClick('잘못된 상품');
+    addLog('✅', '삼성 갤럭시 버즈를 선택했어요!', '로켓배송 상품 선택', true);
+    advanceStep(3);
+    showScreen('screen-detail');
+  }
+
+  function addToCart() {
+    if (currentStep !== 4) return;
+    addLog('✅', '장바구니에 담았어요!', `수량 ${qty}개`, true);
+    advanceStep(4);
+    showScreen('screen-cart');
+  }
+
+  function placeOrder() {
+    if (currentStep !== 5) return;
+    addLog('✅', '주문을 완료했어요!', '미션 성공!', true);
+    advanceStep(5);
+    showScreen('screen-complete');
+    clearInterval(timerInterval);
+    setTimeout(showResult, 1200);
+  }
+
+  function changeQty(delta) {
+    qty = Math.max(1, Math.min(5, qty + delta));
+    document.getElementById('qtyNum').textContent = qty;
+  }
+
+  // ── WRONG CLICK ──
+  function wrongClick(action) {
+    if (currentStep > 5) return;
+    mistakeCount++;
+    totalClicks++;
+    document.getElementById('mistakes').textContent = mistakeCount;
+    const acc = Math.max(0, Math.round(100 - (mistakeCount / (totalClicks + mistakeCount)) * 100));
+    document.getElementById('accuracy').textContent = acc + '%';
+    addLog('❌', `실수: ${action}`, '다시 시도해봐요', false);
+  }
+
+  // ── LOG ──
+  function addLog(icon, text, sub, correct) {
+    totalClicks++;
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+    const s = String(elapsed%60).padStart(2,'0');
+
+    const log = document.getElementById('actionLog');
+    const item = document.createElement('div');
+    item.className = 'log-item' + (correct ? ' correct' : ' wrong');
+    item.innerHTML = `
+      <span class="log-icon">${icon}</span>
+      <div class="log-text">${text}${sub ? `<br><em>${sub}</em>` : ''}</div>
+      <span class="log-time">${m}:${s}</span>
+    `;
+    log.appendChild(item);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // ── RESULT ──
+  function showResult() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const acc = Math.max(0, Math.round(100 - (mistakeCount / Math.max(1, totalClicks)) * 50));
+    const stars = acc >= 90 ? '⭐⭐⭐' : acc >= 70 ? '⭐⭐' : '⭐';
+    const title = acc >= 90 ? '완벽해요!' : acc >= 70 ? '잘 했어요!' : '조금 더 연습해봐요';
+
+    document.getElementById('resultStars').textContent = stars;
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resAcc').innerHTML  = `${acc}<span>%</span>`;
+    document.getElementById('resTime').innerHTML = `${elapsed}<span>초</span>`;
+    document.getElementById('resMist').innerHTML = `${mistakeCount}<span>회</span>`;
+    document.getElementById('resultOverlay').classList.add('show');
+  }
+
+  function restartGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    currentStep = 1; mistakeCount = 0; totalClicks = 0; qty = 1;
+    startTime = Date.now();
+
+    // Reset steps
+    for (let i = 1; i <= 5; i++) {
+      const num  = document.getElementById('step' + i);
+      const name = document.getElementById('step' + i + 'name');
+      num.className = 'step-num' + (i === 1 ? ' active' : '');
+      num.textContent = i;
+      name.className = 'step-name' + (i === 1 ? ' active-text' : '');
+    }
+
+    document.getElementById('stepCount').textContent = '1 / 5';
+    document.getElementById('accuracy').textContent  = '100%';
+    document.getElementById('mistakes').textContent  = '0';
+    document.getElementById('actionLog').innerHTML = `
+      <div class="log-item">
+        <span class="log-icon">🔄</span>
+        <div class="log-text">다시 시작했습니다. 파이팅!</div>
+        <span class="log-time">00:00</span>
+      </div>`;
+
+    ['proc','seq','attn','deci'].forEach(id => document.getElementById(id).textContent = '측정중');
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const el = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timer').textContent =
+        `${String(Math.floor(el/60)).padStart(2,'0')}:${String(el%60).padStart(2,'0')}`;
+    }, 1000);
+
+    showScreen('screen-home');
+    document.getElementById('hintBox').classList.remove('show');
+  }
+</script>
+</body>
+</html>

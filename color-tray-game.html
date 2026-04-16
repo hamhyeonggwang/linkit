@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌈 색깔 공 받기!</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0d2b;font-family:'Nunito',sans-serif;overflow:hidden;width:100vw;height:100vh}
+#app{position:relative;width:100vw;height:100vh}
+#gameCanvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:2}
+#webcam{position:absolute;top:-9999px;left:-9999px;width:640px;height:480px}
+
+/* HUD */
+#hud{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;pointer-events:none}
+.score-panel{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:120px}
+.score-label{font-size:13px;font-weight:800;color:rgba(255,255,255,0.45);letter-spacing:1px}
+.score-val{font-size:42px;font-weight:900;color:#fff;line-height:1}
+#timer-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+#timer-display{font-size:48px;font-weight:900;color:#facc15;line-height:1;text-shadow:0 0 20px rgba(250,204,21,0.5)}
+#timer-display.urgent{color:#f87171;text-shadow:0 0 20px rgba(248,113,113,0.7);animation:pulse 0.5s infinite alternate}
+#mode-label{font-size:13px;font-weight:800;color:rgba(255,255,255,0.35)}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+
+/* Fever banner */
+#fever-banner{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);z-index:15;font-size:64px;font-weight:900;color:#fff;text-shadow:0 0 40px #f9a8d4,0 0 80px #c084fc;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.25s;text-align:center;line-height:1.3}
+#fever-banner.show{opacity:1}
+
+/* Overlays */
+.overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,8,30,0.92);backdrop-filter:blur(10px);gap:22px}
+.ov-emoji{font-size:80px;animation:bob 0.7s infinite alternate}
+.ov-title{font-size:46px;font-weight:900;color:#fff;text-align:center}
+.ov-desc{font-size:22px;color:rgba(255,255,255,0.65);font-weight:700;text-align:center;line-height:1.7;max-width:520px}
+.btn-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.btn{border:none;border-radius:50px;padding:16px 48px;font-size:26px;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;transition:transform 0.12s,box-shadow 0.12s}
+.btn-yellow{background:#facc15;color:#1a1000;box-shadow:0 6px 24px rgba(250,204,21,0.45)}
+.btn-purple{background:#a855f7;color:#fff;box-shadow:0 6px 24px rgba(168,85,247,0.45)}
+.btn-green{background:#4ade80;color:#052e16;box-shadow:0 6px 24px rgba(74,222,128,0.45)}
+.btn:hover{transform:scale(1.06)}
+.btn:active{transform:scale(0.97)}
+.result-row{display:flex;gap:32px;justify-content:center;align-items:flex-end;flex-wrap:wrap}
+.result-card{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:20px;padding:16px 32px;text-align:center}
+.result-card .rc-label{font-size:14px;font-weight:800;color:rgba(255,255,255,0.45);margin-bottom:4px}
+.result-card .rc-val{font-size:44px;font-weight:900;color:#facc15}
+.result-card.winner{border-color:#facc15;background:rgba(250,204,21,0.12)}
+
+/* Status / hand dots */
+#status-msg{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);z-index:10;font-size:18px;font-weight:800;color:rgba(255,255,255,0.45);pointer-events:none;white-space:nowrap;text-align:center}
+#hand-bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:12px;align-items:center;pointer-events:none}
+.hdot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);transition:all 0.2s}
+.hdot.on{background:#4ade80;border-color:#86efac;box-shadow:0 0 8px #4ade80}
+.hlabel{color:rgba(255,255,255,0.35);font-size:12px;font-weight:800}
+
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-16px)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <video id="webcam" autoplay playsinline></video>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="score-panel" id="panel-1p">
+      <div class="score-label" id="lbl-1p">⭐ 점수</div>
+      <div class="score-val" id="sv1">0</div>
+    </div>
+    <div id="timer-wrap">
+      <div id="timer-display">3:00</div>
+      <div id="mode-label">1인 모드</div>
+    </div>
+    <div class="score-panel" id="panel-2p" style="visibility:hidden">
+      <div class="score-label">🟣 2P 점수</div>
+      <div class="score-val" id="sv2">0</div>
+    </div>
+  </div>
+
+  <div id="fever-banner">⭐ FEVER TIME! ⭐</div>
+  <div id="status-msg"></div>
+  <div id="hand-bar">
+    <div class="hdot" id="dl"></div>
+    <span class="hlabel">왼손</span>
+    <span class="hlabel" style="margin:0 4px">|</span>
+    <span class="hlabel">오른손</span>
+    <div class="hdot" id="dr"></div>
+  </div>
+
+  <!-- Start screen -->
+  <div class="overlay" id="scr-start">
+    <div class="ov-emoji">🌈</div>
+    <div class="ov-title">색깔 공 받기!</div>
+    <div class="ov-desc">
+      양손을 들어 트레이를 만들고<br>
+      떨어지는 공을 받으세요!<br>
+      <span style="color:#facc15">무지개 공 → 🌟 피버타임!</span><br>
+      <span style="color:rgba(255,255,255,0.5);font-size:18px">3분 동안 최고 점수에 도전!</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-yellow" id="btn-1p">👤 1인 모드</button>
+      <button class="btn btn-purple" id="btn-2p">👥 2인 모드</button>
+    </div>
+  </div>
+
+  <!-- Result screen -->
+  <div class="overlay" id="scr-over" style="display:none">
+    <div class="ov-emoji">🎊</div>
+    <div id="over-title" class="ov-title"></div>
+    <div id="over-results" class="result-row"></div>
+    <div id="over-sub" class="ov-desc" style="font-size:18px"></div>
+    <div class="btn-row">
+      <button class="btn btn-yellow" id="btn-again">다시 하기 🔄</button>
+      <button class="btn btn-green"  id="btn-menu">메뉴로 🏠</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
+<script>
+'use strict';
+
+// ════════════════════════════════════════
+//  CONSTANTS
+// ════════════════════════════════════════
+const BALL_R       = 30;
+const TRAY_THICK   = 22;
+const TRAY_LEN_DEF = 340;
+const GRAVITY      = 0.15;
+const SPAWN_MS     = 1600;   // base spawn interval
+const GAME_SECS    = 180;    // 3 minutes
+
+const BALL_COLORS = [
+  { name:'red',    hex:'#f87171', glow:'#fca5a5', speed:1.0, pts:10 },
+  { name:'blue',   hex:'#60a5fa', glow:'#93c5fd', speed:1.5, pts:15 },
+  { name:'yellow', hex:'#fde047', glow:'#fef08a', speed:0.65, pts:10 },
+  { name:'green',  hex:'#4ade80', glow:'#86efac', speed:1.0, pts:10 },
+  { name:'orange', hex:'#fb923c', glow:'#fdba74', speed:1.7, pts:20 },
+  { name:'pink',   hex:'#f472b6', glow:'#f9a8d4', speed:0.8, pts:10 },
+];
+const RAINBOW    = { name:'rainbow', hex:'rainbow', glow:'#fff', speed:1.1, pts:0 };
+const STAR_COLS  = ['#facc15','#f472b6','#60a5fa','#4ade80','#fb923c','#c084fc'];
+
+const FEVER_FRAMES = 300;   // ~5s at 60fps
+const FEVER_STARS  = 45;
+
+// ════════════════════════════════════════
+//  AUDIO  (created lazily on first user gesture)
+// ════════════════════════════════════════
+let AC = null;
+
+function getAC() {
+  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  return AC;
+}
+
+function playTone(freq, type, dur, vol = 0.22) {
+  try {
+    const ac = getAC();
+    const o  = ac.createOscillator();
+    const g  = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+    o.start(); o.stop(ac.currentTime + dur);
+  } catch(e) {}
+}
+
+const PITCHES = { red:440, blue:523, yellow:587, green:494, orange:659, pink:784, rainbow:1047 };
+
+function sfxCatch(name) {
+  const f = PITCHES[name] || 440;
+  playTone(f,     'sine',     0.12, 0.28);
+  playTone(f*1.5, 'sine',     0.08, 0.14);
+  playTone(f*2,   'triangle', 0.06, 0.10);
+}
+function sfxFeverStart() {
+  [523,659,784,1047].forEach((f,i) => setTimeout(() => playTone(f,'square',0.14,0.18), i*65));
+}
+function sfxStar() {
+  playTone(1000 + Math.random()*600, 'sine', 0.06, 0.18);
+}
+function sfxCombo(n) {
+  playTone(300 + n*45, 'triangle', 0.1, 0.22);
+}
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let canvas, ctx, W, H;
+let mode       = 1;
+let lastMode   = 1;
+let gameRunning = false;
+let cameraOn   = false;
+let animId     = null;
+
+// Players — initialised in startGame()
+let P = [];
+
+// Game objects
+let balls     = [];
+let stars     = [];
+let particles = [];
+
+// Fever
+let feverMode  = false;
+let feverTimer = 0;
+
+// Timer
+let gameStartTs = 0;   // performance.now() when game started
+let timeLeft    = GAME_SECS;
+
+// Spawn
+let lastSpawnTs = 0;
+
+// Combo
+let combo = 0;
+
+// ════════════════════════════════════════
+//  PLAYER
+// ════════════════════════════════════════
+function makePlayer(side) {
+  return {
+    side,           // 'center' | 'left' | 'right'
+    score: 0,
+    hand1: null,
+    hand2: null,
+    trayX: 0, trayY: 0,
+    trayAngle: 0,
+    trayLen: TRAY_LEN_DEF,
+    trayActive: false,
+  };
+}
+
+// ════════════════════════════════════════
+//  CANVAS
+// ════════════════════════════════════════
+function initCanvas() {
+  canvas = document.getElementById('gameCanvas');
+  ctx    = canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', resize);
+}
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+// ════════════════════════════════════════
+//  MEDIAPIPE  — safe guard: only access P[] when game is running
+// ════════════════════════════════════════
+const mpH = new Hands({
+  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${f}`
+});
+mpH.setOptions({
+  maxNumHands: 2,
+  modelComplexity: 0,
+  minDetectionConfidence: 0.55,
+  minTrackingConfidence:  0.5,
+});
+mpH.onResults(onHands);
+
+const vidEl = document.getElementById('webcam');
+const mpCam = new Camera(vidEl, {
+  onFrame: async () => { await mpH.send({ image: vidEl }); },
+  width: 640, height: 480,
+});
+
+function onHands(res) {
+  if (!gameRunning || P.length === 0) return;  // ← guard
+
+  // Reset
+  P.forEach(p => { p.hand1 = null; p.hand2 = null; });
+
+  if (!res.multiHandLandmarks || res.multiHandLandmarks.length === 0) {
+    refreshDots(); return;
+  }
+
+  const wrists = res.multiHandLandmarks.map((lm, i) => ({
+    x: 1 - lm[0].x,   // mirror
+    y: lm[0].y,
+    label: res.multiHandedness[i].label,  // 'Left'|'Right' from model (mirrored)
+  }));
+
+  if (mode === 1) {
+    // model 'Right' = user's screen-left hand
+    const lw = wrists.find(w => w.label === 'Right');
+    const rw = wrists.find(w => w.label === 'Left');
+    if (lw) P[0].hand1 = { x: lw.x, y: lw.y };
+    if (rw) P[0].hand2 = { x: rw.x, y: rw.y };
+  } else {
+    // 2P: split by screen x
+    wrists.forEach(w => {
+      const pi = w.x < 0.5 ? 0 : 1;
+      if (!P[pi].hand1) P[pi].hand1 = { x: w.x, y: w.y };
+      else              P[pi].hand2 = { x: w.x, y: w.y };
+    });
+  }
+  refreshDots();
+}
+
+function refreshDots() {
+  const hasL = P.length > 0 && P[0].hand1 !== null;
+  const hasR = P.length > 0 && (P[0].hand2 !== null || (P[1] && P[1].hand1 !== null));
+  document.getElementById('dl').classList.toggle('on', hasL);
+  document.getElementById('dr').classList.toggle('on', hasR);
+}
+
+// ════════════════════════════════════════
+//  GAME FLOW
+// ════════════════════════════════════════
+function startGame(m) {
+  mode    = m;
+  lastMode = m;
+
+  // Reset everything
+  balls      = [];
+  stars      = [];
+  particles  = [];
+  feverMode  = false;
+  feverTimer = 0;
+  lastSpawnTs = 0;
+  combo      = 0;
+  timeLeft   = GAME_SECS;
+
+  document.getElementById('fever-banner').classList.remove('show');
+
+  if (mode === 1) {
+    P = [ makePlayer('center') ];
+    document.getElementById('panel-2p').style.visibility = 'hidden';
+    document.getElementById('lbl-1p').textContent        = '⭐ 점수';
+    document.getElementById('mode-label').textContent    = '1인 모드';
+  } else {
+    P = [ makePlayer('left'), makePlayer('right') ];
+    document.getElementById('panel-2p').style.visibility = 'visible';
+    document.getElementById('lbl-1p').textContent        = '🟢 1P 점수';
+    document.getElementById('mode-label').textContent    = '2인 모드';
+  }
+
+  updateHUD();
+
+  document.getElementById('scr-start').style.display = 'none';
+  document.getElementById('scr-over').style.display  = 'none';
+
+  if (!cameraOn) { cameraOn = true; mpCam.start(); }
+
+  gameRunning = true;
+  gameStartTs = performance.now();
+
+  if (animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(loop);
+}
+
+function endGame() {
+  gameRunning = false;
+
+  const el = document.getElementById('scr-over');
+  el.style.display = 'flex';
+
+  const resDiv = document.getElementById('over-results');
+  resDiv.innerHTML = '';
+
+  if (mode === 1) {
+    document.getElementById('over-title').textContent = '게임 종료! 🎊';
+    resDiv.innerHTML = `
+      <div class="result-card winner">
+        <div class="rc-label">최종 점수</div>
+        <div class="rc-val">⭐ ${P[0].score}</div>
+      </div>`;
+    document.getElementById('over-sub').textContent = '3분 동안 정말 잘했어요!';
+  } else {
+    const s1 = P[0].score, s2 = P[1].score;
+    const title = s1 > s2 ? '1P 승리! 🏆' : s2 > s1 ? '2P 승리! 🏆' : '무승부! 🤝';
+    document.getElementById('over-title').textContent = title;
+    resDiv.innerHTML = `
+      <div class="result-card ${s1 >= s2 ? 'winner':''}">
+        <div class="rc-label">🟢 1P</div>
+        <div class="rc-val">${s1}점</div>
+      </div>
+      <div class="result-card ${s2 >= s1 ? 'winner':''}">
+        <div class="rc-label">🟣 2P</div>
+        <div class="rc-val">${s2}점</div>
+      </div>`;
+    document.getElementById('over-sub').textContent = '3분간 최선을 다했어요!';
+  }
+}
+
+// ════════════════════════════════════════
+//  TRAY UPDATE
+// ════════════════════════════════════════
+function updateTrays() {
+  let anyActive = false;
+  P.forEach(p => {
+    if (!p.hand1 || !p.hand2) { p.trayActive = false; return; }
+
+    const cx = (p.hand1.x + p.hand2.x) / 2 * W;
+    const cy = (p.hand1.y + p.hand2.y) / 2 * H;
+    p.trayX     = cx;
+    p.trayY     = Math.max(H * 0.22, Math.min(H * 0.82, cy));
+    p.trayAngle = Math.atan2(p.hand2.y - p.hand1.y, p.hand2.x - p.hand1.x);
+
+    const dist  = Math.hypot((p.hand2.x - p.hand1.x) * W, (p.hand2.y - p.hand1.y) * H);
+    p.trayLen   = Math.min(Math.max(dist, 150), 520);
+    p.trayActive = p.hand1.y < 0.86 && p.hand2.y < 0.86;
+    if (p.trayActive) anyActive = true;
+  });
+  document.getElementById('status-msg').textContent =
+    anyActive ? '' : '✋ 양손을 들어올려 트레이를 만드세요!';
+}
+
+// ════════════════════════════════════════
+//  SPAWNING
+// ════════════════════════════════════════
+function maybeSpawn(now) {
+  if (!lastSpawnTs) { lastSpawnTs = now; return; }
+  if (now - lastSpawnTs < SPAWN_MS) return;
+  lastSpawnTs = now;
+
+  const isRainbow = Math.random() < 0.08;
+  const col = isRainbow ? RAINBOW : BALL_COLORS[Math.floor(Math.random() * BALL_COLORS.length)];
+
+  let x;
+  if (mode === 2 && !isRainbow) {
+    x = Math.random() < 0.5
+      ? W * 0.05 + Math.random() * W * 0.42
+      : W * 0.53 + Math.random() * W * 0.42;
+  } else {
+    x = W * 0.08 + Math.random() * W * 0.84;
+  }
+
+  balls.push({
+    x, y: -BALL_R,
+    vy: (1.3 + Math.random() * 0.7) * col.speed,
+    color: col,
+    rainbow: isRainbow,
+    hue: 0,
+  });
+}
+
+// ════════════════════════════════════════
+//  FEVER
+// ════════════════════════════════════════
+function triggerFever() {
+  feverMode  = true;
+  feverTimer = FEVER_FRAMES;
+  sfxFeverStart();
+  const fb = document.getElementById('fever-banner');
+  fb.classList.add('show');
+  setTimeout(() => fb.classList.remove('show'), 2200);
+
+  for (let i = 0; i < FEVER_STARS; i++) {
+    stars.push({
+      x:     Math.random() * W,
+      y:     -50 - Math.random() * H * 0.6,
+      vy:    2.2 + Math.random() * 3.5,
+      vx:    (Math.random() - 0.5) * 2,
+      r:     16 + Math.random() * 16,
+      color: STAR_COLS[Math.floor(Math.random() * STAR_COLS.length)],
+      spin:  Math.random() * Math.PI * 2,
+      spinV: (Math.random() - 0.5) * 0.18,
+    });
+  }
+}
+
+// ════════════════════════════════════════
+//  COLLISION
+// ════════════════════════════════════════
+function hitsTray(obj, p) {
+  if (!p.trayActive) return false;
+  const cos = Math.cos(p.trayAngle), sin = Math.sin(p.trayAngle);
+  const dx = obj.x - p.trayX, dy = obj.y - p.trayY;
+  const lx =  dx*cos + dy*sin;
+  const ly = -dx*sin + dy*cos;
+  const zone = TRAY_THICK / 2 + (obj.r || BALL_R) + 5;
+  return Math.abs(lx) < p.trayLen / 2 && Math.abs(ly) < zone && obj.vy > 0;
+}
+
+// ════════════════════════════════════════
+//  UPDATE
+// ════════════════════════════════════════
+function update(now) {
+  // ── Timer ──
+  const elapsed = (now - gameStartTs) / 1000;
+  timeLeft = Math.max(0, GAME_SECS - elapsed);
+  updateTimerDisplay();
+  if (timeLeft <= 0 && gameRunning) { endGame(); return; }
+
+  updateTrays();
+
+  // Fever countdown
+  if (feverMode) {
+    feverTimer--;
+    if (feverTimer <= 0) { feverMode = false; stars = []; }
+  }
+
+  maybeSpawn(now);
+
+  // ── Balls ──
+  for (let i = balls.length - 1; i >= 0; i--) {
+    const b = balls[i];
+    b.vy += GRAVITY;
+    b.y  += b.vy;
+    if (b.rainbow) b.hue = (b.hue + 3) % 360;
+
+    let caught = false;
+    for (const p of P) {
+      if (!hitsTray(b, p)) continue;
+      caught = true;
+      if (b.rainbow) {
+        triggerFever();
+        sfxCatch('rainbow');
+        addParticle(b.x, b.y, '#fff', '🌟 FEVER!', 72);
+      } else {
+        const base = b.color.pts;
+        const pts  = feverMode ? base * 2 : base;
+        p.score += pts;
+        combo++;
+        sfxCatch(b.color.name);
+        if (combo >= 3) sfxCombo(combo);
+        addParticle(b.x, b.y - 20, b.color.hex, feverMode ? `+${pts}🔥` : `+${pts}`, 40);
+        updateHUD();
+      }
+      break;
+    }
+    if (caught || b.y > H + BALL_R * 2) {
+      if (!caught) combo = 0;  // miss resets combo, no life loss
+      balls.splice(i, 1);
+    }
+  }
+
+  // ── Stars ──
+  for (let i = stars.length - 1; i >= 0; i--) {
+    const s = stars[i];
+    s.vy += 0.07; s.y += s.vy; s.x += s.vx; s.spin += s.spinV;
+
+    let caught = false;
+    for (const p of P) {
+      if (!hitsTray(s, p)) continue;
+      caught = true;
+      const pts = [5,10,15,20][Math.floor(Math.random()*4)];
+      p.score += pts;
+      sfxStar();
+      addParticle(s.x, s.y, s.color, `+${pts}⭐`, 30);
+      updateHUD();
+      break;
+    }
+    if (caught || s.y > H + 50) stars.splice(i, 1);
+  }
+
+  // ── Particles ──
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life--;
+    p.x += p.vx; p.y += p.vy;
+    if (p.dot) { p.vy += 0.1; p.vx *= 0.95; }
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function updateTimerDisplay() {
+  const m  = Math.floor(timeLeft / 60);
+  const s  = Math.floor(timeLeft % 60);
+  const el = document.getElementById('timer-display');
+  el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('urgent', timeLeft <= 30);
+}
+
+// ════════════════════════════════════════
+//  PARTICLES
+// ════════════════════════════════════════
+function addParticle(x, y, color, label, life) {
+  particles.push({ x, y, vx:0, vy:-2.6, color, label, life, maxLife:life, dot:false });
+  for (let i = 0; i < 12; i++) {
+    const a = Math.PI*2/12*i + Math.random()*0.3;
+    const s = 2 + Math.random()*4;
+    particles.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:4+Math.random()*7, color, life, maxLife:life, dot:true });
+  }
+}
+
+// ════════════════════════════════════════
+//  HUD
+// ════════════════════════════════════════
+function updateHUD() {
+  document.getElementById('sv1').textContent = P[0] ? P[0].score : 0;
+  document.getElementById('sv2').textContent = P[1] ? P[1].score : 0;
+}
+
+// ════════════════════════════════════════
+//  DRAW
+// ════════════════════════════════════════
+function draw() {
+  ctx.fillStyle = feverMode ? `hsl(${Date.now()/28%360},55%,7%)` : '#0d0d2b';
+  ctx.fillRect(0, 0, W, H);
+
+  if (mode === 2) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.setLineDash([14,14]);
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(W/2, 55); ctx.lineTo(W/2, H);
+    ctx.stroke(); ctx.restore();
+  }
+
+  drawStars();
+  drawBalls();
+  drawTrays();
+  drawParticles();
+  if (!P.some(p => p.trayActive)) drawHint();
+}
+
+// ── Stars ──
+function drawStar5(cx, cy, R, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a   = Math.PI/5*i - Math.PI/2;
+    const rad = i%2===0 ? R : r;
+    i===0 ? ctx.moveTo(cx+rad*Math.cos(a), cy+rad*Math.sin(a))
+          : ctx.lineTo(cx+rad*Math.cos(a), cy+rad*Math.sin(a));
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+function drawStars() {
+  stars.forEach(s => {
+    ctx.save();
+    ctx.translate(s.x, s.y); ctx.rotate(s.spin);
+    ctx.shadowColor = s.color; ctx.shadowBlur = 16;
+    ctx.fillStyle   = s.color;
+    drawStar5(0, 0, s.r, s.r*0.4);
+    ctx.restore();
+  });
+}
+
+// ── Balls ──
+function drawBalls() {
+  balls.forEach(b => {
+    ctx.save();
+    if (b.rainbow) {
+      const g = ctx.createRadialGradient(b.x, b.y, 2, b.x, b.y, BALL_R);
+      g.addColorStop(0,   `hsl(${b.hue},100%,85%)`);
+      g.addColorStop(0.4, `hsl(${(b.hue+80)%360},100%,65%)`);
+      g.addColorStop(1,   `hsl(${(b.hue+200)%360},100%,45%)`);
+      ctx.shadowColor = `hsl(${b.hue},100%,70%)`; ctx.shadowBlur = 30;
+      ctx.fillStyle   = g;
+    } else {
+      ctx.shadowColor = b.color.glow; ctx.shadowBlur = 22;
+      ctx.fillStyle   = b.color.hex;
+    }
+    ctx.beginPath(); ctx.arc(b.x, b.y, BALL_R, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur  = 0;
+    ctx.fillStyle   = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.arc(b.x-BALL_R*.3, b.y-BALL_R*.3, BALL_R*.35, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ── Trays ──
+function drawTrays() {
+  P.forEach((p, idx) => {
+    if (p.hand1) drawHandDot(p.hand1.x*W, p.hand1.y*H, idx===0 ? '#4ade80':'#f472b6');
+    if (p.hand2) drawHandDot(p.hand2.x*W, p.hand2.y*H, idx===0 ? '#60a5fa':'#fb923c');
+    if (!p.trayActive) return;
+
+    const cos = Math.cos(p.trayAngle), sin = Math.sin(p.trayAngle);
+    const half = p.trayLen / 2;
+    const x1 = p.trayX-cos*half, y1 = p.trayY-sin*half;
+    const x2 = p.trayX+cos*half, y2 = p.trayY+sin*half;
+    const col = mode===2 ? (idx===0 ? '#86efac':'#f9a8d4') : '#e2e8f0';
+
+    ctx.save();
+    ctx.shadowColor = col; ctx.shadowBlur = feverMode ? 30 : 14;
+    ctx.strokeStyle = col; ctx.lineWidth = TRAY_THICK; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.shadowBlur  = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(x1+sin*4, y1-cos*4); ctx.lineTo(x2+sin*4, y2-cos*4); ctx.stroke();
+    ctx.restore();
+  });
+}
+
+function drawHandDot(x, y, color) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.6;
+  ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = color; ctx.globalAlpha = 0.1; ctx.fill();
+  ctx.restore();
+}
+
+// ── Particles ──
+function drawParticles() {
+  particles.forEach(p => {
+    const a = p.life / p.maxLife;
+    ctx.save(); ctx.globalAlpha = Math.max(0, a);
+    if (p.dot) {
+      ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 6;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r*a, 0, Math.PI*2); ctx.fill();
+    } else {
+      ctx.font = '900 28px Nunito,sans-serif';
+      ctx.fillStyle = p.color; ctx.textAlign = 'center';
+      ctx.shadowColor = p.color; ctx.shadowBlur = 10;
+      ctx.fillText(p.label, p.x, p.y);
+    }
+    ctx.restore();
+  });
+}
+
+// ── Idle hint ──
+function drawHint() {
+  const a = 0.28 + 0.16 * Math.sin(Date.now()/900);
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.font = '68px serif'; ctx.textAlign = 'center';
+  ctx.fillText('🤲', W/2, H*0.6);
+  ctx.font = '900 20px Nunito,sans-serif'; ctx.fillStyle = '#fff'; ctx.globalAlpha = a*0.7;
+  ctx.fillText('양손을 들어올리세요', W/2, H*0.6+60);
+  ctx.restore();
+}
+
+// ════════════════════════════════════════
+//  MAIN LOOP
+// ════════════════════════════════════════
+function loop(ts) {
+  if (!gameRunning) return;
+  update(ts);
+  draw();
+  animId = requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+initCanvas();
+
+document.getElementById('btn-1p').addEventListener('click', () => startGame(1));
+document.getElementById('btn-2p').addEventListener('click', () => startGame(2));
+document.getElementById('btn-again').addEventListener('click', () => startGame(lastMode));
+document.getElementById('btn-menu').addEventListener('click', () => {
+  gameRunning = false;
+  if (animId) cancelAnimationFrame(animId);
+  window.location.href = 'ot-hub-preview.html';
+});
+</script>
+</body>
+</html>

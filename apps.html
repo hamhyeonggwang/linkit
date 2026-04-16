@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>링키월드 — 훈련 앱</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #D6EEFF;
+  --blue: #5BB8F5;
+  --blue-dark: #2D8CC4;
+  --blue-deep: #1A5F8A;
+  --orange: #FF8C42;
+  --green: #6ECB8A;
+  --yellow: #FFD966;
+  --yellow-dark: #F0B800;
+  --pink: #FFB5C8;
+  --purple: #B39DDB;
+  --white: #FFFFFF;
+  --text-dark: #1A2E3A;
+  --text-mid: #3A5A6E;
+  --text-light: #6A8FA0;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Noto Sans KR', sans-serif; background: var(--sky); color: var(--text-dark); overflow-x: hidden; }
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(214,238,255,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid rgba(91,184,245,0.22);
+  padding: 0 32px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Nunito', sans-serif; font-size: 22px; font-weight: 900;
+  color: var(--blue-dark); text-decoration: none;
+}
+.nav-links { display: flex; align-items: center; gap: 6px; }
+.nav-link {
+  padding: 7px 16px; border-radius: 40px;
+  font-size: 14px; font-weight: 700; color: var(--text-mid);
+  text-decoration: none; transition: all 0.2s;
+  border: 2px solid transparent;
+}
+.nav-link:hover, .nav-link.active {
+  background: rgba(91,184,245,0.18); color: var(--blue-dark);
+  border-color: rgba(91,184,245,0.4);
+}
+.nav-link.active { background: rgba(91,184,245,0.25); }
+.nav-cta {
+  background: var(--orange); color: white;
+  padding: 9px 22px; border-radius: 40px;
+  font-size: 14px; font-weight: 800; text-decoration: none;
+  box-shadow: 0 3px 0 #C06820; transition: all 0.2s;
+}
+.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #C06820; }
+
+/* PAGE HEADER */
+.page-header {
+  padding: 56px 48px 0;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+}
+.page-header-text {}
+.page-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(91,184,245,0.18); border: 2px solid rgba(91,184,245,0.35);
+  color: var(--blue-dark); font-size: 12px; font-weight: 800;
+  padding: 5px 14px; border-radius: 40px; margin-bottom: 12px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.page-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(32px, 5vw, 52px); font-weight: 900;
+  color: var(--blue-deep); line-height: 1.1;
+}
+.page-title span { color: var(--orange); }
+.page-desc { font-size: 15px; color: var(--text-mid); margin-top: 10px; line-height: 1.6; }
+
+/* FILTER TABS */
+.filter-row {
+  padding: 28px 48px 0;
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 9px 20px; border-radius: 40px;
+  font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
+  border: 2.5px solid transparent; cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  background: white; color: var(--text-mid);
+  border-color: rgba(0,0,0,0.08);
+}
+.filter-btn:hover { transform: translateY(-2px); }
+.filter-btn.active { color: white; border-color: transparent; transform: translateY(-2px); }
+.filter-btn[data-cat="all"].active { background: var(--blue-dark); }
+.filter-btn[data-cat="kiosk"].active { background: #E8650A; }
+.filter-btn[data-cat="cognitive"].active { background: var(--blue-dark); }
+.filter-btn[data-cat="motor"].active { background: #3E9A5A; }
+.filter-btn[data-cat="writing"].active { background: #8B6000; }
+
+/* SECTION */
+.cat-section { padding: 36px 48px 0; }
+.cat-section:last-child { padding-bottom: 80px; }
+.cat-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 2.5px solid rgba(0,0,0,0.06);
+}
+.cat-badge {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  flex-shrink: 0;
+}
+.cat-name {
+  font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900;
+}
+.cat-count {
+  font-size: 12px; font-weight: 700; padding: 3px 10px;
+  border-radius: 20px; margin-left: auto;
+}
+
+/* CARD GRID */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+/* APP CARD */
+.app-card {
+  border-radius: 20px; overflow: hidden;
+  border: 3px solid transparent;
+  background: white;
+  cursor: pointer; text-decoration: none; color: inherit;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.app-card:hover { transform: translateY(-6px) scale(1.02); }
+.app-card.coming-soon { opacity: 0.65; cursor: default; filter: grayscale(0.3); }
+.app-card.coming-soon:hover { transform: none; }
+
+.card-thumb {
+  width: 100%; aspect-ratio: 4/3; overflow: hidden;
+  background: var(--sky); flex-shrink: 0;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-thumb iframe {
+  width: 200%; height: 200%; transform: scale(0.5); transform-origin: top left;
+  pointer-events: none; border: none;
+}
+.card-thumb .thumb-svg { width: 100%; height: 100%; }
+
+.card-body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.card-name {
+  font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800;
+  color: var(--text-dark); line-height: 1.3;
+}
+.card-desc { font-size: 11px; color: var(--text-light); line-height: 1.5; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.card-area-tag {
+  font-size: 10px; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px;
+}
+.card-play {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 800; color: white;
+  padding: 5px 12px; border-radius: 20px;
+  transition: all 0.15s;
+}
+.app-card:hover .card-play { transform: scale(1.06); }
+
+/* 준비중 배지 */
+.coming-badge {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,0.55); color: white;
+  font-size: 10px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; backdrop-filter: blur(4px);
+}
+
+/* 카테고리별 컬러 */
+.kiosk .app-card { border-color: #FFCBA4; }
+.kiosk .app-card:hover { border-color: #E8650A; box-shadow: 0 12px 32px rgba(232,101,10,0.18); }
+.kiosk .card-area-tag { background: #FFF2EB; color: #8B4500; }
+.kiosk .card-play { background: #E8650A; box-shadow: 0 3px 0 #A84800; }
+
+.cognitive .app-card { border-color: #9FD4F5; }
+.cognitive .app-card:hover { border-color: var(--blue); box-shadow: 0 12px 32px rgba(91,184,245,0.2); }
+.cognitive .card-area-tag { background: #EBF5FF; color: #1A5F8A; }
+.cognitive .card-play { background: var(--blue); box-shadow: 0 3px 0 var(--blue-dark); }
+
+.motor .app-card { border-color: #A8DBA8; }
+.motor .app-card:hover { border-color: var(--green); box-shadow: 0 12px 32px rgba(110,203,138,0.2); }
+.motor .card-area-tag { background: #EFF8EE; color: #1A5E2A; }
+.motor .card-play { background: var(--green); box-shadow: 0 3px 0 #3E9A5A; }
+
+.writing .app-card { border-color: #FFE08A; }
+.writing .app-card:hover { border-color: var(--yellow-dark); box-shadow: 0 12px 32px rgba(240,184,0,0.2); }
+.writing .card-area-tag { background: #FFFBEB; color: #8B6000; }
+.writing .card-play { background: var(--yellow-dark); box-shadow: 0 3px 0 #8B6000; }
+
+/* HIDDEN */
+.cat-section.hidden { display: none; }
+
+/* 링키 응원 띠 */
+.linky-band {
+  margin: 32px 48px 0;
+  background: white; border-radius: 20px;
+  padding: 20px 28px;
+  display: flex; align-items: center; gap: 18px;
+  border: 3px solid rgba(91,184,245,0.2);
+}
+.linky-band img { width: 72px; }
+.linky-band-text { font-size: 14px; color: var(--text-mid); line-height: 1.6; }
+.linky-band-text strong { color: var(--blue-dark); font-weight: 700; }
+
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .page-header, .filter-row, .cat-section { padding-left: 20px; padding-right: 20px; }
+  .card-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .linky-band { margin: 24px 20px 0; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 3 L17 10.5 L25 11 L19 17 L21 24.5 L14 20.5 L7 24.5 L9 17 L3 11 L11 10.5 Z" fill="#5BB8F5" stroke="#2D8CC4" stroke-width="1.2" stroke-linejoin="round"/>
+    </svg>
+    링키월드
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">홈</a>
+    <a href="apps.html" class="nav-link active">훈련 앱</a>
+    <a href="index.html#program" class="nav-link">프로그램</a>
+    <a href="index.html#mascot" class="nav-link">링키 소개</a>
+    <a href="#" class="nav-cta">관리자 페이지 ▸</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-text">
+    <div class="page-tag">🎮 훈련 앱</div>
+    <h1 class="page-title">오늘은 어떤<br><span>훈련</span> 할까요?</h1>
+    <p class="page-desc">6종의 훈련 게임, 총 14개로 일상 속 능력을 키워요. 링키가 응원해요!</p>
+  </div>
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-row">
+  <button class="filter-btn active" data-cat="all">전체 보기</button>
+  <button class="filter-btn" data-cat="kiosk">🏪 키오스크</button>
+  <button class="filter-btn" data-cat="cognitive">🧠 인지·주의</button>
+  <button class="filter-btn" data-cat="motor">🙌 협응·운동</button>
+  <button class="filter-btn" data-cat="writing">✏️ 쓰기·표현</button>
+</div>
+
+<!-- A. 키오스크 훈련 -->
+<div class="cat-section kiosk" id="sec-kiosk">
+  <div class="cat-header">
+    <div class="cat-badge" style="background:#FFCBA4;">🏪</div>
+    <div>
+      <div class="cat-name" style="color:#8B4500;">키오스크 훈련</div>
+      <div style="font-size:12px;color:#C06820;margin-top:2px;">실제 브랜드로 주문 연습 — 일상참여</div>
+    </div>
+    <span class="cat-count" style="background:#FFF2EB;color:#8B4500;">7개</span>
+  </div>
+  <div class="card-grid">
+
+    <a href="paik-kiosk-trainer.html" class="app-card">
+      <div class="card-thumb" id="thumb-paik"></div>
+      <div class="card-body">
+        <div class="card-name">빽다방 키오스크</div>
+        <div class="card-desc">음료 고르고 사이즈·옵션 선택</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="cu-kiosk-trainer.html" class="app-card">
+      <div class="card-thumb" id="thumb-cu"></div>
+      <div class="card-body">
+        <div class="card-name">CU 셀프계산대</div>
+        <div class="card-desc">상품 스캔부터 결제까지</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="munggu-kiosk-trainer.html" class="app-card">
+      <div class="card-thumb" id="thumb-munggu"></div>
+      <div class="card-body">
+        <div class="card-name">문구야놀자</div>
+        <div class="card-desc">문구점 키오스크 주문 연습</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="maratang-kiosk-trainer.html" class="app-card">
+      <div class="card-thumb" id="thumb-maratang"></div>
+      <div class="card-body">
+        <div class="card-name">마라탕 하우스</div>
+        <div class="card-desc">재료 담고 무게로 계산하기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="homeplus-kiosk-trainer.html" class="app-card">
+      <div class="card-thumb" id="thumb-homeplus"></div>
+      <div class="card-body">
+        <div class="card-name">홈플러스 푸드코트</div>
+        <div class="card-desc">대형마트 푸드코트 주문</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="game-kiosk.html" class="app-card">
+      <div class="card-thumb" id="thumb-gamekiosk"></div>
+      <div class="card-body">
+        <div class="card-name">패스트푸드 키오스크</div>
+        <div class="card-desc">햄버거 가게 주문 시뮬레이션</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여 D1</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="game-shopping.html" class="app-card">
+      <div class="card-thumb" id="thumb-shopping"></div>
+      <div class="card-body">
+        <div class="card-name">쇼핑몰 앱 사용</div>
+        <div class="card-desc">온라인 쇼핑 앱 탐색·구매</div>
+        <div class="card-footer">
+          <span class="card-area-tag">일상참여 D6</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- B. 인지·주의 훈련 -->
+<div class="cat-section cognitive" id="sec-cognitive">
+  <div class="cat-header">
+    <div class="cat-badge" style="background:#9FD4F5;">🧠</div>
+    <div>
+      <div class="cat-name" style="color:#1A5F8A;">인지·주의 훈련</div>
+      <div style="font-size:12px;color:#2D8CC4;margin-top:2px;">기억력, 집중력, 반응속도 — B·C영역</div>
+    </div>
+    <span class="cat-count" style="background:#EBF5FF;color:#1A5F8A;">4개</span>
+  </div>
+  <div class="card-grid">
+
+    <a href="game-memory.html" class="app-card">
+      <div class="card-thumb" id="thumb-memory"></div>
+      <div class="card-body">
+        <div class="card-name">카드 뒤집기</div>
+        <div class="card-desc">같은 그림 찾아 짝 맞추기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">기억·순서 C4</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="game-nback.html" class="app-card">
+      <div class="card-thumb" id="thumb-nback"></div>
+      <div class="card-body">
+        <div class="card-name">N-Back 기억 훈련</div>
+        <div class="card-desc">N번 전 자극과 같은지 판단</div>
+        <div class="card-footer">
+          <span class="card-area-tag">기억·순서 C3</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="game-gonogo.html" class="app-card">
+      <div class="card-thumb" id="thumb-gonogo"></div>
+      <div class="card-body">
+        <div class="card-name">Go / No-Go</div>
+        <div class="card-desc">신호에 맞게 반응 억제 훈련</div>
+        <div class="card-footer">
+          <span class="card-area-tag">주의·반응 B5</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="game-shapes.html" class="app-card">
+      <div class="card-thumb" id="thumb-shapes"></div>
+      <div class="card-body">
+        <div class="card-name">모양 찾기</div>
+        <div class="card-desc">숨어있는 모양 빠르게 찾기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">시지각·공간 A1</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- C. 협응·운동 훈련 -->
+<div class="cat-section motor" id="sec-motor">
+  <div class="cat-header">
+    <div class="cat-badge" style="background:#A8DBA8;">🙌</div>
+    <div>
+      <div class="cat-name" style="color:#1A5E2A;">협응·운동 훈련</div>
+      <div style="font-size:12px;color:#3E9A5A;margin-top:2px;">눈-손 협응, 양손 협응, 감각운동</div>
+    </div>
+    <span class="cat-count" style="background:#EFF8EE;color:#1A5E2A;">2개 + 준비중 2개</span>
+  </div>
+  <div class="card-grid">
+
+    <a href="balloon-adventure-01.html" class="app-card">
+      <div class="card-thumb" id="thumb-balloon"></div>
+      <div class="card-body">
+        <div class="card-name">풍선 탐험대</div>
+        <div class="card-desc">색깔 폭풍 전에 제자리 찾기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">협응·운동</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="color-tray-game.html" class="app-card">
+      <div class="card-thumb" id="thumb-colortray"></div>
+      <div class="card-body">
+        <div class="card-name">색깔 공 받기!</div>
+        <div class="card-desc">양손 트레이로 무지개 공 받기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">협응·운동</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 준비중 1 -->
+    <div class="app-card coming-soon">
+      <div class="card-thumb" style="background:#E8F8F0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 5 L24 15 L35 15.5 L27 23 L29.5 34 L20 28.5 L10.5 34 L13 23 L5 15.5 L16 15 Z" fill="#A8DBA8" stroke="#3E9A5A" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-size:11px;font-weight:700;color:#3E9A5A;">준비 중</span>
+      </div>
+      <div class="coming-badge">Coming Soon</div>
+      <div class="card-body">
+        <div class="card-name" style="color:#888;">양손 협응 게임</div>
+        <div class="card-desc">MediaPipe 손동작 인식 훈련</div>
+        <div class="card-footer">
+          <span class="card-area-tag">협응·운동</span>
+          <span class="card-play" style="background:#ccc;box-shadow:none;">준비중</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 준비중 2 -->
+    <div class="app-card coming-soon">
+      <div class="card-thumb" style="background:#E8F8F0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 5 L24 15 L35 15.5 L27 23 L29.5 34 L20 28.5 L10.5 34 L13 23 L5 15.5 L16 15 Z" fill="#A8DBA8" stroke="#3E9A5A" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-size:11px;font-weight:700;color:#3E9A5A;">준비 중</span>
+      </div>
+      <div class="coming-badge">Coming Soon</div>
+      <div class="card-body">
+        <div class="card-name" style="color:#888;">시선 추적 게임</div>
+        <div class="card-desc">눈으로 조작하는 훈련</div>
+        <div class="card-footer">
+          <span class="card-area-tag">협응·운동</span>
+          <span class="card-play" style="background:#ccc;box-shadow:none;">준비중</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- D. 쓰기·표현 훈련 -->
+<div class="cat-section writing" id="sec-writing">
+  <div class="cat-header">
+    <div class="cat-badge" style="background:#FFE08A;">✏️</div>
+    <div>
+      <div class="cat-name" style="color:#8B6000;">쓰기·표현 훈련</div>
+      <div style="font-size:12px;color:#A07800;margin-top:2px;">한글·숫자·영어 글자 따라쓰기</div>
+    </div>
+    <span class="cat-count" style="background:#FFFBEB;color:#8B6000;">1개 + 준비중 1개</span>
+  </div>
+  <div class="card-grid">
+
+    <a href="writing-game-v1.html" class="app-card">
+      <div class="card-thumb" id="thumb-writing"></div>
+      <div class="card-body">
+        <div class="card-name">누구나 쓰기게임</div>
+        <div class="card-desc">자음·모음·숫자 색칠 따라쓰기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">쓰기·표현</span>
+          <span class="card-play">▶ 시작</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 준비중 -->
+    <div class="app-card coming-soon">
+      <div class="card-thumb" style="background:#FFF8E0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 5 L24 15 L35 15.5 L27 23 L29.5 34 L20 28.5 L10.5 34 L13 23 L5 15.5 L16 15 Z" fill="#FFE08A" stroke="#F0B800" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span style="font-size:11px;font-weight:700;color:#A07800;">준비 중</span>
+      </div>
+      <div class="coming-badge">Coming Soon</div>
+      <div class="card-body">
+        <div class="card-name" style="color:#888;">시선 쓰기 훈련</div>
+        <div class="card-desc">눈으로 글자 따라 그리기</div>
+        <div class="card-footer">
+          <span class="card-area-tag">쓰기·표현</span>
+          <span class="card-play" style="background:#ccc;box-shadow:none;">준비중</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 푸터 -->
+<footer style="background:#1A5F8A;color:rgba(255,255,255,0.7);padding:48px;text-align:center;margin-top:60px;">
+  <div style="font-family:'Nunito',sans-serif;font-size:24px;font-weight:900;color:white;margin-bottom:6px;">링키월드 ⭐</div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:4px;">푸르메재단 넥슨어린이재활병원 · 학령기치료팀</div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.5);">Link-IT 프로그램 · 2026.03 ~ 2026.12</div>
+  <div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;color:rgba(255,255,255,0.3);">
+    본 플랫폼은 학령기 아동의 자립과 지역사회 참여를 위한 비영리 재활 훈련 목적으로 운영됩니다.
+  </div>
+</footer>
+
+<!-- game-thumbs.js 로드 후 썸네일 렌더링 -->
+<script src="game-thumbs.js"></script>
+<script>
+(function() {
+  var T = window.OT_HUB_THUMB || {};
+  var map = {
+    'thumb-paik':      T.paikKiosk,
+    'thumb-munggu':    T.mungguKiosk,
+    'thumb-cu':        T.cuKiosk,
+    'thumb-maratang':  T.maratangKiosk,
+    'thumb-homeplus':  T.homeplusKiosk,
+    'thumb-balloon':   T.balloonAdventure,
+    'thumb-colortray': T.colorTray,
+    'thumb-writing':   T.writingGame,
+  };
+
+  // game-thumbs에 없는 기존 게임 — 간단한 SVG 인라인 생성
+  var fallbacks = {
+    'thumb-gamekiosk': makeSvg('#1976D2', '🍔', '패스트푸드', 'D1 키오스크'),
+    'thumb-shopping':  makeSvg('#7B1FA2', '🛍️', '쇼핑몰 앱', 'D6 일상참여'),
+    'thumb-memory':    makeSvg('#0277BD', '🃏', '카드 뒤집기', 'C4 기억·순서'),
+    'thumb-nback':     makeSvg('#00695C', '🔢', 'N-Back', 'C3 기억·순서'),
+    'thumb-gonogo':    makeSvg('#AD1457', '🎯', 'Go/No-Go', 'B5 주의·반응'),
+    'thumb-shapes':    makeSvg('#F57F17', '🔷', '모양 찾기', 'A1 시지각'),
+  };
+
+  function makeSvg(color, emoji, title, sub) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +
+      '<rect width="400" height="300" fill="' + color + '"/>' +
+      '<text x="200" y="118" text-anchor="middle" font-size="56">' + emoji + '</text>' +
+      '<text x="200" y="172" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="800" fill="#fff">' + title + '</text>' +
+      '<text x="200" y="200" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="rgba(255,255,255,.8)">' + sub + '</text>' +
+      '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  function renderThumb(id, src) {
+    var el = document.getElementById(id);
+    if (!el || !src) return;
+    var img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    el.appendChild(img);
+  }
+
+  Object.keys(map).forEach(function(id) { renderThumb(id, map[id]); });
+  Object.keys(fallbacks).forEach(function(id) { renderThumb(id, fallbacks[id]); });
+
+  // 필터 탭
+  var btns = document.querySelectorAll('.filter-btn');
+  var sections = document.querySelectorAll('.cat-section');
+
+  btns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var cat = btn.getAttribute('data-cat');
+      btns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      sections.forEach(function(sec) {
+        if (cat === 'all' || sec.classList.contains(cat)) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  // 카드 진입 애니메이션
+  var cards = document.querySelectorAll('.app-card:not(.coming-soon)');
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry, i) {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (i * 0.05) + 's';
+        entry.target.style.animation = 'cardIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both';
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  cards.forEach(function(c) { obs.observe(c); });
+})();
+</script>
+<style>
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+</body>
+</html>

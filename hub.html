@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link IT 2.0 — 훈련 허브</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg:#F2F4FF; --surface:#FFFFFF; --surface-alt:#F8F9FF;
+  --border:#E2E5F4; --border-mid:#C8CEEA;
+  --accent:#7B68EE; --accent-2:#9B8BF4; --accent-dim:#F0EEFF; --accent-ring:rgba(123,104,238,.18); --accent-dark:#5A4BD1;
+  --teal:#0EA5A0; --teal-dim:#F0FAFA;
+  --green:#12B76A; --green-dim:#ECFDF5;
+  --amber:#F59E0B; --amber-dim:#FFFBEB;
+  --red:#F04438; --red-dim:#FEF3F2;
+  --purp:#9B6EFF; --purp-dim:#F3EFFF;
+  --t1:#1A1B2E; --t2:#4A4E6B; --t3:#9093B0; --t4:#C5C8DC;
+  --r-xs:6px; --r-sm:10px; --r:14px; --r-lg:20px; --r-xl:26px;
+  --sh-xs:0 1px 3px rgba(30,30,80,.06); --sh:0 3px 14px rgba(30,30,80,.08); --sh-lg:0 8px 32px rgba(30,30,80,.11);
+  --font:'Pretendard',-apple-system,sans-serif; --tr:.18s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:var(--font);}
+
+.top-strip{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--teal));}
+
+/* NAV */
+.nav{
+  position:sticky;top:0;z-index:200;height:52px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:10px;
+  box-shadow:var(--sh-xs);
+}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;}
+.nav-title{font-size:14px;font-weight:800;color:var(--t1);}
+.nav-ver{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:20px;}
+.nav-links{display:flex;gap:2px;list-style:none;margin-left:16px;}
+.nav-links a{font-size:13px;font-weight:500;color:var(--t2);padding:5px 12px;border-radius:var(--r-sm);transition:all var(--tr);}
+.nav-links a:hover{background:var(--surface-alt);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.user-chip{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-alt);color:var(--t2);font-size:12px;font-weight:600;}
+.user-chip .u-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 55px);}
+
+/* SIDEBAR */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  padding:20px 16px;
+  display:flex;flex-direction:column;gap:0;
+  position:sticky;top:55px;height:calc(100vh - 55px);overflow-y:auto;
+}
+.sb-section{margin-bottom:22px;}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;margin-bottom:10px;}
+
+/* Filter buttons */
+.filter-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r-sm);
+  cursor:pointer;margin-bottom:2px;
+  transition:all var(--tr);
+  border:1px solid transparent;
+  background:none;width:100%;text-align:left;font-family:var(--font);
+}
+.filter-item:hover{background:var(--surface-alt);}
+.filter-item.active{background:var(--accent-dim);border-color:rgba(123,104,238,0.2);}
+.fi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.fi-label{font-size:13px;font-weight:500;color:var(--t2);flex:1;}
+.filter-item.active .fi-label{color:var(--accent);font-weight:600;}
+.fi-count{
+  font-size:10px;font-weight:700;color:var(--t3);
+  background:var(--surface-alt);border:1px solid var(--border);
+  padding:1px 7px;border-radius:20px;
+}
+.filter-item.active .fi-count{background:rgba(123,104,238,0.12);border-color:rgba(123,104,238,0.2);color:var(--accent);}
+
+/* Diff chips */
+.diff-row{display:flex;gap:5px;flex-wrap:wrap;}
+.diff-chip{
+  padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;
+  border:1px solid var(--border);background:none;color:var(--t3);
+  cursor:pointer;transition:all var(--tr);
+}
+.diff-chip:hover{border-color:var(--border-mid);color:var(--t2);}
+.diff-chip.active{background:var(--accent-dim);border-color:rgba(123,104,238,0.3);color:var(--accent);}
+
+/* Recent */
+.recent-item{font-size:12px;color:var(--t2);padding:4px 0;display:flex;justify-content:space-between;}
+.recent-score{font-weight:700;}
+.rs-hi{color:var(--green);}
+.rs-mid{color:var(--accent);}
+.rs-lo{color:var(--amber);}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:16px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;color:var(--t3);}
+.search-input{
+  width:100%;padding:8px 10px 8px 32px;
+  border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface-alt);color:var(--t1);font-family:var(--font);font-size:13px;
+  outline:none;transition:border-color var(--tr),box-shadow var(--tr);
+}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring);}
+.search-input::placeholder{color:var(--t4);}
+
+/* MAIN */
+.main{flex:1;padding:28px 28px 60px;min-width:0;}
+
+.page-top{margin-bottom:24px;}
+.page-tag{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.page-title{font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-.5px;}
+.page-desc{font-size:13px;color:var(--t3);margin-top:3px;}
+
+.results-bar{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+  font-size:13px;color:var(--t3);
+}
+.results-bar strong{color:var(--t1);font-size:15px;font-weight:800;}
+.rb-sep{color:var(--t4);}
+
+/* AREA SECTION */
+.area-section{margin-bottom:36px;}
+.area-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.area-stripe{width:4px;height:20px;border-radius:2px;}
+.area-title{font-size:15px;font-weight:800;color:var(--t1);}
+.area-sub{font-size:11px;color:var(--t3);}
+.area-pill{
+  margin-left:auto;font-size:10px;font-weight:700;
+  padding:3px 10px;border-radius:20px;
+  border:1px solid var(--border);color:var(--t3);background:var(--surface-alt);
+}
+
+/* GAME GRID */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+
+/* GAME CARD */
+.game-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:18px;
+  cursor:pointer;transition:all var(--tr);
+  display:flex;flex-direction:column;gap:8px;
+  box-shadow:var(--sh-xs);position:relative;overflow:hidden;
+}
+.game-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:var(--r-lg) var(--r-lg) 0 0;opacity:0;transition:opacity var(--tr);
+}
+.game-card:hover{border-color:var(--border-mid);box-shadow:var(--sh);transform:translateY(-2px);}
+.game-card:hover::before{opacity:1;}
+
+.area-a-card::before{background:linear-gradient(90deg,var(--accent),var(--accent-2));}
+.area-b-card::before{background:linear-gradient(90deg,var(--amber),#F5C842);}
+.area-c-card::before{background:linear-gradient(90deg,var(--purp),#C89EFF);}
+.area-d-card::before{background:linear-gradient(90deg,var(--teal),#00D4CA);}
+.area-a-card:hover{border-color:rgba(123,104,238,0.3);}
+.area-b-card:hover{border-color:rgba(245,158,11,0.3);}
+.area-c-card:hover{border-color:rgba(155,110,255,0.3);}
+.area-d-card:hover{border-color:rgba(14,165,160,0.3);}
+
+.gc-top{display:flex;align-items:flex-start;justify-content:space-between;}
+.gc-icon{
+  width:42px;height:42px;border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.gc-id{font-size:10px;font-weight:700;color:var(--t4);}
+.gc-name{font-size:14px;font-weight:800;color:var(--t1);line-height:1.3;}
+.gc-desc{font-size:11px;color:var(--t2);line-height:1.6;flex:1;}
+
+.gc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.gc-diff{font-size:11px;color:var(--amber);}
+.gc-time{font-size:10px;color:var(--t3);}
+
+.new-badge{
+  position:absolute;top:10px;right:10px;
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;
+  background:var(--teal-dim);color:var(--teal);border:1px solid rgba(14,165,160,0.3);
+}
+
+.gc-btn{
+  width:100%;padding:8px;border-radius:var(--r-sm);
+  background:var(--surface-alt);border:1px solid var(--border);
+  color:var(--t3);font-size:12px;font-weight:600;
+  transition:all var(--tr);margin-top:4px;
+}
+.game-card:hover .gc-btn{
+  background:var(--accent-dim);border-color:rgba(123,104,238,0.3);
+  color:var(--accent);
+}
+.area-d-card:hover .gc-btn{background:var(--teal-dim);border-color:rgba(14,165,160,0.3);color:var(--teal);}
+
+/* EMPTY STATE */
+.empty-state{display:none;flex-direction:column;align-items:center;padding:60px 20px;gap:10px;color:var(--t3);}
+.empty-state.show{display:flex;}
+.empty-icon{font-size:40px;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="top-strip"></div>
+
+<nav class="nav">
+  <a href="index.html" style="display:flex;align-items:center;gap:8px;">
+    <div class="logo-mark">LIT</div>
+    <span class="nav-title">Link IT</span>
+    <span class="nav-ver">2.0</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">홈</a></li>
+    <li><a href="#" class="active">훈련 허브</a></li>
+    <li><a href="results.html">수행결과</a></li>
+    <li><a href="index.html#program">소개</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="user-chip"><span class="u-dot"></span> 김은총 (9세)</div>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">훈련 영역</div>
+      <button class="filter-item active" data-area="all">
+        <span class="fi-dot" style="background:var(--accent);"></span>
+        <span class="fi-label">전체</span>
+        <span class="fi-count">20</span>
+      </button>
+      <button class="filter-item" data-area="a">
+        <span class="fi-dot" style="background:var(--accent);"></span>
+        <span class="fi-label">시지각 · 공간</span>
+        <span class="fi-count">5</span>
+      </button>
+      <button class="filter-item" data-area="b">
+        <span class="fi-dot" style="background:var(--amber);"></span>
+        <span class="fi-label">주의 · 반응</span>
+        <span class="fi-count">5</span>
+      </button>
+      <button class="filter-item" data-area="c">
+        <span class="fi-dot" style="background:var(--purp);"></span>
+        <span class="fi-label">기억 · 순서</span>
+        <span class="fi-count">5</span>
+      </button>
+      <button class="filter-item" data-area="d">
+        <span class="fi-dot" style="background:var(--teal);"></span>
+        <span class="fi-label">일상참여</span>
+        <span class="fi-count">5</span>
+      </button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">난이도</div>
+      <div class="diff-row">
+        <button class="diff-chip active" data-diff="all">전체</button>
+        <button class="diff-chip" data-diff="1">⭐ 초급</button>
+        <button class="diff-chip" data-diff="2">⭐⭐ 중급</button>
+        <button class="diff-chip" data-diff="3">⭐⭐⭐ 고급</button>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">최근 기록</div>
+      <div class="recent-item">🍔 키오스크<span class="recent-score rs-mid">80%</span></div>
+      <div class="recent-item">🔍 숨은그림<span class="recent-score rs-hi">93%</span></div>
+      <div class="recent-item">🧠 N-Back<span class="recent-score rs-mid">72%</span></div>
+      <div class="recent-item">🎯 Go/No-Go<span class="recent-score rs-hi">84%</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-top">
+      <div class="page-tag">Training Hub</div>
+      <h1 class="page-title">훈련 허브</h1>
+      <p class="page-desc">4개 영역 20개 훈련 · 난이도별 선택 가능</p>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" id="searchInput" placeholder="훈련 이름 검색..." oninput="filterCards()">
+    </div>
+
+    <div class="results-bar">
+      <strong id="visibleCount">20</strong>개 훈련
+      <span class="rb-sep">|</span>
+      <span id="activeFilterLabel">전체 영역</span>
+    </div>
+
+    <!-- AREA A -->
+    <div class="area-section" id="sec-a">
+      <div class="area-header">
+        <div class="area-stripe" style="background:var(--accent);"></div>
+        <div><div class="area-title">👁️ 시지각 · 공간</div><div class="area-sub">Visual Perception & Spatial</div></div>
+        <div class="area-pill" style="background:var(--accent-dim);color:var(--accent);border-color:rgba(123,104,238,0.2);">AREA A</div>
+      </div>
+      <div class="game-grid" id="grid-a">
+        <div class="game-card area-a-card" data-area="a" data-diff="1">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🔺</div><span class="gc-id">A1</span></div>
+          <div class="gc-name">모양 찾기</div>
+          <div class="gc-desc">여러 도형 중 목표 모양을 빠르게 찾아 시각 변별 능력을 향상합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
+          <button class="gc-btn" onclick="location.href='game-shapes.html'">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-a-card" data-area="a" data-diff="1">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🔍</div><span class="gc-id">A2</span></div>
+          <div class="gc-name">숨은그림 찾기</div>
+          <div class="gc-desc">복잡한 배경 속에 숨겨진 물체를 찾아 시각 탐색과 집중력을 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-a-card" data-area="a" data-diff="2">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🗺️</div><span class="gc-id">A3</span></div>
+          <div class="gc-name">미로 탈출</div>
+          <div class="gc-desc">복잡한 미로를 통해 공간 관계와 계획 능력을 체계적으로 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–15분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-a-card" data-area="a" data-diff="2">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🎨</div><span class="gc-id">A4</span></div>
+          <div class="gc-name">패턴 완성</div>
+          <div class="gc-desc">규칙적인 패턴의 빈 칸을 채워 패턴 인식과 시각 변별을 향상합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-a-card" data-area="a" data-diff="3">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🧩</div><span class="gc-id">A5</span></div>
+          <div class="gc-name">공간 퍼즐</div>
+          <div class="gc-desc">조각을 회전·이동하여 완성하는 퍼즐로 공간 조작 능력을 향상합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐⭐</span><span class="gc-time">15–20분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA B -->
+    <div class="area-section" id="sec-b">
+      <div class="area-header">
+        <div class="area-stripe" style="background:var(--amber);"></div>
+        <div><div class="area-title">🎯 주의 · 반응</div><div class="area-sub">Attention & Response Inhibition</div></div>
+        <div class="area-pill" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,158,11,0.2);">AREA B</div>
+      </div>
+      <div class="game-grid" id="grid-b">
+        <div class="game-card area-b-card" data-area="b" data-diff="1">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">⚡</div><span class="gc-id">B1</span></div>
+          <div class="gc-name">반응 속도</div>
+          <div class="gc-desc">화면에 나타나는 자극에 최대한 빠르게 반응하여 처리 속도를 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-b-card" data-area="b" data-diff="2">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">🎯</div><span class="gc-id">B2</span></div>
+          <div class="gc-name">집중 훈련</div>
+          <div class="gc-desc">방해 자극 속에서 목표 자극만 선택하여 선택적 주의 능력을 향상합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-b-card" data-area="b" data-diff="2">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">👁️</div><span class="gc-id">B3</span></div>
+          <div class="gc-name">타깃 추적</div>
+          <div class="gc-desc">움직이는 목표물을 지속적으로 추적하여 시각적 주의 지속력을 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-b-card" data-area="b" data-diff="3">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">🎪</div><span class="gc-id">B4</span></div>
+          <div class="gc-name">멀티 타깃</div>
+          <div class="gc-desc">동시에 여러 목표물을 추적하여 분할 주의와 처리 속도를 강화합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-b-card" data-area="b" data-diff="3">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">🛑</div><span class="gc-id">B5</span></div>
+          <div class="gc-name">Go / No-Go</div>
+          <div class="gc-desc">Go 신호에만 반응하고 No-Go는 억제하는 집행기능 훈련입니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn" onclick="location.href='game-gonogo.html'">▶ 훈련 시작</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA C -->
+    <div class="area-section" id="sec-c">
+      <div class="area-header">
+        <div class="area-stripe" style="background:var(--purp);"></div>
+        <div><div class="area-title">🧠 기억 · 순서</div><div class="area-sub">Memory & Sequential Processing</div></div>
+        <div class="area-pill" style="background:var(--purp-dim);color:var(--purp);border-color:rgba(155,110,255,0.2);">AREA C</div>
+      </div>
+      <div class="game-grid" id="grid-c">
+        <div class="game-card area-c-card" data-area="c" data-diff="1">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">📋</div><span class="gc-id">C1</span></div>
+          <div class="gc-name">순서 기억</div>
+          <div class="gc-desc">제시된 순서를 기억하고 동일하게 재현하여 작업기억을 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-c-card" data-area="c" data-diff="2">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">🔊</div><span class="gc-id">C2</span></div>
+          <div class="gc-name">소리 기억</div>
+          <div class="gc-desc">들려주는 소리 순서를 기억하고 재현하여 청각 기억 능력을 향상합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-c-card" data-area="c" data-diff="3">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">🔄</div><span class="gc-id">C3</span></div>
+          <div class="gc-name">N-Back</div>
+          <div class="gc-desc">N개 전에 제시된 자극과 현재 자극을 비교하는 고강도 작업기억 훈련입니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐⭐</span><span class="gc-time">10–20분</span></div>
+          <button class="gc-btn" onclick="location.href='game-nback.html'">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-c-card" data-area="c" data-diff="2">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">🃏</div><span class="gc-id">C4</span></div>
+          <div class="gc-name">카드 뒤집기</div>
+          <div class="gc-desc">뒤집힌 카드의 위치를 기억하고 짝을 맞추어 시각 기억과 전략을 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–15분</span></div>
+          <button class="gc-btn" onclick="location.href='game-memory.html'">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-c-card" data-area="c" data-diff="2">
+          <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">📖</div><span class="gc-id">C5</span></div>
+          <div class="gc-name">이야기 순서</div>
+          <div class="gc-desc">순서가 뒤섞인 그림 카드를 올바른 이야기 흐름으로 배열하여 순서화와 추론을 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA D -->
+    <div class="area-section" id="sec-d">
+      <div class="area-header">
+        <div class="area-stripe" style="background:var(--teal);"></div>
+        <div><div class="area-title">🏙️ 일상참여 훈련</div><div class="area-sub">Daily Life Participation · Link IT 특화</div></div>
+        <div class="area-pill" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(14,165,160,0.2);">AREA D · 특화</div>
+      </div>
+      <div class="game-grid" id="grid-d">
+        <div class="game-card area-d-card" data-area="d" data-diff="1">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">🍔</div><span class="gc-id">D1</span></div>
+          <div class="gc-name">패스트푸드 키오스크</div>
+          <div class="gc-desc">실제 키오스크 UI로 메뉴 선택부터 결제까지 절차를 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn" onclick="location.href='game-kiosk.html'">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-d-card" data-area="d" data-diff="2">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">🚌</div><span class="gc-id">D2</span></div>
+          <div class="gc-name">버스 타기</div>
+          <div class="gc-desc">목적지 검색, 노선 선택, 교통카드 태그까지 대중교통 이용 절차를 시뮬레이션합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-d-card" data-area="d" data-diff="2">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">📚</div><span class="gc-id">D3</span></div>
+          <div class="gc-name">도서관 키오스크</div>
+          <div class="gc-desc">도서 검색, 위치 확인, 대출 처리까지 도서관 이용 흐름을 단계별로 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-d-card" data-area="d" data-diff="2">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">🏪</div><span class="gc-id">D4</span></div>
+          <div class="gc-name">편의점 계산</div>
+          <div class="gc-desc">물건을 고르고 금액을 계산하여 거스름돈을 확인하는 수 개념과 의사결정 훈련입니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn">▶ 훈련 시작</button>
+        </div>
+        <div class="game-card area-d-card" data-area="d" data-diff="2">
+          <span class="new-badge">NEW</span>
+          <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">🛒</div><span class="gc-id">D5</span></div>
+          <div class="gc-name">쇼핑몰 앱 사용</div>
+          <div class="gc-desc">쇼핑몰 앱에서 검색·장바구니·결제까지 절차적 기억과 순서화를 훈련합니다.</div>
+          <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
+          <button class="gc-btn" onclick="location.href='game-shopping.html'">▶ 훈련 시작</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <strong style="color:var(--t2);">검색 결과 없음</strong>
+      <span>다른 키워드나 필터를 시도해보세요</span>
+    </div>
+  </main>
+</div>
+
+<script>
+let activeArea='all', activeDiff='all', searchQ='';
+
+document.querySelectorAll('.filter-item').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeArea=btn.dataset.area;
+    document.getElementById('activeFilterLabel').textContent=
+      btn.querySelector('.fi-label').textContent.trim();
+    applyFilter();
+  });
+});
+document.querySelectorAll('.diff-chip').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.diff-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDiff=btn.dataset.diff;
+    applyFilter();
+  });
+});
+function filterCards(){ searchQ=document.getElementById('searchInput').value.toLowerCase(); applyFilter(); }
+
+function applyFilter(){
+  let vis=0;
+  document.querySelectorAll('.game-card').forEach(card=>{
+    const am=activeArea==='all'||card.dataset.area===activeArea;
+    const dm=activeDiff==='all'||card.dataset.diff===activeDiff;
+    const nm=!searchQ||card.querySelector('.gc-name').textContent.toLowerCase().includes(searchQ)||card.querySelector('.gc-desc').textContent.toLowerCase().includes(searchQ);
+    const show=am&&dm&&nm;
+    card.style.display=show?'':'none';
+    if(show) vis++;
+  });
+  ['a','b','c','d'].forEach(a=>{
+    const sec=document.getElementById('sec-'+a);
+    const any=[...sec.querySelectorAll('.game-card')].some(c=>c.style.display!=='none');
+    sec.style.display=any?'':'none';
+  });
+  document.getElementById('visibleCount').textContent=vis;
+  document.getElementById('emptyState').classList.toggle('show',vis===0);
+}
+</script>
+</body>
+</html>

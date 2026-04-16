@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>홈플러스 푸드코트 키오스크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --hp-red:#EE1C23;--hp-red2:#C8151B;--hp-red3:#FFF0F0;--hp-red4:#FFD6D6;
+  --hp-blue:#0057A8;--hp-blue2:#EEF4FF;
+  --black:#1A1A1A;--g1:#F5F5F5;--g2:#E8E8E8;--g3:#BDBDBD;--g4:#777;
+  --tx:#1A1A1A;--tx2:#555;--white:#fff;
+  /* 픽업존 컬러 */
+  --za:#FF6B35;--zb:#2ECC71;--zc:#3498DB;--zd:#9B59B6;--ze:#F39C12;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:#222;min-height:100vh;display:flex;}
+#root{display:flex;width:100%;min-height:100vh;}
+
+/* ====== SIDEBAR ====== */
+#tp{width:272px;min-width:272px;background:#0f0f1a;color:white;display:flex;flex-direction:column;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s;overflow:hidden;position:sticky;top:0;height:100vh;}
+#tp.col{width:0;min-width:0;}
+.tphd{background:#070710;padding:14px 14px 10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.tplb{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;}
+.tpnm{font-size:15px;font-weight:900;color:var(--hp-red);margin-top:2px;white-space:nowrap;}
+.tpbd{flex:1;overflow-y:auto;}
+.tpbd::-webkit-scrollbar{width:3px;}
+.tpbd::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);}
+.tpsec{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.tpst{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.tgr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px;}
+.tgi{flex:1;}.tgl{font-size:12px;font-weight:700;white-space:nowrap;}.tgs{font-size:10px;color:rgba(255,255,255,.4);}
+.sw{width:38px;height:20px;border-radius:10px;background:rgba(255,255,255,.2);border:none;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0;}
+.sw.on{background:var(--hp-red);}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;transition:transform .25s;}
+.sw.on::after{transform:translateX(18px);}
+.dfr{display:flex;gap:5px;}
+.dfb{flex:1;padding:7px 0;text-align:center;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);font-size:11px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.5);background:transparent;font-family:'Noto Sans KR',sans-serif;transition:all .2s;white-space:nowrap;}
+.dfb.ae{border-color:#4ade80;background:rgba(74,222,128,.2);color:#4ade80;}
+.dfb.am{border-color:#fbbf24;background:rgba(251,191,36,.2);color:#fbbf24;}
+.dfb.ah{border-color:#f87171;background:rgba(248,113,113,.2);color:#f87171;}
+.ddc{margin-top:8px;background:rgba(238,28,35,.1);border:1px solid rgba(238,28,35,.25);border-radius:10px;padding:10px 12px;}
+.ddt{font-size:11px;font-weight:900;color:var(--hp-red);margin-bottom:4px;}
+.ddb{font-size:11px;color:rgba(255,255,255,.55);line-height:1.6;}.ddb b{color:rgba(255,255,255,.85);}
+.stg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.stc{background:rgba(255,255,255,.08);border-radius:8px;padding:8px 4px;text-align:center;}
+.stn{font-size:22px;font-weight:900;color:var(--hp-red);}
+.stl{font-size:9px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;}
+.tpbtn{margin:6px 14px 0;padding:10px 14px;border-radius:10px;border:none;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 28px);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;white-space:nowrap;}
+.tpbtn:hover{opacity:.85;}
+.tpbtn-r{background:linear-gradient(135deg,var(--hp-red),var(--hp-red2));color:white;}
+#ptbtn{position:fixed;top:14px;left:14px;z-index:300;width:42px;height:42px;border-radius:11px;background:#0f0f1a;border:2px solid rgba(238,28,35,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--hp-red);box-shadow:0 4px 14px rgba(0,0,0,.5);transition:left .35s cubic-bezier(.4,0,.2,1);}
+#ptbtn.open{left:284px;}
+
+/* ====== KIOSK WRAP ====== */
+#kwrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px 16px 40px;min-height:100vh;}
+#wmbar{width:100%;max-width:480px;margin-bottom:10px;padding-left:58px;}
+.wmi{background:linear-gradient(135deg,#1a0000,#3a0000);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(238,28,35,.25);border:1px solid rgba(238,28,35,.25);}
+.wmico{font-size:22px;flex-shrink:0;}
+.wmtx{flex:1;}
+.wmlb{font-size:10px;color:rgba(255,100,100,.7);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.wmtask{font-size:14px;font-weight:700;color:white;margin-top:1px;}
+.wmtask.blr{filter:blur(5px);user-select:none;}
+.wmrev{padding:5px 12px;border-radius:20px;background:rgba(238,28,35,.25);border:1px solid rgba(238,28,35,.45);color:#ff6b6b;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+#kframe{width:100%;max-width:480px;background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7);min-height:740px;display:flex;flex-direction:column;border:3px solid var(--hp-red);}
+
+/* ====== HEADER ====== */
+.hph{background:var(--hp-red);padding:0;flex-shrink:0;}
+.hph-top{padding:10px 18px 8px;display:flex;align-items:center;justify-content:space-between;}
+.hplogo{display:flex;align-items:center;gap:10px;}
+.hplogo-box{background:white;border-radius:6px;padding:4px 12px;}
+.hplogo-text{font-size:18px;font-weight:900;color:var(--hp-red);letter-spacing:-.5px;}
+.hplogo-sub{color:rgba(255,255,255,.8);font-size:10px;font-weight:700;margin-top:1px;}
+.hptime{font-size:17px;font-weight:700;color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums;}
+.hpsteps{background:rgba(0,0,0,.18);padding:6px 16px;display:flex;align-items:center;}
+.hpstep{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);flex-shrink:0;}
+.hpstep.act{color:white;}.hpstep.dn{color:#a7f3d0;}
+.hpsd{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0;}
+.hpstep.act .hpsd{background:white;color:var(--hp-red);}
+.hpstep.dn .hpsd{background:#a7f3d0;color:#065f46;}
+.hpsl{flex:1;height:1px;background:rgba(255,255,255,.2);margin:0 3px;}.hpsl.dn{background:#a7f3d0;}
+.hpstep span{white-space:nowrap;}
+.hpbody{flex:1;overflow-y:auto;background:#F8F8F8;}
+.hpbody::-webkit-scrollbar{width:4px;}
+.hpbody::-webkit-scrollbar-thumb{background:var(--hp-red4);border-radius:2px;}
+.fe{animation:feIn .3s ease;}
+@keyframes feIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ====================================================
+   IDLE
+   ==================================================== */
+.sc-idle{background:linear-gradient(160deg,var(--hp-red) 0%,var(--hp-red2) 100%);min-height:680px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px;text-align:center;position:relative;overflow:hidden;}
+.idle-circle{position:absolute;border-radius:50%;background:rgba(255,255,255,.05);}
+.idle-c1{width:300px;height:300px;top:-100px;right:-80px;}
+.idle-c2{width:220px;height:220px;bottom:-80px;left:-60px;}
+.idle-logo-box{background:white;border-radius:14px;padding:14px 28px;box-shadow:0 8px 24px rgba(0,0,0,.2);}
+.idle-logo-main{font-size:32px;font-weight:900;color:var(--hp-red);letter-spacing:-1px;}
+.idle-logo-sub{font-size:12px;color:var(--hp-red);opacity:.7;font-weight:700;margin-top:2px;}
+.idle-desc{font-size:15px;color:rgba(255,255,255,.85);line-height:1.7;}
+/* 픽업존 미리보기 */
+.idle-zones{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.idle-zone-pill{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:white;display:flex;align-items:center;gap:5px;}
+.idle-start-btn{background:white;color:var(--hp-red);border:none;border-radius:16px;padding:18px 52px;font-family:'Noto Sans KR',sans-serif;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:idlepulse 2.5s infinite;transition:transform .15s;}
+.idle-start-btn:hover{transform:scale(1.04);}
+@keyframes idlepulse{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.25);}50%{box-shadow:0 8px 36px rgba(255,255,255,.2);}}
+.idle-hint{font-size:12px;color:rgba(255,255,255,.55);}
+
+/* ====================================================
+   STORE+MENU 통합 — 레퍼런스 UI (탭 네비 + 하단 고정바)
+   ==================================================== */
+/* 상단 탭 네비게이션 */
+.store-tab-nav{background:var(--black);display:flex;flex-direction:column;flex-shrink:0;}
+.stn-row{display:flex;overflow-x:auto;}
+.stn-row::-webkit-scrollbar{display:none;}
+.stn-tab{flex:1;min-width:72px;padding:10px 6px;text-align:center;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;position:relative;}
+.stn-tab .stn-label{font-size:9px;color:rgba(255,255,255,.45);font-weight:600;display:block;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stn-tab .stn-name{font-size:12px;color:rgba(255,255,255,.7);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stn-tab.act{background:var(--hp-red);border-bottom-color:var(--hp-red);}
+.stn-tab.act .stn-label{color:rgba(255,255,255,.8);}
+.stn-tab.act .stn-name{color:white;}
+.stn-tab-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--hp-red);display:none;}
+.stn-tab.has-items .stn-tab-dot{display:block;}
+.stn-tab.act.has-items .stn-tab-dot{background:white;}
+
+/* 매장 정보 서브헤더 */
+.store-info-bar{background:#1a1a1a;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.sib-zone{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:900;color:white;}
+.sib-name{font-size:13px;font-weight:900;color:white;flex:1;}
+.sib-desc{font-size:11px;color:rgba(255,255,255,.5);}
+
+/* 메뉴 그리드 (스크롤 영역) */
+.menu-scroll-area{flex:1;overflow-y:auto;background:#1a1a1a;}
+.menu-scroll-area::-webkit-scrollbar{width:3px;}
+.menu-scroll-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);}
+.menu-category-label{padding:10px 16px 6px;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;}
+.menu-grid-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#111;}
+.menu-item-card{background:#1e1e1e;padding:14px 10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:background .15s;position:relative;}
+.menu-item-card:hover{background:#2a2a2a;}
+.menu-item-card.in-cart{background:#2a1a1a;}
+.mic-emoji-wrap{width:100%;aspect-ratio:1;background:#2a2a2a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:4px;position:relative;}
+.mic-emoji-wrap.in-cart{background:#3a1a1a;outline:2px solid var(--hp-red);}
+.mic-cart-badge{position:absolute;top:-6px;right:-6px;background:var(--hp-red);color:white;font-size:10px;font-weight:900;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.mic-best{position:absolute;top:4px;left:4px;background:#FF6B35;color:white;font-size:8px;font-weight:900;padding:2px 5px;border-radius:4px;}
+.mic-name{font-size:11px;font-weight:700;color:white;line-height:1.3;text-align:center;}
+.mic-price{font-size:12px;font-weight:900;color:var(--hp-red);text-align:center;}
+
+/* ── 하단 고정 주문바 (레퍼런스 핵심 UI) ── */
+.order-bottom-bar{background:#222;flex-shrink:0;border-top:1px solid #333;}
+.obb-cart-info{padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.obb-cart-ico{font-size:20px;color:rgba(255,255,255,.4);}
+.obb-cart-text{flex:1;}
+.obb-cart-empty{font-size:13px;color:rgba(255,255,255,.5);font-weight:700;}
+.obb-cart-items{font-size:13px;color:white;font-weight:700;}
+.obb-cart-total{font-size:16px;font-weight:900;color:var(--hp-red);}
+.obb-btn-row{display:flex;height:54px;}
+.obb-sub-btns{display:flex;flex-direction:column;border-right:1px solid #444;}
+.obb-sub-btn{flex:1;padding:0 14px;background:#2a2a2a;border:none;color:rgba(255,255,255,.6);font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;border-bottom:1px solid #333;}
+.obb-sub-btn:last-child{border-bottom:none;}
+.obb-sub-btn:hover{background:#333;}
+.obb-order-btn{flex:1;background:var(--hp-red);border:none;color:white;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;}
+.obb-order-btn:hover{opacity:.9;}
+.obb-order-btn .obb-arrow{font-size:20px;}
+
+/* 결제 하단 비대칭 버튼 */
+.pay-bottom-bar{display:flex;height:56px;border-top:1px solid #ddd;flex-shrink:0;}
+.pbb-back{flex:1;background:#333;border:none;color:rgba(255,255,255,.8);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.pbb-pay{flex:2.5;background:var(--hp-red);border:none;color:white;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.pbb-pay:disabled{background:var(--g2);color:var(--g3);cursor:not-allowed;}
+.pbb-pay:not(:disabled):hover{opacity:.9;}
+
+/* 도움요청 모달 */
+.help-modal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.help-modal.show{opacity:1;pointer-events:all;}
+.help-box{background:white;border-radius:16px;padding:28px 24px;width:88%;max-width:340px;text-align:center;}
+.help-icon{font-size:56px;margin-bottom:12px;}
+.help-title{font-size:18px;font-weight:900;margin-bottom:8px;}
+.help-sub{font-size:14px;color:var(--tx2);margin-bottom:22px;}
+.help-btns{display:flex;gap:10px;}
+.help-no{flex:1;padding:13px;background:#333;border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;}
+.help-yes{flex:1;padding:13px;background:var(--hp-red);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;}
+
+/* sc-menu — 기존 스타일 (탭 네비로 통합됨) */
+.sc-menu{background:#1a1a1a;min-height:680px;display:flex;flex-direction:column;}
+
+/* ====================================================
+   CART
+   ==================================================== */
+.sc-cart{background:#F8F8F8;min-height:680px;}
+.cart-hd{background:white;padding:12px 18px;border-bottom:2px solid var(--g2);display:flex;align-items:center;gap:10px;}
+.cart-back{width:34px;height:34px;border-radius:9px;background:var(--g1);border:1.5px solid var(--g2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.cart-hd-t{font-size:17px;font-weight:900;flex:1;}
+.cart-hd-cnt{background:var(--hp-red);color:white;font-size:12px;font-weight:900;padding:2px 10px;border-radius:20px;}
+
+/* 매장별 그룹핑 */
+.cart-store-group{margin:12px 14px 0;}
+.csg-header{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px 10px 0 0;}
+.csg-name{font-size:13px;font-weight:900;color:white;}
+.csg-zone{font-size:11px;color:rgba(255,255,255,.75);font-weight:700;}
+.csg-items{background:white;border-radius:0 0 10px 10px;overflow:hidden;border:1.5px solid var(--g2);}
+.cart-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--g1);}
+.cart-item:last-child{border-bottom:none;}
+.ci-emoji{font-size:22px;flex-shrink:0;}
+.ci-info{flex:1;}
+.ci-name{font-size:14px;font-weight:700;}
+.ci-price{font-size:13px;font-weight:900;color:var(--hp-red);margin-top:2px;}
+.ci-qty-row{display:flex;align-items:center;gap:6px;}
+.ciqb{width:26px;height:26px;border-radius:7px;background:var(--g1);border:1.5px solid var(--g2);font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ciqb:hover{border-color:var(--hp-red);color:var(--hp-red);}
+.ciqn{font-size:14px;font-weight:900;min-width:22px;text-align:center;}
+
+.cart-total-box{margin:12px 14px;background:white;border-radius:12px;border:1.5px solid var(--g2);padding:14px 16px;}
+.ctb-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--tx2);}
+.ctb-total{display:flex;justify-content:space-between;padding:10px 0 0;margin-top:6px;border-top:2px solid var(--g2);font-size:18px;font-weight:900;}
+.ctb-total span:last-child{color:var(--hp-red);}
+.cart-btns{padding:0 14px 16px;display:flex;gap:10px;}
+.cart-more-btn{flex:1;padding:14px;background:var(--g1);border:2px solid var(--g2);border-radius:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--tx2);transition:all .2s;}
+.cart-more-btn:hover{border-color:var(--hp-red);color:var(--hp-red);}
+.cart-pay-btn{flex:2;padding:14px;background:var(--hp-red);border:none;border-radius:12px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:900;cursor:pointer;color:white;box-shadow:0 4px 14px rgba(238,28,35,.35);transition:opacity .2s;}
+.cart-pay-btn:hover{opacity:.88;}
+
+/* ====================================================
+   PAYMENT
+   ==================================================== */
+.sc-pay{background:#F8F8F8;min-height:680px;padding:18px;}
+.pay-title{font-size:18px;font-weight:900;margin-bottom:4px;}
+.pay-sub{font-size:12px;color:var(--tx2);margin-bottom:14px;}
+.pay-amt-box{background:var(--black);border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.pab-l{color:rgba(255,255,255,.6);font-size:13px;font-weight:700;}
+.pab-n{font-size:34px;font-weight:900;color:white;}
+.pay-methods{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.pay-m{background:white;border:2.5px solid var(--g2);border-radius:14px;padding:14px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;}
+.pay-m:hover{border-color:var(--hp-red);}
+.pay-m.sel{border-color:var(--hp-red);background:var(--hp-red3);}
+.pm-ico{font-size:28px;flex-shrink:0;}
+.pm-nm{font-size:15px;font-weight:700;}
+.pm-ds{font-size:11px;color:var(--tx2);}
+.pm-chk{margin-left:auto;width:26px;height:26px;border-radius:50%;background:var(--hp-red);color:white;font-size:13px;font-weight:900;display:none;align-items:center;justify-content:center;flex-shrink:0;}
+.pay-m.sel .pm-chk{display:flex;}
+.pay-btn{width:100%;padding:16px;background:var(--hp-red);border:none;border-radius:12px;color:white;font-family:'Noto Sans KR',sans-serif;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 4px 14px rgba(238,28,35,.35);transition:opacity .2s;}
+.pay-btn:disabled{background:var(--g2);color:var(--g3);box-shadow:none;cursor:not-allowed;}
+.pay-btn:not(:disabled):hover{opacity:.88;}
+
+/* ====================================================
+   COMPLETE — 픽업존 안내 (핵심!)
+   ==================================================== */
+.sc-comp{background:white;min-height:680px;display:flex;flex-direction:column;}
+.comp-receipt-top{background:var(--hp-red);padding:18px 20px;text-align:center;}
+.comp-check-circle{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px;animation:popin .5s cubic-bezier(.4,0,.2,1);}
+@keyframes popin{from{transform:scale(.3);opacity:0;}60%{transform:scale(1.15);}to{transform:scale(1);opacity:1;}}
+.comp-title{font-size:22px;font-weight:900;color:white;}
+.comp-sub{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px;}
+.comp-order-num{background:rgba(255,255,255,.2);border-radius:10px;padding:10px 20px;display:inline-block;margin-top:10px;}
+.comp-order-num-l{font-size:11px;color:rgba(255,255,255,.7);font-weight:700;}
+.comp-order-num-n{font-size:36px;font-weight:900;color:white;}
+
+/* 픽업존 카드들 — 핵심 치료 목표 */
+.comp-body{flex:1;padding:16px;}
+.pickup-section-title{font-size:13px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.pickup-section-title::after{content:'';flex:1;height:1px;background:var(--g2);}
+
+.pickup-zone-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.pzc{border-radius:14px;overflow:hidden;border:2.5px solid;animation:slideUp .4s ease both;}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.pzc:nth-child(2){animation-delay:.1s;}
+.pzc:nth-child(3){animation-delay:.2s;}
+.pzc:nth-child(4){animation-delay:.3s;}
+.pzc-header{padding:10px 16px;display:flex;align-items:center;gap:10px;}
+.pzc-zone-big{font-size:28px;font-weight:900;color:white;min-width:48px;text-align:center;background:rgba(0,0,0,.15);border-radius:8px;padding:4px 8px;}
+.pzc-store-info{flex:1;}
+.pzc-store-name{font-size:15px;font-weight:900;color:white;}
+.pzc-zone-name{font-size:11px;color:rgba(255,255,255,.75);font-weight:700;margin-top:2px;}
+.pzc-arrow{font-size:20px;color:rgba(255,255,255,.6);}
+.pzc-items{background:white;padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.pzc-item-row{display:flex;align-items:center;gap:8px;font-size:13px;}
+.pzc-item-emoji{font-size:16px;}
+.pzc-item-name{flex:1;font-weight:600;color:var(--tx);}
+.pzc-item-qty{color:var(--tx2);font-size:12px;}
+.pzc-item-price{font-weight:900;color:var(--hp-red);}
+
+/* 총액 */
+.comp-total-row{background:var(--black);border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.ctr-l{color:rgba(255,255,255,.7);font-size:14px;font-weight:700;}
+.ctr-n{font-size:24px;font-weight:900;color:white;}
+
+/* 퀴즈 힌트 박스 */
+.pickup-quiz-hint{background:var(--hp-blue2);border:1.5px solid var(--hp-blue);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;}
+.pqh-ico{font-size:22px;flex-shrink:0;}
+.pqh-text{font-size:13px;font-weight:700;color:var(--hp-blue);line-height:1.5;}
+
+.comp-btns{display:flex;gap:10px;}
+.comp-rec{flex:1;padding:13px;background:var(--g1);border:1.5px solid var(--g2);border-radius:12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--tx2);}
+.comp-home{flex:2;padding:13px;background:var(--hp-red);border:none;border-radius:12px;color:white;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:900;cursor:pointer;}
+
+/* ====================================================
+   PICKUP QUIZ OVERLAY
+   ==================================================== */
+.pquiz-ov{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.pquiz-ov.show{opacity:1;pointer-events:all;}
+.pquiz-box{background:white;border-radius:22px;padding:26px 22px;width:92%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4);border:4px solid var(--hp-red);transform:scale(.92);transition:transform .25s;}
+.pquiz-ov.show .pquiz-box{transform:scale(1);}
+.pquiz-ico{font-size:44px;text-align:center;margin-bottom:8px;}
+.pquiz-t{font-size:18px;font-weight:900;text-align:center;margin-bottom:4px;}
+.pquiz-s{font-size:12px;color:var(--tx2);text-align:center;margin-bottom:16px;line-height:1.5;}
+.pquiz-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pqc{padding:14px 10px;border-radius:12px;border:2.5px solid var(--g2);text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;font-family:'Noto Sans KR',sans-serif;}
+.pqc:hover:not(:disabled){border-color:var(--hp-red);background:var(--hp-red3);}
+.pqc.ok{border-color:#10b981;background:#d1fae5;color:#065f46;}
+.pqc.no{border-color:var(--hp-red);background:var(--hp-red3);color:var(--hp-red);}
+.pqc-zone{font-size:26px;font-weight:900;margin-bottom:4px;}
+.pqc-name{font-size:12px;font-weight:700;}
+.pqfb{margin-top:12px;padding:11px 14px;border-radius:12px;font-size:14px;font-weight:700;text-align:center;display:none;}
+.pqfb.show.g{display:block;background:#d1fae5;color:#065f46;}
+.pqfb.show.b{display:block;background:var(--hp-red3);color:var(--hp-red);}
+.pqnxt{margin-top:10px;width:100%;padding:12px;background:var(--hp-red);border:none;border-radius:12px;color:white;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:none;}
+.pqnxt.show{display:block;}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(0,0,0,.9);color:white;padding:12px 22px;border-radius:50px;font-size:14px;font-weight:700;z-index:700;pointer-events:none;transition:transform .35s cubic-bezier(.4,0,.2,1);white-space:nowrap;border:2px solid rgba(238,28,35,.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="root">
+<!-- SIDEBAR -->
+<div id="tp">
+  <div class="tphd"><div class="tplb">치료사 컨트롤</div><div class="tpnm">🛒 홈플러스 푸드코트</div></div>
+  <div class="tpbd">
+    <div class="tpsec">
+      <div class="tpst">🧠 워킹메모리 옵션</div>
+      <div class="tgr"><div class="tgi"><div class="tgl">미션 제시</div><div class="tgs">주문 전 목표</div></div><button class="sw on" id="sw-ms" onclick="togOpt('mission',this)"></button></div>
+      <div class="tgr"><div class="tgi"><div class="tgl">픽업존 퀴즈</div><div class="tgs">완료 후 픽업존 테스트</div></div><button class="sw on" id="sw-qz" onclick="togOpt('quiz',this)"></button></div>
+      <div class="tgr"><div class="tgi"><div class="tgl">픽업존 숨김</div><div class="tgs">완료화면 픽업존 가리기</div></div><button class="sw" id="sw-hd" onclick="togOpt('hide',this)"></button></div>
+      <div class="tgr"><div class="tgi"><div class="tgl">미션 숨김</div><div class="tgs">기억 후 블러</div></div><button class="sw" id="sw-mhd" onclick="togOpt('mhide',this)"></button></div>
+    </div>
+    <div class="tpsec">
+      <div class="tpst">⚡ 난이도</div>
+      <div class="dfr">
+        <button class="dfb ae" onclick="setDiff('e',this)">쉬움</button>
+        <button class="dfb" onclick="setDiff('m',this)">보통</button>
+        <button class="dfb" onclick="setDiff('h',this)">어려움</button>
+      </div>
+      <div class="ddc"><div class="ddt" id="ddt">🟢 쉬움</div><div class="ddb" id="ddb"><b>1개 매장</b>에서만 주문<br>1개 픽업존만 기억</div></div>
+    </div>
+    <div class="tpsec">
+      <div class="tpst">📊 세션 기록</div>
+      <div class="stg">
+        <div class="stc"><div class="stn" id="st-t">0</div><div class="stl">시도</div></div>
+        <div class="stc"><div class="stn" id="st-c">0</div><div class="stl">정답</div></div>
+        <div class="stc"><div class="stn" id="st-p">0%</div><div class="stl">정확도</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px 0 14px;"><button class="tpbtn tpbtn-r" onclick="resetAll()">🔄 새 세션 시작</button></div>
+</div>
+<button id="ptbtn" class="open" onclick="togPanel()">☰</button>
+
+<!-- KIOSK -->
+<div id="kwrap">
+  <div id="wmbar">
+    <div class="wmi">
+      <span class="wmico">🎯</span>
+      <div class="wmtx"><div class="wmlb">오늘의 미션</div><div class="wmtask" id="wmtask">주문 후 음식을 받는 픽업존을 기억하세요!</div></div>
+      <button class="wmrev" id="wmrev" onclick="revealMs()" style="display:none">보기</button>
+    </div>
+  </div>
+  <div id="kframe">
+    <div class="hph">
+      <div class="hph-top">
+        <div class="hplogo"><div class="hplogo-box"><div class="hplogo-text">homeplus</div></div><div class="hplogo-sub">푸드코트 주문</div></div>
+        <div class="hptime" id="hptime">00:00</div>
+      </div>
+      <div class="hpsteps" id="hpsteps"></div>
+    </div>
+    <div class="hpbody fe" id="hpbody"></div>
+  </div>
+</div>
+</div>
+
+<!-- PICKUP QUIZ -->
+<div class="pquiz-ov" id="pquiz-ov">
+  <div class="pquiz-box">
+    <div class="pquiz-ico">🗺️</div>
+    <div class="pquiz-t" id="pquiz-t">픽업존을 기억하나요?</div>
+    <div class="pquiz-s" id="pquiz-s">주문한 음식은 어느 픽업존에서 받나요?</div>
+    <div class="pquiz-choices" id="pquiz-choices"></div>
+    <div class="pqfb" id="pqfb"></div>
+    <button class="pqnxt" id="pqnxt" onclick="closeQuiz()">다음 →</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================
+   DATA
+   ============================================= */
+const ZONES = {
+  A:{name:'A존',label:'🅰️',color:'#FF6B35',bg:'rgba(255,107,53,1)',desc:'분식코너'},
+  B:{name:'B존',label:'🅱️',color:'#2ECC71',bg:'rgba(46,204,113,1)',desc:'한식코너'},
+  C:{name:'C존',label:'🅾️',color:'#3498DB',bg:'rgba(52,152,219,1)',desc:'중식코너'},
+  D:{name:'D존',label:'🅳',color:'#9B59B6',bg:'rgba(155,89,182,1)',desc:'일식코너'},
+  E:{name:'E존',label:'🅴',color:'#F39C12',bg:'rgba(243,156,18,1)',desc:'음료·디저트'},
+};
+
+const STORES = [
+  {
+    id:'bunsik', name:'분식천국', emoji:'🍢', zoneId:'A',
+    bg:'linear-gradient(135deg,#FF6B35,#FF8C55)',
+    desc:'떡볶이·순대·튀김',
+    tabs:{전체:null, 인기:['b1','b2'], 분식:['b1','b2','b3'], 음료:['b4']},
+    menus:{
+      b1:{name:'떡볶이',emoji:'🍢',price:4500,badge:'BEST'},
+      b2:{name:'순대',emoji:'🌭',price:3500,badge:null},
+      b3:{name:'튀김모둠',emoji:'🍤',price:4000,badge:null},
+      b4:{name:'어묵탕',emoji:'🍲',price:3000,badge:null},
+    }
+  },
+  {
+    id:'hansik', name:'한솥도시락', emoji:'🍱', zoneId:'B',
+    bg:'linear-gradient(135deg,#2ECC71,#27AE60)',
+    desc:'도시락·비빔밥·국밥',
+    tabs:{전체:null, 인기:['h1','h2'], 도시락:['h1','h2','h3'], 국물:['h4']},
+    menus:{
+      h1:{name:'제육볶음도시락',emoji:'🍱',price:5500,badge:'BEST'},
+      h2:{name:'불고기도시락',emoji:'🥩',price:6000,badge:null},
+      h3:{name:'비빔밥',emoji:'🍚',price:5000,badge:null},
+      h4:{name:'김치찌개',emoji:'🥘',price:5500,badge:null},
+    }
+  },
+  {
+    id:'jungsik', name:'중화반점', emoji:'🥡', zoneId:'C',
+    bg:'linear-gradient(135deg,#3498DB,#2980B9)',
+    desc:'짜장·짬뽕·탕수육',
+    tabs:{전체:null, 인기:['j1','j2'], 면요리:['j1','j2'], 사이드:['j3','j4']},
+    menus:{
+      j1:{name:'짜장면',emoji:'🍜',price:6000,badge:'BEST'},
+      j2:{name:'짬뽕',emoji:'🍲',price:7000,badge:null},
+      j3:{name:'탕수육(小)',emoji:'🥩',price:12000,badge:null},
+      j4:{name:'군만두',emoji:'🥟',price:4500,badge:null},
+    }
+  },
+  {
+    id:'ilsik', name:'스시&돈까스', emoji:'🍱', zoneId:'D',
+    bg:'linear-gradient(135deg,#9B59B6,#8E44AD)',
+    desc:'초밥·돈까스·우동',
+    tabs:{전체:null, 인기:['i1','i2'], 튀김류:['i1'], 일식:['i2','i3','i4']},
+    menus:{
+      i1:{name:'돈까스',emoji:'🍛',price:7500,badge:'BEST'},
+      i2:{name:'모듬초밥(8P)',emoji:'🍣',price:9000,badge:null},
+      i3:{name:'우동',emoji:'🍜',price:5500,badge:null},
+      i4:{name:'미니돈까스',emoji:'🍛',price:5000,badge:null},
+    }
+  },
+  {
+    id:'cafe', name:'카페&디저트', emoji:'☕', zoneId:'E',
+    bg:'linear-gradient(135deg,#F39C12,#D68910)',
+    desc:'커피·음료·케이크',
+    tabs:{전체:null, 커피:['c1','c2'], 음료:['c3','c4'], 디저트:['c5']},
+    menus:{
+      c1:{name:'아메리카노',emoji:'☕',price:2500,badge:null},
+      c2:{name:'카페라떼',emoji:'🥛',price:3500,badge:'BEST'},
+      c3:{name:'딸기주스',emoji:'🍓',price:3000,badge:null},
+      c4:{name:'아이스티',emoji:'🍵',price:2500,badge:null},
+      c5:{name:'케이크(조각)',emoji:'🎂',price:4500,badge:null},
+    }
+  },
+];
+
+const PAY_METHODS=[
+  {ico:'💳',nm:'신용/체크카드',ds:'카드를 단말기에 삽입'},
+  {ico:'📱',nm:'삼성페이·카카오페이',ds:'간편결제'},
+  {ico:'🎁',nm:'홈플러스 상품권',ds:'상품권 바코드 스캔'},
+];
+
+const STEPS=['매장선택','메뉴선택','카트','결제','픽업안내'];
+const SCREEN_STEP={idle:-1,store:0,menu:0,cart:2,payment:3,complete:4};
+const DIFF_INFO={
+  e:{tag:'🟢 쉬움',desc:'<b>1개 매장</b>에서만 주문<br>1개 픽업존만 기억'},
+  m:{tag:'🟡 보통',desc:'<b>2개 매장</b>에서 주문<br>2개 픽업존 기억'},
+  h:{tag:'🔴 어려움',desc:'<b>3개 이상 매장</b>에서 주문<br>모든 픽업존 기억'},
+};
+const MISSIONS_LIST={
+  e:['주문 후 음식을 받는 픽업존을 기억하세요!','어느 픽업존에서 받는지 기억해보세요!','주문한 음식의 수령 장소를 기억하세요!'],
+  m:['두 매장에서 주문하고 각 픽업존을 기억하세요!','여러 픽업존을 모두 기억해서 음식을 찾아오세요!','주문 후 어느 존에서 받는지 모두 기억해요!'],
+  h:['세 곳 이상 주문하고 모든 픽업존 위치를 기억하세요!','각 메뉴의 픽업존이 다릅니다. 모두 기억하세요!','여러 픽업존 기억하기 도전!'],
+};
+const MAX_STORES={e:1,m:2,h:4};
+
+/* =============================================
+   STATE
+   ============================================= */
+const S={
+  screen:'idle',
+  cart:{}, // {storeId: [{...item, qty}]}
+  curStore:null,
+  curTab:'전체',
+  payMethod:null,
+  difficulty:'e',
+  mission:'',
+  opts:{mission:true,quiz:true,hide:false,mhide:false},
+  stats:{trials:0,correct:0},
+  panelOpen:true,
+};
+
+function cartStoreCount(){return Object.keys(S.cart).filter(k=>S.cart[k].length>0).length;}
+function cartTotal(){return Object.values(S.cart).flat().reduce((s,i)=>s+i.price*i.qty,0);}
+function cartItemCount(){return Object.values(S.cart).flat().reduce((s,i)=>s+i.qty,0);}
+function storeById(id){return STORES.find(s=>s.id===id);}
+
+setInterval(()=>{const n=new Date();const e=document.getElementById('hptime');if(e)e.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');},1000);
+let toastT;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+
+function renderSteps(){
+  const cur=SCREEN_STEP[S.screen]??-1;
+  document.getElementById('hpsteps').innerHTML=STEPS.map((s,i)=>{
+    const cls=i<cur?'dn':i===cur?'act':'';
+    const dot=i<cur?'✓':(i+1);
+    const line=i<STEPS.length-1?`<div class="hpsl ${i<cur?'dn':''}"></div>`:'';
+    return `<div class="hpstep ${cls}"><div class="hpsd">${dot}</div><span>${s}</span></div>${line}`;
+  }).join('');
+}
+
+/* =============================================
+   RENDER
+   ============================================= */
+function render(){
+  renderSteps();
+  const body=document.getElementById('hpbody');
+  body.className='hpbody fe';void body.offsetWidth;
+  switch(S.screen){
+    case 'idle':    r_idle(body);    break;
+    case 'store':   r_store(body);   break;
+    case 'menu':    r_menu(body);    break;
+    case 'cart':    r_cart(body);    break;
+    case 'payment': r_payment(body); break;
+    case 'complete':r_complete(body);if(S.opts.quiz)setTimeout(triggerPickupQuiz,1600);break;
+  }
+}
+
+/* ---- IDLE ---- */
+function r_idle(b){
+  const zonePills=Object.entries(ZONES).map(([k,z])=>
+    `<div class="idle-zone-pill" style="background:${z.bg}">📍 ${z.name} ${z.desc}</div>`).join('');
+  b.innerHTML=`<div class="sc-idle">
+    <div class="idle-circle idle-c1"></div><div class="idle-circle idle-c2"></div>
+    <div class="idle-logo-box"><div class="idle-logo-main">homeplus</div><div class="idle-logo-sub">푸드코트 무인 주문·결제</div></div>
+    <div class="idle-desc">원하는 음식을 주문하고<br>픽업존에서 받아가세요!</div>
+    <div class="idle-zones">${zonePills}</div>
+    <button class="idle-start-btn" onclick="goScr('store')">주문 시작하기</button>
+    <div class="idle-hint">💡 메뉴마다 받는 장소(픽업존)가 달라요</div>
+  </div>`;
+}
+
+/* ---- STORE + MENU 통합 (레퍼런스 UI) ---- */
+// 현재 활성 탭 storeId (store 화면 = 메뉴화면 겸용)
+function r_store(b){
+  // 첫 진입 시 첫 번째 매장 자동 선택
+  if(!S.curStore) S.curStore=STORES[0].id;
+  renderStoreMenu(b);
+}
+
+function renderStoreMenu(b){
+  const maxStores=MAX_STORES[S.difficulty];
+  // 상단 탭
+  const tabs=STORES.map(st=>{
+    const cnt=S.cart[st.id]?S.cart[st.id].reduce((s,i)=>s+i.qty,0):0;
+    const isAct=S.curStore===st.id;
+    return `
+      <div class="stn-tab ${isAct?'act':''} ${cnt>0?'has-items':''}" onclick="switchStoreTab('${st.id}')">
+        <div class="stn-tab-dot"></div>
+        <span class="stn-label">${st.desc.split('·')[0].trim()}</span>
+        <span class="stn-name">${st.name}</span>
+      </div>`;
+  }).join('');
+
+  // 현재 매장 정보
+  const st=storeById(S.curStore);
+  const z=ZONES[st.zoneId];
+
+  // 메뉴 그리드
+  const menuItems=Object.entries(st.menus).map(([id,m])=>{
+    const inCart=S.cart[S.curStore]?.find(x=>x.id===id);
+    return `
+      <div class="menu-item-card ${inCart?'in-cart':''}" onclick="addToCart('${S.curStore}','${id}')">
+        <div class="mic-emoji-wrap ${inCart?'in-cart':''}">
+          ${m.badge?`<div class="mic-best">${m.badge}</div>`:''}
+          ${inCart?`<div class="mic-cart-badge">${inCart.qty}</div>`:''}
+          <span style="font-size:36px;">${m.emoji}</span>
+        </div>
+        <div class="mic-name">${m.name}</div>
+        <div class="mic-price">${m.price.toLocaleString()}원</div>
+      </div>`;
+  }).join('');
+
+  // 하단 바 카트 상태
+  const totalCnt=cartItemCount();
+  const totalAmt=cartTotal();
+  const cartInfoHTML=totalCnt>0
+    ?`<div class="obb-cart-ico">🛒</div>
+      <div class="obb-cart-text"><div class="obb-cart-items">${totalCnt}개 담김</div></div>
+      <div class="obb-cart-total">${totalAmt.toLocaleString()}원</div>`
+    :`<div class="obb-cart-ico" style="font-size:18px;color:rgba(255,255,255,.3);">🛒</div>
+      <div class="obb-cart-text"><div class="obb-cart-empty">아직 담은상품이 없습니다.</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;">위 메뉴에서 주문하실 상품을 선택하시면 이 곳에 표시됩니다.</div></div>`;
+
+  b.innerHTML=`<div class="sc-menu">
+    <!-- 상단 탭 네비 -->
+    <div class="store-tab-nav">
+      <div class="stn-row">${tabs}</div>
+    </div>
+    <!-- 매장 정보 바 -->
+    <div class="store-info-bar">
+      <span class="sib-zone" style="background:${z.color}">📍 ${z.name}</span>
+      <span class="sib-name">${st.name}</span>
+      <span class="sib-desc">${st.desc}</span>
+    </div>
+    <!-- 메뉴 그리드 -->
+    <div class="menu-scroll-area">
+      <div class="menu-category-label">${st.name} 메뉴</div>
+      <div class="menu-grid-2">${menuItems}</div>
+    </div>
+    <!-- 하단 고정 주문바 -->
+    <div class="order-bottom-bar">
+      <div class="obb-cart-info">${cartInfoHTML}</div>
+      <div class="obb-btn-row">
+        <div class="obb-sub-btns">
+          <button class="obb-sub-btn" onclick="clearCart()">🗑 장바구니<br>비우기</button>
+          <button class="obb-sub-btn" onclick="showHelp()">🙋 도움<br>요청</button>
+        </div>
+        <button class="obb-order-btn" onclick="${totalCnt>0?"goScr('cart')":'showToast("담은 상품이 없습니다")'}" ${totalCnt===0?'style="opacity:.5;"':''}>
+          🛒 주문하기
+          <span class="obb-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- 도움요청 모달 -->
+  <div class="help-modal" id="help-modal">
+    <div class="help-box">
+      <div class="help-icon">🙋</div>
+      <div class="help-title">도움요청</div>
+      <div class="help-sub">도움 요청을 위해 직원을 부르시겠습니까?</div>
+      <div class="help-btns">
+        <button class="help-no" onclick="document.getElementById('help-modal').classList.remove('show')">아니요</button>
+        <button class="help-yes" onclick="document.getElementById('help-modal').classList.remove('show');showToast('직원을 호출했습니다!')">예</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function switchStoreTab(id){
+  S.curStore=id;
+  const b=document.getElementById('hpbody');
+  renderStoreMenu(b);
+}
+
+function enterStore(id){
+  if(!S.cart[id]) S.cart[id]=[];
+  S.curStore=id;
+  goScr('store');
+}
+
+function clearCart(){
+  S.cart={};
+  const b=document.getElementById('hpbody');
+  renderStoreMenu(b);
+  showToast('🗑 장바구니를 비웠습니다');
+}
+
+function showHelp(){
+  document.getElementById('help-modal').classList.add('show');
+}
+
+/* ---- MENU: r_store와 통합됨 ---- */
+function r_menu(b){ r_store(b); }
+function setMenuTab(t){S.curTab=t;render();}
+
+function addToCart(storeId, itemId){
+  const st=storeById(storeId);
+  const m=st.menus[itemId];
+  if(!S.cart[storeId]) S.cart[storeId]=[];
+  const ex=S.cart[storeId].find(x=>x.id===itemId);
+  if(ex){ex.qty++;}
+  else{S.cart[storeId].push({id:itemId,name:m.name,emoji:m.emoji,price:m.price,qty:1});}
+  showToast(`🛒 ${m.name} 담았어요!`);
+  render();
+}
+
+/* ---- CART ---- */
+function r_cart(b){
+  const storeGroups=Object.entries(S.cart).filter(([,items])=>items.length>0).map(([sid,items])=>{
+    const st=storeById(sid);
+    const z=ZONES[st.zoneId];
+    const itemRows=items.map(item=>`
+      <div class="cart-item">
+        <span class="ci-emoji">${item.emoji}</span>
+        <div class="ci-info">
+          <div class="ci-name">${item.name}</div>
+          <div class="ci-price">${(item.price*item.qty).toLocaleString()}원</div>
+        </div>
+        <div class="ci-qty-row">
+          <button class="ciqb" onclick="chQty('${sid}','${item.id}',-1)">−</button>
+          <span class="ciqn">${item.qty}</span>
+          <button class="ciqb" onclick="chQty('${sid}','${item.id}',1)">+</button>
+        </div>
+      </div>`).join('');
+    return `
+      <div class="cart-store-group">
+        <div class="csg-header" style="background:${z.color}">
+          <span style="font-size:18px;">${st.emoji}</span>
+          <span class="csg-name">${st.name}</span>
+          <span class="csg-zone">📍 ${z.name}에서 수령</span>
+        </div>
+        <div class="csg-items">${itemRows}</div>
+      </div>`;
+  }).join('');
+
+  b.innerHTML=`<div class="sc-cart">
+    <div class="cart-hd">
+      <button class="cart-back" onclick="goScr('store')">← 메뉴</button>
+      <span class="cart-hd-t">주문 내역</span>
+      <span class="cart-hd-cnt">${cartItemCount()}개</span>
+    </div>
+    ${storeGroups}
+    <div class="cart-total-box">
+      ${Object.entries(S.cart).filter(([,i])=>i.length>0).map(([sid,items])=>{
+        const st=storeById(sid);
+        return `<div class="ctb-row"><span>${st.name}</span><span>${items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}원</span></div>`;
+      }).join('')}
+      <div class="ctb-total"><span>합계</span><span>${cartTotal().toLocaleString()}원</span></div>
+    </div>
+    <div class="cart-btns">
+      <button class="cart-more-btn" onclick="goScr('store')">+ 더 담기</button>
+      <button class="cart-pay-btn" onclick="goScr('payment')">결제하기 →</button>
+    </div>
+  </div>`;
+}
+
+function chQty(sid,itemId,d){
+  const arr=S.cart[sid];if(!arr)return;
+  const item=arr.find(x=>x.id===itemId);if(!item)return;
+  item.qty+=d;
+  if(item.qty<=0) S.cart[sid]=arr.filter(x=>x.id!==itemId);
+  render();
+}
+
+/* ---- PAYMENT ---- */
+function r_payment(b){
+  b.innerHTML=`<div class="sc-pay">
+    <div class="pay-title">결제 수단을 선택하세요</div>
+    <div class="pay-sub">원하는 결제 방법을 터치해주세요</div>
+    <div class="pay-amt-box">
+      <span class="pab-l">총 결제 금액</span>
+      <span class="pab-n">${cartTotal().toLocaleString()}원</span>
+    </div>
+    <div class="pay-methods">
+      ${PAY_METHODS.map((p,i)=>`
+        <div class="pay-m ${S.payMethod===i?'sel':''}" onclick="selPay(${i})">
+          <span class="pm-ico">${p.ico}</span>
+          <div><div class="pm-nm">${p.nm}</div><div class="pm-ds">${p.ds}</div></div>
+          <div class="pm-chk">✓</div>
+        </div>`).join('')}
+    </div>
+    <button class="pay-btn" onclick="goScr('complete')" ${S.payMethod===null?'disabled':''}>
+      💳 결제 완료 (시뮬레이션)
+    </button>
+  </div>`;
+}
+function selPay(i){S.payMethod=i;render();}
+
+/* ---- COMPLETE — 픽업존 안내 ---- */
+function r_complete(b){
+  const orderNum=Math.floor(Math.random()*900+100);
+  S.stats.trials++;updateStats();
+
+  // 매장별 픽업존 카드
+  const zonecards=Object.entries(S.cart).filter(([,items])=>items.length>0).map(([sid,items],idx)=>{
+    const st=storeById(sid);
+    const z=ZONES[st.zoneId];
+    const itemRows=items.map(i=>`
+      <div class="pzc-item-row">
+        <span class="pzc-item-emoji">${i.emoji}</span>
+        <span class="pzc-item-name">${i.name}</span>
+        <span class="pzc-item-qty">×${i.qty}</span>
+        <span class="pzc-item-price">${(i.price*i.qty).toLocaleString()}원</span>
+      </div>`).join('');
+    // 숨김 모드
+    const blurClass=S.opts.hide?'style="filter:blur(8px);user-select:none;"':'';
+    return `
+      <div class="pzc" style="border-color:${z.color};animation-delay:${idx*0.12}s;">
+        <div class="pzc-header" style="background:${z.bg}">
+          <div class="pzc-zone-big" ${blurClass}>${z.name}</div>
+          <div class="pzc-store-info">
+            <div class="pzc-store-name">${st.name}</div>
+            <div class="pzc-zone-name" ${blurClass}>📍 ${z.desc} · ${z.name}에서 수령</div>
+          </div>
+          <div class="pzc-arrow">→</div>
+        </div>
+        <div class="pzc-items">${itemRows}</div>
+      </div>`;
+  }).join('');
+
+  const hintHTML=S.opts.hide?`
+    <div class="pickup-quiz-hint">
+      <div class="pqh-ico">🧠</div>
+      <div class="pqh-text">픽업존 정보가 가려져 있어요!<br>각 매장의 픽업존을 기억하고 있나요?</div>
+    </div>`:'';
+
+  b.innerHTML=`<div class="sc-comp">
+    <div class="comp-receipt-top">
+      <div class="comp-check-circle">✅</div>
+      <div class="comp-title">주문 완료!</div>
+      <div class="comp-sub">아래 픽업존에서 음식을 받아주세요</div>
+      <div class="comp-order-num">
+        <div class="comp-order-num-l">대기 번호</div>
+        <div class="comp-order-num-n">${orderNum}</div>
+      </div>
+    </div>
+    <div class="comp-body">
+      <div class="pickup-section-title">📍 픽업존 안내</div>
+      <div class="pickup-zone-cards">${zonecards}</div>
+      ${hintHTML}
+      <div class="comp-total-row">
+        <span class="ctr-l">총 결제 금액</span>
+        <span class="ctr-n">${cartTotal().toLocaleString()}원</span>
+      </div>
+      <div class="comp-btns">
+        <button class="comp-rec" onclick="showToast('🖨️ 영수증 출력 중...')">영수증</button>
+        <button class="comp-home" onclick="resetAll()">🔄 처음으로</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =============================================
+   PICKUP QUIZ
+   ============================================= */
+function triggerPickupQuiz(){
+  const orderedStores=Object.entries(S.cart).filter(([,i])=>i.length>0);
+  if(!orderedStores.length) return;
+
+  // 랜덤 매장 하나 질문
+  const [targetSid]=orderedStores[Math.floor(Math.random()*orderedStores.length)];
+  const targetStore=storeById(targetSid);
+  const correctZone=ZONES[targetStore.zoneId];
+
+  // 오답 픽업존
+  const wrongZones=Object.entries(ZONES).filter(([k])=>k!==targetStore.zoneId).sort(()=>Math.random()-.5).slice(0,3);
+  const allChoices=[
+    {zoneId:targetStore.zoneId,zone:correctZone,correct:true},
+    ...wrongZones.map(([k,z])=>({zoneId:k,zone:z,correct:false}))
+  ].sort(()=>Math.random()-.5);
+
+  document.getElementById('pquiz-t').textContent=`"${targetStore.name}" 음식은 어느 픽업존?`;
+  document.getElementById('pquiz-s').textContent=`${targetStore.name}에서 주문한 음식을 어디서 받나요?`;
+  document.getElementById('pquiz-choices').innerHTML=allChoices.map(c=>`
+    <div class="pqc" onclick="ansPickup(this,${c.correct},'${c.zoneId}')" data-c="${c.correct}">
+      <div class="pzc-zone-big" style="background:${c.zone.color};color:white;margin:0 auto 6px;display:inline-block;">${c.zone.name}</div>
+      <div class="pqc-name">${c.zone.desc}</div>
+    </div>`).join('');
+  document.getElementById('pqfb').className='pqfb';
+  document.getElementById('pqnxt').className='pqnxt';
+  document.getElementById('pquiz-ov').classList.add('show');
+}
+
+function ansPickup(el,ok){
+  document.querySelectorAll('.pqc').forEach(b=>{b.style.pointerEvents='none';if(b.dataset.c==='true')b.classList.add('ok');});
+  if(!ok)el.classList.add('no');
+  const fb=document.getElementById('pqfb');
+  if(ok){fb.textContent='🎉 정답! 픽업존을 정확히 기억했어요!';fb.className='pqfb show g';S.stats.correct++;}
+  else{fb.textContent='🤔 아쉬워요! 다시 한번 확인해볼까요?';fb.className='pqfb show b';}
+  document.getElementById('pqnxt').className='pqnxt show';
+  updateStats();
+}
+function closeQuiz(){document.getElementById('pquiz-ov').classList.remove('show');}
+
+/* =============================================
+   CONTROLS
+   ============================================= */
+function goScr(s){if(s==='menu')s='store';S.screen=s;render();}
+function resetAll(){
+  S.screen='idle';S.cart={};S.curStore=null;S.curTab='전체';S.payMethod=null;
+  setMission();render();showToast('🔄 새 세션 시작!');
+}
+function togPanel(){const p=document.getElementById('tp');const b=document.getElementById('ptbtn');p.classList.toggle('col');b.classList.toggle('open',!p.classList.contains('col'));}
+function togOpt(k,el){
+  S.opts[k]=!S.opts[k];el.classList.toggle('on');
+  if(k==='mission')document.getElementById('wmbar').style.display=S.opts.mission?'block':'none';
+  if(k==='mhide')updateWmBar();
+}
+function setDiff(d,el){
+  S.difficulty=d;
+  document.querySelectorAll('.dfb').forEach(b=>b.className='dfb');
+  el.className=`dfb a${d}`;
+  document.getElementById('ddt').textContent=DIFF_INFO[d].tag;
+  document.getElementById('ddb').innerHTML=DIFF_INFO[d].desc;
+  setMission();
+}
+function setMission(){
+  const list=MISSIONS_LIST[S.difficulty];
+  S.mission=list[Math.floor(Math.random()*list.length)];
+  updateWmBar();
+}
+function updateWmBar(){
+  const t=document.getElementById('wmtask');const r=document.getElementById('wmrev');if(!t)return;
+  t.textContent=S.mission;
+  if(S.opts.mhide){t.classList.add('blr');r.style.display='block';}
+  else{t.classList.remove('blr');r.style.display='none';}
+  document.getElementById('wmbar').style.display=S.opts.mission?'block':'none';
+}
+function revealMs(){
+  const t=document.getElementById('wmtask');const r=document.getElementById('wmrev');
+  t.classList.remove('blr');r.style.display='none';
+  setTimeout(()=>{if(S.opts.mhide){t.classList.add('blr');r.style.display='block';}},3000);
+}
+function updateStats(){
+  document.getElementById('st-t').textContent=S.stats.trials;
+  document.getElementById('st-c').textContent=S.stats.correct;
+  const p=S.stats.trials>0?Math.round(S.stats.correct/S.stats.trials*100):0;
+  document.getElementById('st-p').textContent=p+'%';
+}
+setMission();render();
+</script>
+</body>
+</html>

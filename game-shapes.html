@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link IT 2.0 — 모양 찾기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg:#F2F4FF; --surface:#FFFFFF; --surface-alt:#F8F9FF;
+  --border:#E2E5F4; --border-mid:#C8CEEA;
+  --accent:#7B68EE; --accent-2:#9B8BF4; --accent-dim:#F0EEFF;
+  --accent-ring:rgba(123,104,238,.18); --accent-dark:#5A4BD1;
+  --teal:#0EA5A0; --teal-dim:#F0FAFA;
+  --green:#12B76A; --green-dim:#ECFDF5;
+  --amber:#F59E0B; --amber-dim:#FFFBEB;
+  --red:#F04438; --red-dim:#FEF3F2;
+  --t1:#1A1B2E; --t2:#4A4E6B; --t3:#9093B0; --t4:#C5C8DC;
+  --r-xs:6px; --r-sm:10px; --r:14px; --r-lg:20px; --r-xl:26px;
+  --sh-xs:0 1px 3px rgba(30,30,80,.06);
+  --sh:0 3px 14px rgba(30,30,80,.08);
+  --sh-lg:0 8px 32px rgba(30,30,80,.12);
+  --font:'Pretendard',-apple-system,sans-serif; --tr:.18s ease;
+
+  /* game area colors per shape area */
+  --area-a: var(--accent);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;min-height:100vh;}
+button{cursor:pointer;font-family:var(--font);}
+
+.top-strip{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--teal));}
+
+/* ── NAV ── */
+.nav{
+  position:sticky;top:0;z-index:200;height:52px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:10px;
+  box-shadow:var(--sh-xs);
+}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;}
+.nav-brand{font-size:14px;font-weight:800;color:var(--t1);}
+.nav-ver{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:20px;}
+.nav-back{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--t3);padding:5px 10px;border-radius:var(--r-sm);border:1px solid var(--border);background:none;transition:all var(--tr);text-decoration:none;}
+.nav-back:hover{color:var(--accent);border-color:rgba(123,104,238,.3);}
+.nav-info{margin-left:8px;}
+.nav-title{font-size:14px;font-weight:800;color:var(--t1);}
+.nav-sub  {font-size:11px;color:var(--t3);}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.user-chip{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface-alt);color:var(--t2);font-size:12px;font-weight:600;}
+
+/* ── SHELL ── */
+.game-shell{
+  display:grid;grid-template-columns:256px 1fr 256px;
+  min-height:calc(100vh - 55px);
+}
+
+/* ── PANEL COMMON ── */
+.panel{
+  padding:20px 16px;
+  display:flex;flex-direction:column;gap:14px;
+  background:var(--surface);
+}
+.panel-left {border-right:1px solid var(--border);}
+.panel-right{border-left:1px solid var(--border);}
+
+.panel-tag  {font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;}
+.panel-title{font-size:18px;font-weight:800;color:var(--t1);letter-spacing:-.3px;}
+
+/* ── TARGET CARD ── */
+.target-card{
+  background:var(--accent-dim);
+  border:1px solid rgba(123,104,238,.2);
+  border-radius:var(--r-lg);padding:16px;text-align:center;
+}
+.tc-label{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.tc-shape{
+  width:72px;height:72px;margin:0 auto 10px;
+  display:flex;align-items:center;justify-content:center;
+}
+.tc-name{font-size:14px;font-weight:800;color:var(--t1);}
+.tc-sub {font-size:11px;color:var(--t3);margin-top:2px;}
+
+/* ── DIFF CHIPS ── */
+.diff-row{display:flex;gap:5px;}
+.diff-chip{
+  flex:1;padding:7px 4px;border-radius:var(--r-sm);text-align:center;
+  background:none;border:1px solid var(--border);
+  color:var(--t3);font-size:11px;font-weight:600;
+  transition:all var(--tr);
+}
+.diff-chip:hover{border-color:var(--border-mid);color:var(--t2);}
+.diff-chip.active{background:var(--accent-dim);border-color:rgba(123,104,238,.3);color:var(--accent);}
+
+/* ── ROUND PIPS ── */
+.pip-card{
+  background:var(--surface-alt);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px;
+}
+.pip-label{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.pip-row  {display:flex;gap:4px;flex-wrap:wrap;}
+.pip{
+  width:14px;height:14px;border-radius:3px;
+  background:var(--border);border:1px solid var(--border-mid);
+  transition:all .25s;
+}
+.pip.ok   {background:var(--green);border-color:var(--green);}
+.pip.fail {background:var(--red);border-color:var(--red);}
+.pip.skip {background:var(--amber);border-color:var(--amber);}
+.pip.cur  {background:var(--accent-dim);border-color:var(--accent);animation:pip-pulse .8s infinite;}
+@keyframes pip-pulse{0%,100%{box-shadow:0 0 0 0 rgba(123,104,238,.4)}50%{box-shadow:0 0 0 3px rgba(123,104,238,0)}}
+
+/* ── SCORE BOARD ── */
+.score-board{
+  background:var(--surface-alt);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:13px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin-top:auto;
+}
+.sb-item {display:flex;flex-direction:column;gap:2px;}
+.sb-label{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;}
+.sb-value{font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-.5px;}
+.sv-accent{color:var(--accent);}
+.sv-green {color:var(--green);}
+.sv-amber {color:var(--amber);}
+.sv-teal  {color:var(--teal);}
+
+/* hint */
+.hint-btn{
+  width:100%;padding:8px;border-radius:var(--r-sm);
+  background:none;border:1px solid var(--border);
+  color:var(--t2);font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all var(--tr);
+}
+.hint-btn:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-dim);}
+.hint-box{
+  background:var(--amber-dim);border:1px solid rgba(245,158,11,.2);
+  border-radius:var(--r-sm);padding:10px;font-size:11px;color:var(--t2);
+  line-height:1.65;display:none;
+}
+.hint-box.show{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CENTER ── */
+.center-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  padding:20px 24px;gap:12px;
+  background:var(--bg);
+}
+
+/* top bar */
+.game-topbar{
+  width:100%;max-width:680px;
+  display:flex;align-items:center;gap:10px;
+}
+.round-pill{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:5px 14px;
+  font-size:12px;font-weight:700;color:var(--t2);
+  box-shadow:var(--sh-xs);
+}
+.timer-bar-wrap{flex:1;}
+.timer-bar-track{
+  height:7px;border-radius:4px;
+  background:var(--border);overflow:hidden;
+}
+.timer-bar-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  transition:width .1s linear;
+}
+.timer-bar-fill.warn  {background:linear-gradient(90deg,var(--amber),#F5C842);}
+.timer-bar-fill.danger{background:linear-gradient(90deg,var(--red),#FF7A7A);}
+.timer-num{font-size:13px;font-weight:800;color:var(--t1);min-width:36px;text-align:right;}
+
+/* feedback flash */
+.feedback-flash{
+  height:30px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;
+}
+.ff-ok   {color:var(--green);}
+.ff-fail {color:var(--red);}
+.ff-time {color:var(--amber);}
+
+/* BOARD */
+.game-board{
+  width:100%;max-width:680px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:22px;
+  box-shadow:var(--sh);
+  position:relative;overflow:hidden;
+  min-height:380px;
+}
+
+/* subtle grid lines */
+.game-board::before{
+  content:'';position:absolute;inset:0;border-radius:var(--r-xl);
+  background:
+    linear-gradient(rgba(123,104,238,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(123,104,238,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;
+}
+
+/* shape grid */
+.shape-grid{
+  display:grid;gap:10px;
+  position:relative;z-index:1;
+  justify-content:center;
+}
+
+/* shape cell */
+.shape-cell{
+  border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  background:var(--surface-alt);
+  border:1.5px solid var(--border);
+  aspect-ratio:1;
+  transition:all .15s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.shape-cell:hover{
+  border-color:var(--border-mid);
+  background:var(--bg);
+  transform:scale(1.05);
+  box-shadow:var(--sh);
+}
+.shape-cell:active{transform:scale(.97);}
+
+.shape-cell.flash-ok{
+  border-color:var(--green)!important;
+  background:var(--green-dim)!important;
+  animation:cellBounce .35s cubic-bezier(.34,1.56,.64,1);
+}
+.shape-cell.flash-fail{
+  border-color:var(--red)!important;
+  background:var(--red-dim)!important;
+  animation:cellShake .3s ease;
+}
+@keyframes cellBounce{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes cellShake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}100%{transform:translateX(0)}}
+
+.cell-check{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;opacity:0;transition:opacity .15s;pointer-events:none;
+}
+.shape-cell.flash-ok .cell-check{opacity:1;}
+
+/* OVERLAY */
+.board-overlay{
+  position:absolute;inset:0;border-radius:var(--r-xl);z-index:10;
+  background:rgba(248,249,255,0.96);backdrop-filter:blur(4px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center;padding:32px;
+}
+.board-overlay.hidden{display:none;}
+.ov-icon {font-size:48px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.ov-title{font-size:22px;font-weight:800;color:var(--t1);letter-spacing:-.5px;}
+.ov-sub  {font-size:13px;color:var(--t2);line-height:1.7;}
+.ov-btn{
+  padding:12px 32px;border-radius:var(--r-sm);
+  background:var(--accent);border:none;color:#fff;
+  font-size:14px;font-weight:700;
+  transition:all var(--tr);
+  box-shadow:0 4px 12px var(--accent-ring);
+}
+.ov-btn:hover{background:var(--accent-dark);transform:translateY(-1px);box-shadow:var(--sh);}
+
+/* streak badge */
+.streak-badge{
+  display:flex;align-items:center;gap:5px;
+  background:var(--amber-dim);border:1px solid rgba(245,158,11,.25);
+  border-radius:20px;padding:4px 12px;
+  font-size:12px;font-weight:700;color:var(--amber);
+}
+
+/* ── RIGHT PANEL ── */
+.pr-tag  {font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;}
+.pr-title{font-size:16px;font-weight:800;color:var(--t1);margin-top:2px;}
+
+/* Accuracy ring */
+.acc-ring-wrap{display:flex;align-items:center;gap:12px;}
+.ring-svg-wrap{position:relative;width:64px;height:64px;flex-shrink:0;}
+.ring-svg{transform:rotate(-90deg);}
+.r-bg{fill:none;stroke:var(--border);stroke-width:6;}
+.r-fg{fill:none;stroke-width:6;stroke-linecap:round;stroke-dasharray:170;transition:stroke-dashoffset .6s ease;}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-size:14px;font-weight:800;color:var(--t1);line-height:1;}
+.ring-sub{font-size:9px;color:var(--t3);}
+.ring-stats{flex:1;display:flex;flex-direction:column;gap:4px;}
+.rs-row{display:flex;justify-content:space-between;font-size:11px;}
+.rs-lbl{color:var(--t3);}
+.rs-val{font-weight:700;color:var(--t1);}
+
+/* RT chart */
+.rt-chart-wrap{display:flex;flex-direction:column;gap:6px;}
+.rt-bar-row{display:flex;align-items:center;gap:6px;}
+.rt-round{font-size:10px;color:var(--t3);width:18px;flex-shrink:0;font-weight:600;}
+.rt-track{flex:1;height:8px;border-radius:4px;background:var(--surface-alt);border:1px solid var(--border);overflow:hidden;}
+.rt-fill {height:100%;border-radius:4px;transition:width .5s ease;}
+.rt-fill.ok  {background:linear-gradient(90deg,var(--accent),var(--accent-2));}
+.rt-fill.slow{background:linear-gradient(90deg,var(--amber),#F5C842);}
+.rt-val{font-size:10px;color:var(--t3);width:28px;text-align:right;flex-shrink:0;}
+
+/* action log */
+.action-log{flex:1;display:flex;flex-direction:column;gap:5px;overflow-y:auto;max-height:220px;}
+.log-item{
+  display:flex;align-items:flex-start;gap:7px;
+  padding:7px 9px;border-radius:var(--r-sm);
+  background:var(--surface-alt);border:1px solid var(--border);
+  animation:fadeUp .2s ease;font-size:11px;
+}
+.log-item.ok  {border-color:rgba(18,183,106,.2);background:var(--green-dim);}
+.log-item.fail{border-color:rgba(240,68,56,.2);background:var(--red-dim);}
+.log-item.time{border-color:rgba(245,158,11,.2);background:var(--amber-dim);}
+.li-icon{font-size:12px;flex-shrink:0;margin-top:1px;}
+.li-text{flex:1;color:var(--t2);line-height:1.45;}
+.li-text em{font-style:normal;color:var(--accent);font-weight:700;}
+.li-rt  {font-size:10px;color:var(--t3);flex-shrink:0;}
+
+/* RESULT OVERLAY */
+.result-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(242,244,255,0.85);backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;
+}
+.result-overlay.show{display:flex;}
+.result-modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);padding:36px 32px;
+  text-align:center;max-width:420px;width:90%;
+  box-shadow:var(--sh-lg);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+.r-stars{font-size:34px;letter-spacing:4px;margin-bottom:10px;}
+.r-title{font-size:24px;font-weight:800;color:var(--t1);letter-spacing:-.5px;margin-bottom:5px;}
+.r-sub  {font-size:13px;color:var(--t3);margin-bottom:22px;}
+.r-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+.rs-item{display:flex;flex-direction:column;gap:3px;align-items:center;}
+.rs-num{font-size:20px;font-weight:800;color:var(--t1);}
+.rs-num span{font-size:13px;color:var(--t3);font-weight:500;}
+.rs-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;}
+
+/* diff badge in result */
+.r-diff-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--accent-dim);color:var(--accent);
+  border:1px solid rgba(123,104,238,.2);
+  border-radius:20px;padding:4px 12px;
+  font-size:11px;font-weight:700;margin-bottom:18px;
+}
+
+.r-btn{
+  width:100%;padding:13px;border-radius:var(--r-sm);
+  background:var(--accent);border:none;color:#fff;
+  font-size:14px;font-weight:700;
+  transition:all var(--tr);margin-bottom:8px;
+  box-shadow:0 4px 12px var(--accent-ring);
+}
+.r-btn:hover{background:var(--accent-dark);transform:translateY(-1px);}
+.r-btn-sec{
+  width:100%;padding:11px;border-radius:var(--r-sm);
+  background:none;border:1px solid var(--border);
+  color:var(--t2);font-size:12px;font-weight:600;
+  transition:all var(--tr);
+}
+.r-btn-sec:hover{border-color:var(--border-mid);background:var(--surface-alt);}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="top-strip"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="hub.html" class="nav-back">← 허브</a>
+  <div class="logo-mark">LIT</div>
+  <div class="nav-info">
+    <div class="nav-title">모양 찾기</div>
+    <div class="nav-sub">A1 · 시지각·공간 훈련</div>
+  </div>
+  <div class="nav-right">
+    <div class="user-chip">👤 김은총 (9세)</div>
+  </div>
+</nav>
+
+<div class="game-shell">
+
+  <!-- LEFT PANEL -->
+  <aside class="panel panel-left">
+    <div>
+      <div class="panel-tag" style="color:var(--accent);">Area A1</div>
+      <div class="panel-title">모양 찾기</div>
+    </div>
+
+    <!-- 목표 도형 -->
+    <div class="target-card">
+      <div class="tc-label">🎯 찾아야 할 모양</div>
+      <div class="tc-shape" id="targetDisplay">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <polygon points="32,5 59,56 5,56" fill="none" stroke="rgba(123,104,238,.3)" stroke-width="2" stroke-dasharray="4,3"/>
+        </svg>
+      </div>
+      <div class="tc-name" id="targetName">—</div>
+      <div class="tc-sub"  id="targetSub">훈련을 시작해주세요</div>
+    </div>
+
+    <!-- 난이도 -->
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px;">난이도</div>
+      <div class="diff-row">
+        <button class="diff-chip active" data-d="1" onclick="setDiff(1)">⭐<br><span style="font-size:9px;">초급</span></button>
+        <button class="diff-chip"        data-d="2" onclick="setDiff(2)">⭐⭐<br><span style="font-size:9px;">중급</span></button>
+        <button class="diff-chip"        data-d="3" onclick="setDiff(3)">⭐⭐⭐<br><span style="font-size:9px;">고급</span></button>
+      </div>
+    </div>
+
+    <!-- Round pips -->
+    <div class="pip-card">
+      <div class="pip-label">라운드 진행</div>
+      <div class="pip-row" id="pipRow"></div>
+    </div>
+
+    <!-- Score -->
+    <div class="score-board">
+      <div class="sb-item">
+        <div class="sb-label">점수</div>
+        <div class="sb-value sv-accent" id="scoreDisp">0</div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-label">정확도</div>
+        <div class="sb-value sv-green" id="accDisp">—</div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-label">경과 시간</div>
+        <div class="sb-value" id="timerDisp">00:00</div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-label">연속 정답</div>
+        <div class="sb-value sv-amber" id="streakDisp">0</div>
+      </div>
+    </div>
+
+    <button class="hint-btn" onclick="toggleHint()">💡 힌트 보기</button>
+    <div class="hint-box" id="hintBox">여러 도형 중 위에 표시된 <strong>같은 모양</strong>을 찾아 눌러봐요!</div>
+  </aside>
+
+  <!-- CENTER -->
+  <div class="center-wrap">
+
+    <!-- TOP BAR -->
+    <div class="game-topbar">
+      <div class="round-pill" id="roundBadge">라운드 — / —</div>
+      <div class="timer-bar-wrap">
+        <div class="timer-bar-track">
+          <div class="timer-bar-fill" id="timerBarFill" style="width:100%;"></div>
+        </div>
+      </div>
+      <div class="timer-num" id="roundTimer">—</div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="feedback-flash" id="feedbackFlash"></div>
+
+    <!-- BOARD -->
+    <div class="game-board">
+      <div class="shape-grid" id="shapeGrid"></div>
+
+      <!-- START OVERLAY -->
+      <div class="board-overlay" id="boardOverlay">
+        <div class="ov-icon">🔺</div>
+        <div class="ov-title">모양 찾기</div>
+        <div class="ov-sub">
+          제시된 모양과 <strong style="color:var(--accent);">같은 도형</strong>을 찾아 눌러봐요!<br>
+          난이도가 올라갈수록 도형이 많아지고<br>크기·색상이 다양해져요.
+        </div>
+        <button class="ov-btn" onclick="startGame()">▶ 훈련 시작</button>
+      </div>
+    </div>
+
+    <!-- STREAK -->
+    <div class="streak-badge" id="streakBadge" style="display:none;">
+      🔥 <span id="streakText">연속 3정답!</span>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <aside class="panel panel-right">
+    <div>
+      <div class="pr-tag">반응 분석</div>
+      <div class="pr-title">실시간 측정</div>
+    </div>
+
+    <!-- Accuracy ring -->
+    <div class="acc-ring-wrap">
+      <div class="ring-svg-wrap">
+        <svg width="64" height="64" viewBox="0 0 64 64" class="ring-svg">
+          <circle class="r-bg" cx="32" cy="32" r="27"/>
+          <circle class="r-fg" id="accRing" cx="32" cy="32" r="27"
+            stroke="var(--accent)" style="stroke-dashoffset:170;"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="accRingPct">—</div>
+          <div class="ring-sub">정확도</div>
+        </div>
+      </div>
+      <div class="ring-stats">
+        <div class="rs-row"><span class="rs-lbl">총 시도</span><span class="rs-val" id="riTotal">0</span></div>
+        <div class="rs-row"><span class="rs-lbl">정답</span><span class="rs-val" style="color:var(--green);" id="riOk">0</span></div>
+        <div class="rs-row"><span class="rs-lbl">오답</span><span class="rs-val" style="color:var(--red);" id="riFail">0</span></div>
+        <div class="rs-row"><span class="rs-lbl">평균 반응</span><span class="rs-val" id="riRT">—</span></div>
+      </div>
+    </div>
+
+    <!-- RT chart -->
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px;">라운드별 반응시간</div>
+      <div class="rt-chart-wrap" id="rtChart"></div>
+    </div>
+
+    <!-- log -->
+    <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">행동 로그</div>
+    <div class="action-log" id="actionLog">
+      <div class="log-item">
+        <span class="li-icon">🎮</span>
+        <div class="li-text">훈련을 시작해봐요!</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- RESULT -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-modal">
+    <div class="r-stars" id="rStars">⭐⭐⭐</div>
+    <div class="r-title"  id="rTitle">완벽해요!</div>
+    <div class="r-sub"    id="rSub">모양 찾기 훈련 완료</div>
+    <div class="r-diff-badge" id="rDiff">⭐ 초급 · 10라운드</div>
+    <div class="r-scores">
+      <div class="rs-item"><div class="rs-num" id="rScore">0</div><div class="rs-label">점수</div></div>
+      <div class="rs-item"><div class="rs-num" id="rAcc">—<span>%</span></div><div class="rs-label">정확도</div></div>
+      <div class="rs-item"><div class="rs-num" id="rRT">—<span>초</span></div><div class="rs-label">평균반응</div></div>
+      <div class="rs-item"><div class="rs-num" id="rStreak">0</div><div class="rs-label">최고연속</div></div>
+    </div>
+    <button class="r-btn"     onclick="restartGame()">🔄 다시 훈련하기</button>
+    <button class="r-btn-sec" onclick="location.href='hub.html'">← 허브로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ SHAPES ═══════════════ */
+const SHAPES = [
+  { id:'triangle', name:'삼각형', color:'#7B68EE',
+    svg:(c,s)=>`<polygon points="${s/2},${s*.1} ${s*.9},${s*.9} ${s*.1},${s*.9}" fill="${c}" opacity=".85"/>` },
+  { id:'circle',   name:'원',     color:'#0EA5A0',
+    svg:(c,s)=>`<circle cx="${s/2}" cy="${s/2}" r="${s*.4}" fill="${c}" opacity=".85"/>` },
+  { id:'square',   name:'사각형', color:'#F59E0B',
+    svg:(c,s)=>`<rect x="${s*.1}" y="${s*.1}" width="${s*.8}" height="${s*.8}" fill="${c}" opacity=".85"/>` },
+  { id:'star',     name:'별',     color:'#F04438',
+    svg:(c,s)=>{
+      const pts=[]; for(let i=0;i<10;i++){const r=i%2===0?s*.44:s*.2,a=(i*36-90)*Math.PI/180;pts.push(`${s/2+r*Math.cos(a)},${s/2+r*Math.sin(a)}`);}
+      return `<polygon points="${pts.join(' ')}" fill="${c}" opacity=".85"/>`;
+    }},
+  { id:'diamond',  name:'마름모', color:'#9B6EFF',
+    svg:(c,s)=>`<polygon points="${s/2},${s*.08} ${s*.92},${s/2} ${s/2},${s*.92} ${s*.08},${s/2}" fill="${c}" opacity=".85"/>` },
+  { id:'pentagon', name:'오각형', color:'#12B76A',
+    svg:(c,s)=>{
+      const pts=[]; for(let i=0;i<5;i++){const a=(i*72-90)*Math.PI/180;pts.push(`${s/2+s*.42*Math.cos(a)},${s/2+s*.42*Math.sin(a)}`);}
+      return `<polygon points="${pts.join(' ')}" fill="${c}" opacity=".85"/>`;
+    }},
+  { id:'cross',    name:'십자',   color:'#0EA5A0',
+    svg:(c,s)=>`<rect x="${s*.35}" y="${s*.1}" width="${s*.3}" height="${s*.8}" fill="${c}" opacity=".85"/>
+               <rect x="${s*.1}" y="${s*.35}" width="${s*.8}" height="${s*.3}" fill="${c}" opacity=".85"/>` },
+  { id:'heart',    name:'하트',   color:'#F04438',
+    svg:(c,s)=>`<path d="M${s/2},${s*.85} C${s*.1},${s*.55} ${s*.05},${s*.2} ${s/2},${s*.38} C${s*.95},${s*.2} ${s*.9},${s*.55} ${s/2},${s*.85}Z" fill="${c}" opacity=".85"/>` },
+];
+
+const DIFF_CFG = {
+  1:{ grid:4,  cols:4, timeLimit:6,   sizeVar:[1]          },
+  2:{ grid:9,  cols:5, timeLimit:4.5, sizeVar:[.8,1,1.2]   },
+  3:{ grid:16, cols:6, timeLimit:3,   sizeVar:[.65,1,1.35] },
+};
+
+/* ═══════════════ STATE ═══════════════ */
+const TOTAL = 10;
+let diff=1, round=0, score=0, streak=0, maxStreak=0;
+let hits=0, misses=0, totalActs=0, targetShape=null;
+let roundStartT=0, rtData=[], gameActive=false, globalStart=0;
+let timerGlobal, roundTimerInt, roundTimeLeft=0;
+
+/* ═══════════════ INIT ═══════════════ */
+function buildPips(){
+  const row=document.getElementById('pipRow'); row.innerHTML='';
+  for(let i=0;i<TOTAL;i++){const p=document.createElement('div');p.className='pip';p.id='pip'+i;row.appendChild(p);}
+}
+buildPips();
+
+function setDiff(d){
+  diff=d;
+  document.querySelectorAll('.diff-chip').forEach(b=>b.classList.toggle('active',+b.dataset.d===d));
+}
+
+/* ═══════════════ START ═══════════════ */
+function startGame(){
+  round=0;score=0;streak=0;maxStreak=0;hits=0;misses=0;totalActs=0;rtData=[];
+  gameActive=true; globalStart=Date.now();
+  document.getElementById('boardOverlay').classList.add('hidden');
+  document.getElementById('scoreDisp').textContent='0';
+  document.getElementById('accDisp').textContent='—';
+  document.getElementById('streakDisp').textContent='0';
+  document.getElementById('rtChart').innerHTML='';
+  clearInterval(timerGlobal);
+  timerGlobal=setInterval(()=>{
+    const el=Math.floor((Date.now()-globalStart)/1000);
+    document.getElementById('timerDisp').textContent=
+      String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
+  },1000);
+  nextRound();
+}
+
+/* ═══════════════ ROUND ═══════════════ */
+function nextRound(){
+  if(!gameActive)return;
+  if(round>=TOTAL){endGame();return;}
+  const cfg=DIFF_CFG[diff];
+
+  targetShape=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+  document.getElementById('targetName').textContent=targetShape.name;
+  document.getElementById('targetSub').textContent='이 모양을 찾아봐요!';
+  document.getElementById('roundBadge').textContent=`라운드 ${round+1} / ${TOTAL}`;
+
+  // target display
+  const ts=56;
+  document.getElementById('targetDisplay').innerHTML=
+    `<svg width="${ts}" height="${ts}" viewBox="0 0 ${ts} ${ts}">${targetShape.svg(targetShape.color,ts)}</svg>`;
+
+  // pip
+  const pip=document.getElementById('pip'+round);
+  if(pip){pip.className='pip cur';}
+
+  // build grid
+  buildGrid(cfg);
+
+  // timer
+  roundTimeLeft=cfg.timeLimit;
+  updateTimerBar(roundTimeLeft,cfg.timeLimit);
+  clearInterval(roundTimerInt);
+  roundTimerInt=setInterval(()=>{
+    roundTimeLeft-=.1;
+    document.getElementById('roundTimer').textContent=Math.max(0,roundTimeLeft).toFixed(1)+'s';
+    updateTimerBar(roundTimeLeft,cfg.timeLimit);
+    if(roundTimeLeft<=0){clearInterval(roundTimerInt);onTimeout();}
+  },100);
+
+  roundStartT=Date.now();
+  round++;
+}
+
+function updateTimerBar(left,total){
+  const pct=Math.max(0,left/total*100);
+  const bar=document.getElementById('timerBarFill');
+  bar.style.width=pct+'%';
+  bar.className='timer-bar-fill'+(pct<30?' danger':pct<55?' warn':'');
+}
+
+/* ═══════════════ GRID ═══════════════ */
+function buildGrid(cfg){
+  const grid=document.getElementById('shapeGrid');
+  grid.innerHTML='';
+  const total=cfg.grid, cols=cfg.cols;
+  const cellSize=diff===1?100:diff===2?82:68;
+  grid.style.gridTemplateColumns=`repeat(${cols},${cellSize}px)`;
+
+  const targetIdx=Math.floor(Math.random()*total);
+  const distractors=SHAPES.filter(s=>s.id!==targetShape.id);
+
+  for(let i=0;i<total;i++){
+    const cell=document.createElement('div');
+    cell.className='shape-cell';
+    cell.style.cssText=`width:${cellSize}px;height:${cellSize}px;`;
+
+    const isTarget=(i===targetIdx);
+    const shape=isTarget?targetShape:distractors[Math.floor(Math.random()*distractors.length)];
+    const sizeM=cfg.sizeVar[Math.floor(Math.random()*cfg.sizeVar.length)];
+    const svgSize=Math.round(cellSize*.68*sizeM);
+
+    // color variation in hard mode
+    let col=shape.color;
+    if(diff===3&&!isTarget){
+      const pool=['#7B68EE','#0EA5A0','#F59E0B','#F04438','#9B6EFF','#12B76A'];
+      col=pool[Math.floor(Math.random()*pool.length)];
+    }
+
+    cell.innerHTML=`
+      <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" style="pointer-events:none;">
+        ${shape.svg(col,svgSize)}
+      </svg>
+      <div class="cell-check">✓</div>`;
+    cell.addEventListener('click',()=>onCellClick(cell,isTarget));
+    grid.appendChild(cell);
+  }
+}
+
+/* ═══════════════ CLICK ═══════════════ */
+function onCellClick(cell,isTarget){
+  if(!gameActive)return;
+  clearInterval(roundTimerInt);
+  const rt=(Date.now()-roundStartT)/1000;
+  totalActs++;
+
+  if(isTarget){
+    const pts=diff===1?10:diff===2?20:30;
+    const bonus=Math.round(Math.max(0,(DIFF_CFG[diff].timeLimit-rt)*4));
+    score+=pts+bonus; hits++; streak++; maxStreak=Math.max(maxStreak,streak);
+    rtData.push({rt,ok:true});
+
+    cell.classList.add('flash-ok');
+    showFeedback(`✅ 정답!  +${pts+bonus}점`,'ff-ok');
+    addLog('✅',`${targetShape.name} 발견!`,`반응 ${rt.toFixed(2)}s  +${pts+bonus}점`,'ok');
+    updatePip(round-1,'ok');
+    updateStats();
+    if(streak>=3)showStreak(streak);
+
+    setTimeout(()=>{cell.classList.remove('flash-ok');nextRound();},500);
+
+  } else {
+    misses++; streak=0;
+    rtData.push({rt,ok:false});
+    cell.classList.add('flash-fail');
+    showFeedback('❌ 다른 모양이에요!','ff-fail');
+    addLog('❌','다른 모양 선택','다시 찾아봐요','fail');
+    hideStreak(); updateStats();
+
+    setTimeout(()=>{
+      cell.classList.remove('flash-fail');
+      // Resume round timer
+      roundTimerInt=setInterval(()=>{
+        roundTimeLeft-=.1;
+        document.getElementById('roundTimer').textContent=Math.max(0,roundTimeLeft).toFixed(1)+'s';
+        updateTimerBar(roundTimeLeft,DIFF_CFG[diff].timeLimit);
+        if(roundTimeLeft<=0){clearInterval(roundTimerInt);onTimeout();}
+      },100);
+    },380);
+  }
+}
+
+function onTimeout(){
+  if(!gameActive)return;
+  misses++; streak=0;
+  rtData.push({rt:DIFF_CFG[diff].timeLimit,ok:false});
+  showFeedback('⏰ 시간 초과!','ff-time');
+  addLog('⏰','시간 초과','더 빠르게 찾아봐요','time');
+  updatePip(round-1,'skip'); hideStreak(); updateStats();
+  setTimeout(nextRound,600);
+}
+
+/* ═══════════════ UI HELPERS ═══════════════ */
+function updatePip(idx,cls){
+  const map={ok:'ok',fail:'fail',skip:'skip'};
+  const p=document.getElementById('pip'+idx);
+  if(p)p.className='pip '+(map[cls]||'');
+}
+
+function showFeedback(msg,cls){
+  const el=document.getElementById('feedbackFlash');
+  el.textContent=msg; el.className='feedback-flash '+cls;
+  clearTimeout(el._t); el._t=setTimeout(()=>{el.textContent='';el.className='feedback-flash';},900);
+}
+
+function showStreak(n){
+  const b=document.getElementById('streakBadge');
+  b.style.display='flex';
+  document.getElementById('streakText').textContent=`🔥 ${n}연속 정답!`;
+}
+function hideStreak(){document.getElementById('streakBadge').style.display='none';}
+
+function updateStats(){
+  const total=hits+misses;
+  const acc=total>0?Math.round(hits/total*100):0;
+  const avgRT=rtData.filter(r=>r.ok).length>0
+    ?(rtData.filter(r=>r.ok).reduce((a,b)=>a+b.rt,0)/rtData.filter(r=>r.ok).length).toFixed(2)
+    :'—';
+
+  document.getElementById('scoreDisp').textContent=score;
+  document.getElementById('accDisp').textContent=total>0?acc+'%':'—';
+  document.getElementById('streakDisp').textContent=streak;
+  document.getElementById('riTotal').textContent=total;
+  document.getElementById('riOk').textContent=hits;
+  document.getElementById('riFail').textContent=misses;
+  document.getElementById('riRT').textContent=avgRT!=='—'?avgRT+'s':'—';
+
+  // Ring
+  const offset=170-(170*acc/100);
+  const ring=document.getElementById('accRing');
+  ring.style.strokeDashoffset=offset;
+  ring.style.stroke=acc>=80?'var(--green)':acc>=60?'var(--accent)':'var(--amber)';
+  document.getElementById('accRingPct').textContent=total>0?acc+'%':'—';
+
+  // RT chart
+  const chart=document.getElementById('rtChart');
+  chart.innerHTML='';
+  const maxRT=Math.max(...rtData.map(r=>r.rt),.1);
+  rtData.slice(-8).forEach((r,i)=>{
+    chart.innerHTML+=`
+      <div class="rt-bar-row">
+        <span class="rt-round">${i+1}</span>
+        <div class="rt-track">
+          <div class="rt-fill${r.rt>3?' slow':' ok'}" style="width:${Math.round(r.rt/maxRT*100)}%"></div>
+        </div>
+        <span class="rt-val">${r.rt.toFixed(1)}s</span>
+      </div>`;
+  });
+}
+
+function addLog(icon,text,sub,type){
+  const el=Math.floor((Date.now()-globalStart)/1000);
+  const t=String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
+  const log=document.getElementById('actionLog');
+  const item=document.createElement('div');
+  item.className='log-item '+type;
+  item.innerHTML=`<span class="li-icon">${icon}</span>
+    <div class="li-text">${text}${sub?`<br><em>${sub}</em>`:''}</div>
+    <span class="li-rt">${t}</span>`;
+  log.appendChild(item);
+  log.scrollTop=log.scrollHeight;
+}
+
+function toggleHint(){document.getElementById('hintBox').classList.toggle('show');}
+
+/* ═══════════════ END ═══════════════ */
+function endGame(){
+  gameActive=false;
+  clearInterval(timerGlobal); clearInterval(roundTimerInt);
+
+  const total=hits+misses;
+  const acc=total>0?Math.round(hits/total*100):0;
+  const avgRT=rtData.filter(r=>r.ok).length>0
+    ?(rtData.filter(r=>r.ok).reduce((a,b)=>a+b.rt,0)/rtData.filter(r=>r.ok).length).toFixed(2):'—';
+  const stars=acc>=90?'⭐⭐⭐':acc>=70?'⭐⭐':'⭐';
+  const title=acc>=90?'완벽해요!':acc>=70?'잘 했어요!':acc>=50?'더 연습해봐요':'다시 도전!';
+  const diffLabel=['','⭐ 초급','⭐⭐ 중급','⭐⭐⭐ 고급'][diff];
+
+  document.getElementById('rStars').textContent=stars;
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rSub').textContent='모양 찾기 · 시지각·공간 훈련';
+  document.getElementById('rDiff').textContent=`${diffLabel} · ${TOTAL}라운드`;
+  document.getElementById('rScore').textContent=score;
+  document.getElementById('rAcc').innerHTML=`${acc}<span>%</span>`;
+  document.getElementById('rRT').innerHTML=`${avgRT}<span>초</span>`;
+  document.getElementById('rStreak').textContent=maxStreak;
+
+  setTimeout(()=>document.getElementById('resultOverlay').classList.add('show'),700);
+}
+
+/* ═══════════════ RESTART ═══════════════ */
+function restartGame(){
+  document.getElementById('resultOverlay').classList.remove('show');
+  const ov=document.getElementById('boardOverlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML=`
+    <div class="ov-icon">🔺</div>
+    <div class="ov-title">다시 도전!</div>
+    <div class="ov-sub">이번엔 더 잘할 수 있어요!</div>
+    <button class="ov-btn" onclick="startGame()">▶ 다시 시작</button>`;
+  document.getElementById('shapeGrid').innerHTML='';
+  document.getElementById('actionLog').innerHTML=`
+    <div class="log-item"><span class="li-icon">🔄</span><div class="li-text">다시 시작! 파이팅!</div></div>`;
+  document.getElementById('rtChart').innerHTML='';
+  document.getElementById('accRing').style.strokeDashoffset='170';
+  document.getElementById('accRingPct').textContent='—';
+  ['riTotal','riOk','riFail'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('riRT').textContent='—';
+  document.getElementById('feedbackFlash').textContent='';
+  document.getElementById('streakBadge').style.display='none';
+  document.getElementById('targetName').textContent='—';
+  document.getElementById('targetSub').textContent='훈련을 시작해주세요';
+  document.getElementById('roundBadge').textContent='라운드 — / —';
+  document.getElementById('roundTimer').textContent='—';
+  document.getElementById('timerBarFill').style.width='100%';
+  document.getElementById('timerBarFill').className='timer-bar-fill';
+  clearInterval(timerGlobal); clearInterval(roundTimerInt);
+  buildPips();
+}
+</script>
+</body>
+</html>

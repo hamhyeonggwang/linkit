@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>누구나 쓰기게임</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --sky: #87CEEB;
+  --sky2: #B8E4F7;
+  --white: #FFFFFF;
+  --red: #E84040;
+  --blue: #2E86DE;
+  --green: #26de81;
+  --yellow: #FFD32A;
+  --orange: #FF9F43;
+  --sidebar: 280px;
+  --consonant-color: #E84040;
+  --vowel-color: #2E86DE;
+  --number-color: #26de81;
+  --english-color: #FF9F43;
+}
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  font-family:'Jua', sans-serif;
+  background:#87CEEB;
+  touch-action:none;
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+#sidebar {
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--sidebar);
+  background:rgba(255,255,255,0.97);
+  box-shadow:4px 0 24px rgba(46,134,222,0.15);
+  z-index:200;
+  display:flex; flex-direction:column;
+  padding:20px 16px;
+  gap:12px;
+  overflow-y:auto;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+#sidebar.closed { transform:translateX(-100%); }
+
+.sb-title {
+  font-size:20px; color:var(--blue); font-weight:900;
+  display:flex; align-items:center; gap:8px;
+  padding-bottom:8px;
+  border-bottom:3px solid #e8f4ff;
+}
+
+.sb-section {
+  font-size:11px; color:#aaa; letter-spacing:1.5px; text-transform:uppercase;
+  margin-top:4px;
+}
+
+.mode-group { display:flex; flex-direction:column; gap:6px; }
+.mode-btn {
+  padding:11px 14px; border-radius:14px; border:2.5px solid #e8f4ff;
+  background:#f8fbff; font-family:'Jua',sans-serif; font-size:16px;
+  cursor:pointer; display:flex; align-items:center; gap:10px;
+  color:#555; transition:all .18s;
+}
+.mode-btn.active {
+  border-color:var(--blue); background:#e8f4ff; color:var(--blue);
+}
+.mode-btn:hover { transform:translateX(3px); }
+
+.toggle-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 12px; background:#f8fbff; border-radius:12px;
+  font-size:14px; color:#444;
+}
+.sw {
+  width:42px; height:22px; border-radius:11px; background:#ddd;
+  cursor:pointer; position:relative; transition:background .2s; flex-shrink:0;
+}
+.sw.on { background:var(--blue); }
+.sw::after {
+  content:''; position:absolute;
+  width:16px; height:16px; border-radius:50%;
+  background:#fff; top:3px; left:3px;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:left .2s;
+}
+.sw.on::after { left:23px; }
+
+.slider-wrap {
+  padding:10px 12px; background:#f8fbff; border-radius:12px;
+}
+.slider-wrap label {
+  font-size:13px; color:#666;
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:6px;
+}
+.slider-wrap label span { color:var(--blue); font-weight:bold; }
+input[type=range] { width:100%; accent-color:var(--blue); }
+
+/* char picker */
+.char-picker {
+  display:flex; flex-wrap:wrap; gap:5px;
+  max-height:130px; overflow-y:auto;
+  padding:8px; background:#f8fbff; border-radius:12px;
+}
+.cp-btn {
+  width:32px; height:32px; border-radius:8px;
+  border:2px solid #ddd; background:#fff;
+  font-family:'Jua',sans-serif; font-size:14px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:#666; transition:all .15s;
+}
+.cp-btn.done { background:var(--green); border-color:var(--green); color:#fff; }
+.cp-btn.cur  { background:var(--yellow); border-color:var(--orange); color:#333; transform:scale(1.15); }
+
+.reset-btn {
+  padding:10px; border-radius:12px;
+  background:#fff0f0; border:2px solid #ffd0d0;
+  color:var(--red); font-family:'Jua',sans-serif; font-size:14px;
+  cursor:pointer; width:100%; margin-top:auto;
+}
+.reset-btn:hover { background:#ffe0e0; }
+
+/* sidebar toggle tab */
+#sb-tab {
+  position:fixed; left:var(--sidebar); top:50%;
+  transform:translateY(-50%);
+  width:32px; height:56px;
+  background:var(--blue); border-radius:0 14px 14px 0;
+  border:none; cursor:pointer; color:#fff; font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:3px 0 10px rgba(46,134,222,.2);
+  z-index:201; transition:left .3s cubic-bezier(.4,0,.2,1);
+}
+#sidebar.closed ~ #sb-tab { left:0; }
+
+/* ══════════════════════════════════════
+   MAIN GAME AREA
+══════════════════════════════════════ */
+#game {
+  position:fixed;
+  left:var(--sidebar); top:0; right:0; bottom:0;
+  transition:left .3s cubic-bezier(.4,0,.2,1);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+#sidebar.closed ~ #game { left:0; }
+
+/* ── sky bg ── */
+#sky-bg {
+  position:absolute; inset:0;
+  background:linear-gradient(160deg, #87CEEB 0%, #B8E4F7 50%, #D4EDFF 100%);
+  overflow:hidden;
+}
+.cloud {
+  position:absolute; border-radius:50%;
+  background:rgba(255,255,255,0.55);
+  animation:drift linear infinite;
+}
+@keyframes drift {
+  from { transform:translateX(0); }
+  to   { transform:translateX(110vw); }
+}
+
+/* ── canvas stack ── */
+#canvas-area {
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  z-index:10;
+  /* size set by JS */
+}
+
+/* bg canvas — sky colored, character as white "hole" — painted by JS */
+#canvas-bg   { position:absolute; top:0; left:0; border-radius:24px; }
+/* mask canvas — dark overlay with character-shaped hole (destination-out) */
+#canvas-mask { position:absolute; top:0; left:0; border-radius:24px; pointer-events:none; }
+/* paint canvas — where user draws; clipped to char shape by compositing */
+#canvas-paint{ position:absolute; top:0; left:0; border-radius:24px; }
+/* overlay canvas — guide arrows, markers */
+#canvas-guide{ position:absolute; top:0; left:0; border-radius:24px; pointer-events:none; }
+
+/* ── header bar ── */
+#header {
+  position:absolute; top:16px;
+  display:flex; align-items:center; gap:12px;
+  background:rgba(255,255,255,0.92);
+  border-radius:20px; padding:8px 20px;
+  box-shadow:0 4px 16px rgba(46,134,222,.12);
+  z-index:20;
+}
+#char-label {
+  font-size:40px; line-height:1;
+  min-width:52px; text-align:center;
+}
+#char-hint {
+  font-size:15px; color:#666; font-family:'Jua',sans-serif;
+}
+#score-badge {
+  margin-left:8px;
+  background:var(--yellow); color:#333;
+  border-radius:20px; padding:4px 14px;
+  font-size:16px; font-weight:bold;
+}
+
+/* ── progress fill indicator ── */
+#fill-meter {
+  position:absolute; bottom:20px;
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,0.92);
+  border-radius:16px; padding:8px 18px;
+  box-shadow:0 3px 12px rgba(46,134,222,.12);
+  z-index:20;
+}
+#fill-track {
+  width:180px; height:12px; background:#e0ecff; border-radius:6px; overflow:hidden;
+}
+#fill-bar {
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg, var(--blue), var(--green));
+  transition:width .4s cubic-bezier(.4,0,.2,1);
+  width:0%;
+}
+#fill-pct { font-size:14px; color:var(--blue); min-width:36px; }
+
+/* ── nav arrows ── */
+#nav-prev, #nav-next {
+  position:absolute; top:50%;
+  transform:translateY(-50%);
+  width:52px; height:52px; border-radius:50%;
+  background:rgba(255,255,255,0.92);
+  border:none; cursor:pointer; font-size:24px;
+  box-shadow:0 4px 14px rgba(46,134,222,.15);
+  z-index:20; display:flex; align-items:center; justify-content:center;
+  transition:transform .15s, box-shadow .15s;
+}
+#nav-prev { left:10px; }
+#nav-next { right:10px; }
+#nav-prev:hover, #nav-next:hover {
+  transform:translateY(-50%) scale(1.1);
+  box-shadow:0 6px 20px rgba(46,134,222,.25);
+}
+
+/* ── clear btn ── */
+#btn-clear {
+  position:absolute; top:16px; right:16px;
+  background:rgba(255,255,255,0.92); border:none;
+  border-radius:14px; padding:8px 16px;
+  font-family:'Jua',sans-serif; font-size:14px; color:#E84040;
+  cursor:pointer; z-index:20;
+  box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+#btn-clear:hover { background:#fff0f0; }
+
+/* ── tracking canvas ── */
+#track-canvas {
+  position:fixed; inset:0;
+  pointer-events:none; z-index:30;
+}
+
+/* ── hand cursor ── */
+#hand-dot {
+  position:fixed; pointer-events:none; z-index:40;
+  width:36px; height:36px; border-radius:50%;
+  background:rgba(255,211,42,0.75);
+  border:3px solid var(--orange);
+  transform:translate(-50%,-50%);
+  display:none;
+  box-shadow:0 0 16px rgba(255,211,42,.5);
+  transition:width .08s,height .08s,background .1s;
+}
+#hand-dot.pinch {
+  width:22px; height:22px;
+  background:rgba(232,64,64,.8);
+  border-color:var(--red);
+}
+
+/* ══════════════════════════════════════
+   EFFECTS
+══════════════════════════════════════ */
+#fx { position:fixed; inset:0; pointer-events:none; z-index:999; }
+.spark {
+  position:absolute; pointer-events:none;
+  border-radius:50%;
+  animation:spark-out .5s ease-out forwards;
+}
+@keyframes spark-out {
+  0%   { transform:scale(1) translate(0,0); opacity:1; }
+  100% { transform:scale(0) translate(var(--tx),var(--ty)); opacity:0; }
+}
+.pop-text {
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  font-family:'Jua',sans-serif;
+  animation:pop-in 1s cubic-bezier(.17,.67,.35,1.4) forwards;
+  pointer-events:none; z-index:1000;
+  text-shadow:0 6px 24px rgba(0,0,0,.15);
+}
+@keyframes pop-in {
+  0%  { transform:translate(-50%,-50%) scale(0) rotate(-15deg); opacity:0; }
+  55% { transform:translate(-50%,-50%) scale(1.15) rotate(4deg); opacity:1; }
+  80% { transform:translate(-50%,-50%) scale(1); opacity:1; }
+  100%{ transform:translate(-50%,-50%) scale(1.05); opacity:0; }
+}
+
+/* paint sparkle on canvas */
+.paint-spark {
+  position:fixed; pointer-events:none; z-index:50;
+  font-size:18px;
+  animation:p-spark .6s ease-out forwards;
+}
+@keyframes p-spark {
+  0%  { transform:translate(-50%,-50%) scale(0); opacity:1; }
+  100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity:0; }
+}
+
+/* completion ring */
+.done-ring {
+  position:absolute; border-radius:50%;
+  border:5px solid var(--green);
+  animation:ring-expand .5s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes ring-expand {
+  0%  { transform:translate(-50%,-50%) scale(.5); opacity:1; }
+  100%{ transform:translate(-50%,-50%) scale(2);  opacity:0; }
+}
+
+/* ── status pills ── */
+#status-row {
+  position:fixed; top:12px; right:12px;
+  display:flex; gap:8px; z-index:100;
+}
+.pill {
+  padding:5px 12px; border-radius:14px;
+  background:rgba(255,255,255,.9);
+  font-size:12px; color:#666;
+  display:flex; align-items:center; gap:5px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.dot { width:8px;height:8px;border-radius:50%;background:#ccc; }
+.dot.on { background:var(--green); animation:blink 1.2s infinite; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── eye cursor ── */
+#eye-cursor {
+  position:fixed; pointer-events:none; z-index:45;
+  display:none;
+  transform:translate(-50%,-50%);
+}
+#eye-cursor .ec-outer {
+  width:48px; height:48px; border-radius:50%;
+  border:3px solid rgba(46,134,222,0.7);
+  background:rgba(46,134,222,0.12);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 18px rgba(46,134,222,0.4);
+  animation:eye-pulse 1.5s ease-in-out infinite;
+}
+#eye-cursor .ec-inner {
+  width:14px; height:14px; border-radius:50%;
+  background:rgba(46,134,222,0.85);
+}
+#eye-cursor.drawing .ec-outer {
+  border-color:rgba(232,64,64,0.8);
+  background:rgba(232,64,64,0.15);
+  box-shadow:0 0 18px rgba(232,64,64,0.5);
+}
+#eye-cursor.drawing .ec-inner {
+  background:rgba(232,64,64,0.9);
+}
+@keyframes eye-pulse {
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.15);opacity:.8}
+}
+
+/* ── dwell progress ring ── */
+#dwell-ring {
+  position:fixed; pointer-events:none; z-index:46;
+  display:none;
+  transform:translate(-50%,-50%);
+}
+#dwell-ring svg { transform:rotate(-90deg); }
+#dwell-arc {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 0.05s linear;
+  stroke-linecap: round;
+}
+
+/* ── calibration overlay ── */
+#calib-overlay {
+  display:none;
+  position:fixed; inset:0; z-index:2000;
+  background:rgba(135,206,235,0.93);
+  flex-direction:column; align-items:center; justify-content:flex-start;
+  padding-top:28px;
+  gap:10px;
+  pointer-events:all;
+}
+#calib-overlay.open { display:flex; }
+.calib-title {
+  font-size:26px; color:var(--blue); font-weight:900;
+  text-align:center; z-index:2002;
+}
+.calib-sub {
+  font-size:15px; color:#444;
+  font-family:'Jua',sans-serif; text-align:center;
+  max-width:420px; line-height:1.6; z-index:2002;
+  background:rgba(255,255,255,0.75);
+  padding:7px 18px; border-radius:14px;
+}
+#calib-arena {
+  position:fixed;
+  inset:0;
+  background:transparent;
+  z-index:2001;
+}
+.calib-dot {
+  position:absolute;
+  width:56px; height:56px;
+  border-radius:50%;
+  background:var(--yellow);
+  border:4px solid var(--orange);
+  transform:translate(-50%,-50%);
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px;
+  box-shadow:0 4px 20px rgba(255,211,42,0.6);
+  animation:calib-bounce 0.7s ease-in-out infinite alternate;
+  transition:background .2s;
+  z-index:2003;
+}
+.calib-dot.done {
+  background:var(--green); border-color:#00b894;
+  animation:none; box-shadow:0 4px 14px rgba(105,240,174,0.5);
+}
+@keyframes calib-bounce {
+  0%{transform:translate(-50%,-50%) scale(1);}
+  100%{transform:translate(-50%,-50%) scale(1.22);}
+}
+#calib-progress-text {
+  font-size:15px; color:#444; font-family:'Jua',sans-serif; z-index:2002;
+  background:rgba(255,255,255,0.75); padding:5px 16px; border-radius:10px;
+}
+#calib-close-btn {
+  padding:13px 36px; border-radius:16px;
+  background:var(--blue); color:#fff; border:none;
+  font-family:'Jua',sans-serif; font-size:18px;
+  cursor:pointer; display:none; z-index:2002;
+  box-shadow:0 4px 16px rgba(46,134,222,.3);
+}
+#calib-close-btn:hover { background:#1a6ec0; }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar">
+  <div class="sb-title">✏️ 누구나 쓰기게임</div>
+
+  <div class="sb-section">모드</div>
+  <div class="mode-group">
+    <button class="mode-btn active" id="mb-korean" onclick="setMode('korean')">🇰🇷 한글 가나다</button>
+    <button class="mode-btn" id="mb-number" onclick="setMode('number')">🔢 숫자 1~10</button>
+    <button class="mode-btn" id="mb-english" onclick="setMode('english')">🔤 영어 ABC</button>
+  </div>
+
+  <div class="sb-section">글자 선택</div>
+  <div class="char-picker" id="char-picker"></div>
+
+  <div class="sb-section">입력 방식</div>
+  <div class="toggle-row">
+    <span>✋ 핸드트래킹</span>
+    <div class="sw" id="sw-hand" onclick="toggleSw('hand')"></div>
+  </div>
+  <div class="toggle-row">
+    <span>👁️ 시선 추적</span>
+    <div class="sw" id="sw-eye" onclick="toggleSw('eye')"></div>
+  </div>
+  <div class="toggle-row">
+    <span>🖱️ 마우스/터치</span>
+    <div class="sw on" id="sw-mouse" onclick="toggleSw('mouse')"></div>
+  </div>
+
+  <div class="sb-section">난이도 설정</div>
+  <div class="slider-wrap">
+    <label>완성 기준 <span id="lv-val">40%</span></label>
+    <input type="range" id="sl-level" min="20" max="80" step="5" value="40"
+      oninput="cfg.fillGoal=+this.value;document.getElementById('lv-val').textContent=this.value+'%'">
+  </div>
+  <div class="slider-wrap">
+    <label>브러시 크기 <span id="br-val">보통</span></label>
+    <input type="range" id="sl-brush" min="10" max="60" value="30"
+      oninput="cfg.brush=+this.value;document.getElementById('br-val').textContent=this.value<=14?'작게':this.value>=46?'크게':'보통'">
+  </div>
+  <div class="slider-wrap">
+    <label>시선 반응속도 <span id="dw-val">보통</span></label>
+    <input type="range" id="sl-dwell" min="1" max="5" value="3"
+      oninput="cfg.dwellLv=+this.value;document.getElementById('dw-val').textContent=['매우빠름','빠름','보통','느림','매우느림'][this.value-1]">
+  </div>
+
+  <div class="sb-section">👁️ 시선 추적 설정</div>
+  <div class="slider-wrap">
+    <label>X 오프셋 <span id="eye-ox-val">0</span>px</label>
+    <input type="range" id="sl-eye-ox" min="-800" max="800" value="0" step="10"
+      oninput="eyeCalib.manualOffsetX=+this.value;document.getElementById('eye-ox-val').textContent=this.value">
+  </div>
+  <div class="slider-wrap">
+    <label>Y 오프셋 <span id="eye-oy-val">0</span>px</label>
+    <input type="range" id="sl-eye-oy" min="-800" max="800" value="0" step="10"
+      oninput="eyeCalib.manualOffsetY=+this.value;document.getElementById('eye-oy-val').textContent=this.value">
+  </div>
+  <div class="slider-wrap">
+    <label>X 확대 <span id="eye-sx-val">1.0</span>×</label>
+    <input type="range" id="sl-eye-sx" min="0.5" max="4.0" value="1.0" step="0.05"
+      oninput="eyeCalib.manualScaleX=+this.value;document.getElementById('eye-sx-val').textContent=(+this.value).toFixed(2)">
+  </div>
+  <div class="slider-wrap">
+    <label>Y 확대 <span id="eye-sy-val">1.0</span>×</label>
+    <input type="range" id="sl-eye-sy" min="0.5" max="4.0" value="1.0" step="0.05"
+      oninput="eyeCalib.manualScaleY=+this.value;document.getElementById('eye-sy-val').textContent=(+this.value).toFixed(2)">
+  </div>
+  <div class="slider-wrap">
+    <label>평활화 <span id="eye-sm-val">보통</span></label>
+    <input type="range" id="sl-eye-sm" min="1" max="9" value="6"
+      oninput="eyeCalib.smoothing=+this.value/10;document.getElementById('eye-sm-val').textContent=this.value<=3?'민감':this.value>=8?'부드럽':'보통'">
+  </div>
+  <button onclick="openCalib()" style="padding:10px;border-radius:12px;background:#e8f4ff;border:2px solid #b8d4f8;color:var(--blue);font-family:'Jua',sans-serif;font-size:14px;cursor:pointer;width:100%;">
+    🎯 시선 영점 조절
+  </button>
+
+  <div class="sb-section">효과</div>
+  <div class="toggle-row">
+    <span>🔊 소리</span>
+    <div class="sw on" id="sw-sound" onclick="toggleSw('sound')"></div>
+  </div>
+  <div class="toggle-row">
+    <span>✨ 반짝 이펙트</span>
+    <div class="sw on" id="sw-fx" onclick="toggleSw('fx')"></div>
+  </div>
+  <div class="toggle-row">
+    <span>🗺️ 획 가이드</span>
+    <div class="sw on" id="sw-guide" onclick="toggleSw('guide')"></div>
+  </div>
+
+  <button class="reset-btn" onclick="resetAll()">🔄 처음부터 다시</button>
+</div>
+<button id="sb-tab" onclick="toggleSidebar()">◀</button>
+
+<!-- ══ GAME ══ -->
+<div id="game">
+  <div id="sky-bg"></div>
+
+  <!-- header -->
+  <div id="header">
+    <div id="char-label" style="color:var(--red)">가</div>
+    <div>
+      <div id="char-hint">색깔로 채워봐요! 🖌️</div>
+      <div id="stroke-info" style="font-size:12px;color:#999;margin-top:2px;"></div>
+    </div>
+    <div id="score-badge">⭐ 0</div>
+  </div>
+
+  <!-- canvas stack -->
+  <div id="canvas-area">
+    <canvas id="canvas-bg"></canvas>
+    <canvas id="canvas-paint"></canvas>
+    <canvas id="canvas-guide"></canvas>
+    <canvas id="canvas-mask"></canvas>
+  </div>
+
+  <!-- nav -->
+  <button id="nav-prev" onclick="navChar(-1)">◀</button>
+  <button id="nav-next" onclick="navChar(+1)">▶</button>
+  <button id="btn-clear" onclick="clearPaint()">🗑️ 지우기</button>
+
+  <!-- fill meter -->
+  <div id="fill-meter">
+    <span style="font-size:13px;">채운 정도</span>
+    <div id="fill-track"><div id="fill-bar"></div></div>
+    <span id="fill-pct">0%</span>
+  </div>
+</div>
+
+<!-- tracking -->
+<canvas id="track-canvas"></canvas>
+<div id="hand-dot"></div>
+
+<!-- eye cursor -->
+<div id="eye-cursor">
+  <div class="ec-outer"><div class="ec-inner"></div></div>
+</div>
+
+<!-- dwell ring -->
+<div id="dwell-ring">
+  <svg width="64" height="64" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="5"/>
+    <circle id="dwell-arc" cx="32" cy="32" r="26" fill="none"
+      stroke="#FFD32A" stroke-width="5"
+      stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
+  </svg>
+</div>
+
+<div id="fx"></div>
+
+<!-- status -->
+<div id="status-row">
+  <div class="pill"><div class="dot" id="dot-hand"></div>핸드</div>
+  <div class="pill"><div class="dot" id="dot-eye"></div>시선</div>
+</div>
+
+<!-- calibration overlay -->
+<div id="calib-overlay">
+  <div class="calib-title">👁️ 시선 영점 조절</div>
+  <div class="calib-sub" id="calib-sub">화면의 노란 점을 순서대로 바라봐 주세요.<br>각 점을 바라보면서 클릭하거나 잠시 기다리세요.</div>
+  <div id="calib-arena"></div>
+  <div id="calib-progress-text">0 / 5 완료</div>
+  <button id="calib-close-btn" onclick="closeCalib()">✅ 완료!</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const cfg = {
+  fillGoal: 40,   // % to complete
+  brush: 30,
+  dwellLv: 3,
+  sw: { hand:false, eye:false, mouse:true, sound:true, fx:true, guide:true }
+};
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const MODES = {
+  korean:  { chars:['가','나','다','라','마','바','사','아','자','차','카','타','파','하'], label:'한글' },
+  number:  { chars:['1','2','3','4','5','6','7','8','9','10'], label:'숫자' },
+  english: { chars:'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), label:'영어' }
+};
+
+// Stroke direction hints per character (normalized 0-1 coords)
+// start ★ and direction arrow markers
+const HINTS = {
+  '가':[ {x:.18,y:.18,dir:'→',color:'#E84040'}, {x:.72,y:.18,dir:'↓',color:'#2E86DE'} ],
+  '나':[ {x:.22,y:.22,dir:'↓',color:'#E84040'}, {x:.7,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '다':[ {x:.5,y:.18,dir:'←',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '라':[ {x:.18,y:.18,dir:'→',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '마':[ {x:.2,y:.2,dir:'→',color:'#E84040'},   {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '바':[ {x:.35,y:.15,dir:'↓',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '사':[ {x:.38,y:.2,dir:'↙',color:'#E84040'},  {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '아':[ {x:.18,y:.28,dir:'↻',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '자':[ {x:.25,y:.28,dir:'→',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '차':[ {x:.38,y:.15,dir:'→',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '카':[ {x:.22,y:.22,dir:'↓',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '타':[ {x:.22,y:.18,dir:'→',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '파':[ {x:.22,y:.28,dir:'→',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+  '하':[ {x:.38,y:.15,dir:'→',color:'#E84040'}, {x:.72,y:.22,dir:'↓',color:'#2E86DE'} ],
+};
+// Numbers & English get simple single hint
+['1','2','3','4','5','6','7','8','9','10'].forEach(n=> HINTS[n]=[{x:.5,y:.12,dir:'↓',color:'#26de81'}]);
+'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(c=> HINTS[c]=[{x:.2,y:.15,dir:'↓',color:'#FF9F43'}]);
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let mode   = 'korean';
+let charIdx = 0;
+let score  = 0;
+let done   = {};       // key: mode_char
+let paintCtx, bgCtx, maskCtx, guideCtx;
+let paintCanvas, bgCanvas, maskCanvas, guideCanvas;
+let cSize = 0;
+
+// ═══════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════
+const AC = new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq,dur=0.2,type='sine',vol=0.25) {
+  if(!cfg.sw.sound) return;
+  try {
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);
+    o.start(); o.stop(AC.currentTime+dur);
+  } catch(e){}
+}
+function playPaint() { if(Math.random()>.88) beep(180+Math.random()*100,.08,'sawtooth',.1); }
+function playStep()  { beep(660,.15,'triangle'); setTimeout(()=>beep(880,.12,'triangle'),120); }
+function playWin()   {
+  [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,.22,'triangle',.3),i*100));
+  setTimeout(()=>beep(2000,.4,'sine',.2),600);
+}
+function playNav()   { beep(440,.1,'sine',.15); }
+
+// ═══════════════════════════════════════════
+// CANVAS SETUP
+// ═══════════════════════════════════════════
+function initCanvases() {
+  const game = document.getElementById('game');
+  const sidebar = document.getElementById('sidebar');
+  const sideW = sidebar.classList.contains('closed') ? 0 : parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar'));
+  const W = window.innerWidth - sideW;
+  const H = window.innerHeight;
+  const pad = 100; // header + footer space
+  cSize = Math.min(W - 120, H - pad - 80, 680);
+  cSize = Math.max(cSize, 300);
+
+  const area = document.getElementById('canvas-area');
+  area.style.width  = cSize+'px';
+  area.style.height = cSize+'px';
+
+  bgCanvas    = document.getElementById('canvas-bg');
+  paintCanvas = document.getElementById('canvas-paint');
+  maskCanvas  = document.getElementById('canvas-mask');
+  guideCanvas = document.getElementById('canvas-guide');
+
+  [bgCanvas, paintCanvas, maskCanvas, guideCanvas].forEach(c=>{
+    c.width = cSize; c.height = cSize;
+  });
+
+  bgCtx    = bgCanvas.getContext('2d');
+  paintCtx = paintCanvas.getContext('2d');
+  maskCtx  = maskCanvas.getContext('2d');
+  guideCtx = guideCanvas.getContext('2d');
+
+  // track canvas
+  const tc = document.getElementById('track-canvas');
+  tc.width = window.innerWidth; tc.height = window.innerHeight;
+
+  drawScene();
+}
+
+// ═══════════════════════════════════════════
+// DRAW SCENE
+// ═══════════════════════════════════════════
+function drawScene() {
+  const ch = MODES[mode].chars[charIdx];
+  drawBg();
+  clearPaintInternal();
+  drawMask(ch);
+  drawGuide(ch);
+  updateHeader(ch);
+  updateCharPicker();
+  updateFillMeter(0);
+}
+
+function drawBg() {
+  // Gradient sky background on bg canvas
+  const grad = bgCtx.createLinearGradient(0,0,cSize,cSize);
+  grad.addColorStop(0,'#87CEEB');
+  grad.addColorStop(.5,'#B8E4F7');
+  grad.addColorStop(1,'#D4EDFF');
+  bgCtx.fillStyle = grad;
+  bgCtx.fillRect(0,0,cSize,cSize);
+
+  // tiny clouds
+  [[.15,.2,40,.3],[.6,.12,55,.25],[.82,.35,35,.2]].forEach(([cx,cy,r,a])=>{
+    bgCtx.save();
+    bgCtx.globalAlpha=a;
+    bgCtx.fillStyle='#fff';
+    bgCtx.beginPath();
+    bgCtx.ellipse(cx*cSize,cy*cSize,r,r*.6,0,0,Math.PI*2);
+    bgCtx.fill();
+    bgCtx.restore();
+  });
+}
+
+function drawMask(ch) {
+  // The mask = white overlay with character-shaped HOLE
+  // We draw a white rect, then use destination-out to punch the char shape
+  maskCtx.clearRect(0,0,cSize,cSize);
+
+  // 1) Solid white/cream overlay
+  maskCtx.fillStyle = 'rgba(255,255,255,0.88)';
+  maskCtx.fillRect(0,0,cSize,cSize);
+
+  // 2) Punch hole = char shape using destination-out
+  maskCtx.globalCompositeOperation = 'destination-out';
+  renderCharShape(maskCtx, ch, cSize, 'rgba(0,0,0,1)');
+  maskCtx.globalCompositeOperation = 'source-over';
+
+  // 3) Draw char outline border (so kids can see the shape)
+  maskCtx.save();
+  renderCharShape(maskCtx, ch, cSize, null, true);
+  maskCtx.restore();
+}
+
+function renderCharShape(ctx, ch, size, fill, strokeOnly=false) {
+  const fs = Math.round(size * (ch.length>1 ? 0.62 : 0.82));
+  ctx.font = `900 ${fs}px Jua, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  if(strokeOnly) {
+    // decorative border on mask edge
+    ctx.strokeStyle = 'rgba(46,134,222,0.35)';
+    ctx.lineWidth = size * 0.018;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(ch, size/2, size/2 + size*0.03);
+  } else {
+    ctx.fillStyle = fill;
+    ctx.fillText(ch, size/2, size/2 + size*0.03);
+  }
+}
+
+function drawGuide(ch) {
+  guideCtx.clearRect(0,0,cSize,cSize);
+  if(!cfg.sw.guide) return;
+  const hints = HINTS[ch] || [];
+  hints.forEach((h,i)=>{
+    const x=h.x*cSize, y=h.y*cSize;
+    // numbered start circle
+    guideCtx.save();
+    guideCtx.fillStyle = h.color;
+    guideCtx.shadowColor = 'rgba(0,0,0,.25)';
+    guideCtx.shadowBlur = 6;
+    guideCtx.beginPath();
+    guideCtx.arc(x,y,cSize*.025,0,Math.PI*2);
+    guideCtx.fill();
+    guideCtx.shadowBlur=0;
+    guideCtx.fillStyle='#fff';
+    guideCtx.font = `bold ${cSize*.025}px Jua`;
+    guideCtx.textAlign='center';
+    guideCtx.textBaseline='middle';
+    guideCtx.fillText(i+1, x, y);
+    guideCtx.restore();
+
+    // direction arrow
+    const arrowMap = {'→':[1,0],'←':[-1,0],'↓':[0,1],'↑':[0,-1],'↘':[.7,.7],'↙':[-.7,.7],'↗':[.7,-.7],'↖':[-.7,-.7],'↻':[.6,.4]};
+    const dir = arrowMap[h.dir] || [0,1];
+    const ax = x + dir[0]*cSize*.06;
+    const ay = y + dir[1]*cSize*.06;
+    const angle = Math.atan2(dir[1],dir[0]);
+    guideCtx.save();
+    guideCtx.strokeStyle = h.color+'cc';
+    guideCtx.lineWidth = cSize*.012;
+    guideCtx.lineCap='round';
+    guideCtx.beginPath();
+    guideCtx.moveTo(x,y);
+    guideCtx.lineTo(ax,ay);
+    guideCtx.stroke();
+    // arrowhead
+    guideCtx.fillStyle = h.color+'cc';
+    guideCtx.translate(ax,ay);
+    guideCtx.rotate(angle);
+    guideCtx.beginPath();
+    guideCtx.moveTo(cSize*.022,0);
+    guideCtx.lineTo(-cSize*.012,-cSize*.012);
+    guideCtx.lineTo(-cSize*.012, cSize*.012);
+    guideCtx.closePath();
+    guideCtx.fill();
+    guideCtx.restore();
+  });
+}
+
+function updateHeader(ch) {
+  const el = document.getElementById('char-label');
+  el.textContent = ch;
+  // color by mode
+  const colors = {korean:'#E84040', number:'#26de81', english:'#FF9F43'};
+  el.style.color = colors[mode];
+
+  const hints = ['색깔로 채워봐요! 🖌️','☁️ 하늘처럼 칠해봐요!','🌈 예쁘게 색칠해봐요!','✨ 반짝반짝 채워봐요!'];
+  document.getElementById('char-hint').textContent = hints[charIdx%hints.length];
+
+  const info = mode==='korean' ? '빨강=자음 · 파랑=모음' : '';
+  document.getElementById('stroke-info').textContent = info;
+}
+
+// ═══════════════════════════════════════════
+// PAINT CANVAS (where color goes)
+// ═══════════════════════════════════════════
+function clearPaintInternal() {
+  paintCtx.clearRect(0,0,cSize,cSize);
+}
+
+function clearPaint() {
+  clearPaintInternal();
+  updateFillMeter(0);
+  playNav();
+}
+
+// Paint at local canvas coords
+let lastPX=-1, lastPY=-1;
+function paintAt(lx, ly, isStart=false) {
+  if(!cSize) return;
+
+  // Determine color based on position relative to char hints
+  let color = getColorForPos(lx/cSize, ly/cSize);
+
+  paintCtx.save();
+  paintCtx.globalCompositeOperation = 'source-over';
+  paintCtx.strokeStyle = color;
+  paintCtx.lineWidth = cfg.brush;
+  paintCtx.lineCap = 'round';
+  paintCtx.lineJoin = 'round';
+
+  if(isStart || lastPX<0) {
+    paintCtx.beginPath();
+    paintCtx.arc(lx,ly,cfg.brush/2,0,Math.PI*2);
+    paintCtx.fillStyle = color;
+    paintCtx.fill();
+  } else {
+    paintCtx.beginPath();
+    paintCtx.moveTo(lastPX,lastPY);
+    paintCtx.lineTo(lx,ly);
+    paintCtx.stroke();
+  }
+  paintCtx.restore();
+
+  lastPX=lx; lastPY=ly;
+
+  // sparkle
+  if(cfg.sw.fx && Math.random()>.75) spawnPaintSpark(lx,ly);
+  playPaint();
+
+  // check fill every ~20px moved
+  if(isStart || Math.hypot(lx-lastPX,ly-lastPY)>18) checkFill();
+}
+
+function getColorForPos(nx, ny) {
+  // Korean: left portion = consonant (red), right = vowel (blue)
+  if(mode==='korean') {
+    // roughly left 60% = consonant, right 40% = vowel
+    return nx < .62 ? '#E84040CC' : '#2E86DECC';
+  }
+  if(mode==='number') return '#26de81CC';
+  return '#FF9F43CC';
+}
+
+// measure fill: count painted pixels that overlap the char shape
+let fillCheckTimer=null;
+function checkFill() {
+  clearTimeout(fillCheckTimer);
+  fillCheckTimer = setTimeout(()=>{
+    // Sample paint canvas pixels
+    const pd = paintCtx.getImageData(0,0,cSize,cSize).data;
+    // Sample mask canvas: alpha==0 means char hole (paintable area)
+    const md = maskCtx.getImageData(0,0,cSize,cSize).data;
+
+    let total=0, painted=0;
+    // sample every 4th pixel for perf
+    for(let i=0;i<pd.length;i+=16){
+      const pi=i/4;
+      const mx=pi%cSize, my=Math.floor(pi/cSize);
+      const mi=(my*cSize+mx)*4;
+      const maskAlpha = md[mi+3]; // 0=hole, >0=covered
+      if(maskAlpha < 30) { // in the hole = paintable
+        total++;
+        if(pd[i+3]>20) painted++;
+      }
+    }
+
+    const pct = total>0 ? Math.round((painted/total)*100) : 0;
+    updateFillMeter(pct);
+
+    if(pct >= cfg.fillGoal) {
+      onCharComplete();
+    }
+  }, 80);
+}
+
+function updateFillMeter(pct) {
+  document.getElementById('fill-bar').style.width = Math.min(pct,100)+'%';
+  document.getElementById('fill-pct').textContent = pct+'%';
+  const color = pct>=cfg.fillGoal ? 'linear-gradient(90deg,#26de81,#00b894)' :
+                pct>50 ? 'linear-gradient(90deg,#2E86DE,#26de81)' :
+                'linear-gradient(90deg,#87CEEB,#2E86DE)';
+  document.getElementById('fill-bar').style.background = color;
+}
+
+function onCharComplete() {
+  const ch = MODES[mode].chars[charIdx];
+  const key = mode+'_'+ch;
+  if(done[key]) return;
+  done[key]=true;
+  score+=10;
+  document.getElementById('score-badge').textContent='⭐ '+score;
+
+  playWin();
+  spawnCelebration();
+  updateCharPicker();
+
+  // confetti
+  setTimeout(()=>{
+    document.getElementById('fill-bar').style.background='linear-gradient(90deg,#FFD32A,#FF9F43)';
+    document.getElementById('fill-pct').textContent='🎉';
+  },200);
+
+  // auto advance
+  setTimeout(()=>{
+    const chars = MODES[mode].chars;
+    if(charIdx < chars.length-1) {
+      charIdx++;
+      drawScene();
+    } else {
+      // mode complete!
+      spawnPopText('🏆 완성!');
+    }
+  }, 2200);
+}
+
+// ═══════════════════════════════════════════
+// EFFECTS
+// ═══════════════════════════════════════════
+function spawnPaintSpark(lx,ly) {
+  const rect = paintCanvas.getBoundingClientRect();
+  const wx = rect.left+lx, wy = rect.top+ly;
+  const emojis = ['✨','⭐','💫','🌟','🎨'];
+  const el = document.createElement('div');
+  el.className='paint-spark';
+  const dx=(Math.random()-.5)*60, dy=(Math.random()-.5)*60;
+  el.style.cssText=`left:${wx}px;top:${wy}px;--dx:${dx}px;--dy:${dy}px;`;
+  el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  document.getElementById('fx').appendChild(el);
+  setTimeout(()=>el.remove(),650);
+}
+
+function spawnCelebration() {
+  spawnPopText('🎉');
+  setTimeout(()=>spawnPopText('잘했어요! ⭐'),400);
+
+  const rect = paintCanvas.getBoundingClientRect();
+  const cx=rect.left+cSize/2, cy=rect.top+cSize/2;
+  const colors=['#E84040','#2E86DE','#26de81','#FFD32A','#FF9F43','#FF6B9D','#A29BFE'];
+  for(let i=0;i<28;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='spark';
+      const angle=Math.random()*Math.PI*2;
+      const dist=80+Math.random()*180;
+      el.style.cssText=`
+        left:${cx}px;top:${cy}px;
+        width:${6+Math.random()*12}px;height:${6+Math.random()*12}px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        --tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;
+        border-radius:${Math.random()>.5?'50%':'3px'};
+        animation-delay:${Math.random()*0.3}s;
+      `;
+      document.getElementById('fx').appendChild(el);
+      setTimeout(()=>el.remove(),700);
+    }, i*35);
+  }
+}
+
+function spawnPopText(text) {
+  const el=document.createElement('div');
+  el.className='pop-text';
+  el.textContent=text;
+  el.style.fontSize='80px';
+  document.getElementById('fx').appendChild(el);
+  setTimeout(()=>el.remove(),1050);
+}
+
+// ═══════════════════════════════════════════
+// INPUT: MOUSE / TOUCH
+// ═══════════════════════════════════════════
+function worldToCanvas(wx,wy) {
+  const rect = paintCanvas.getBoundingClientRect();
+  return { x:wx-rect.left, y:wy-rect.top };
+}
+function inCanvas(lx,ly) { return lx>=0&&ly>=0&&lx<=cSize&&ly<=cSize; }
+
+let mouseDown=false;
+function setupMouseTouch() {
+  paintCanvas.addEventListener('mousedown',e=>{
+    if(!cfg.sw.mouse) return;
+    if(AC.state==='suspended') AC.resume();
+    mouseDown=true; lastPX=-1; lastPY=-1;
+    const {x,y}=worldToCanvas(e.clientX,e.clientY);
+    paintAt(x,y,true);
+  });
+  paintCanvas.addEventListener('mousemove',e=>{
+    if(!mouseDown||!cfg.sw.mouse) return;
+    const {x,y}=worldToCanvas(e.clientX,e.clientY);
+    if(inCanvas(x,y)) paintAt(x,y);
+  });
+  paintCanvas.addEventListener('mouseup',  ()=>{ mouseDown=false; lastPX=-1; checkFill(); });
+  paintCanvas.addEventListener('mouseleave',()=>{ mouseDown=false; lastPX=-1; });
+
+  // touch
+  paintCanvas.addEventListener('touchstart',e=>{
+    if(!cfg.sw.mouse) return;
+    e.preventDefault();
+    if(AC.state==='suspended') AC.resume();
+    mouseDown=true; lastPX=-1; lastPY=-1;
+    const t=e.touches[0];
+    const {x,y}=worldToCanvas(t.clientX,t.clientY);
+    paintAt(x,y,true);
+  },{passive:false});
+  paintCanvas.addEventListener('touchmove',e=>{
+    if(!mouseDown||!cfg.sw.mouse) return;
+    e.preventDefault();
+    const t=e.touches[0];
+    const {x,y}=worldToCanvas(t.clientX,t.clientY);
+    if(inCanvas(x,y)) paintAt(x,y);
+  },{passive:false});
+  paintCanvas.addEventListener('touchend',()=>{ mouseDown=false; lastPX=-1; checkFill(); });
+}
+
+// ═══════════════════════════════════════════
+// MEDIAPIPE HAND
+// ═══════════════════════════════════════════
+let handLM=null, handStream=null, handRAF=null;
+async function initHand() {
+  document.getElementById('dot-hand').classList.add('on');
+  document.getElementById('hand-dot').style.display='block';
+  try {
+    const { HandLandmarker, FilesetResolver } =
+      await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.mjs');
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm');
+    handLM = await HandLandmarker.createFromOptions(vision,{
+      baseOptions:{ modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task', delegate:'GPU' },
+      runningMode:'VIDEO', numHands:1
+    });
+    await ensureCamera();
+    runHand();
+  } catch(e){ console.warn('hand',e); stopHand(); }
+}
+function stopHand() {
+  document.getElementById('dot-hand').classList.remove('on');
+  document.getElementById('hand-dot').style.display='none';
+  if(handRAF){ cancelAnimationFrame(handRAF); handRAF=null; }
+}
+async function ensureCamera() {
+  if(handStream) return;
+  handStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
+  const v=document.getElementById('vid-hidden');
+  v.srcObject=handStream; await v.play();
+}
+let prevHandX=-1, prevHandY=-1, prevPinch=false;
+function runHand() {
+  const vid=document.getElementById('vid-hidden');
+  const dot=document.getElementById('hand-dot');
+  const tc=document.getElementById('track-canvas');
+  const tctx=tc.getContext('2d');
+  function loop() {
+    if(!cfg.sw.hand||!handLM){ stopHand(); return; }
+    handRAF=requestAnimationFrame(loop);
+    if(vid.readyState<2) return;
+    const res=handLM.detectForVideo(vid,performance.now());
+    tctx.clearRect(0,0,tc.width,tc.height);
+    if(res.landmarks&&res.landmarks.length){
+      const lm=res.landmarks[0];
+      const tip=lm[8], thumb=lm[4];
+      const wx=(1-tip.x)*window.innerWidth;
+      const wy=tip.y*window.innerHeight;
+      const pinchDist=Math.hypot((1-tip.x)-(1-thumb.x),(tip.y-thumb.y))*window.innerWidth;
+      const pinching=pinchDist<50;
+      dot.style.left=wx+'px'; dot.style.top=wy+'px';
+      dot.style.display='block';
+      dot.classList.toggle('pinch',pinching);
+
+      // draw on canvas if pinching
+      const {x,y}=worldToCanvas(wx,wy);
+      if(pinching&&inCanvas(x,y)) {
+        if(!prevPinch){ lastPX=-1; lastPY=-1; }
+        paintAt(x,y,!prevPinch);
+      } else if(prevPinch) { checkFill(); lastPX=-1; }
+
+      // skeleton
+      drawSkeleton(tctx,lm,tc.width,tc.height);
+      prevPinch=pinching; prevHandX=wx; prevHandY=wy;
+    } else {
+      dot.style.display='none';
+      if(prevPinch){ checkFill(); lastPX=-1; prevPinch=false; }
+    }
+  }
+  loop();
+}
+function drawSkeleton(ctx,lm,w,h) {
+  const conn=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+  ctx.strokeStyle='rgba(255,211,42,.45)'; ctx.lineWidth=2;
+  conn.forEach(([a,b])=>{
+    ctx.beginPath();
+    ctx.moveTo((1-lm[a].x)*w,lm[a].y*h);
+    ctx.lineTo((1-lm[b].x)*w,lm[b].y*h);
+    ctx.stroke();
+  });
+}
+
+// ═══════════════════════════════════════════
+// MEDIAPIPE FACE (eye/gaze) — IMPROVED
+// ═══════════════════════════════════════════
+let faceLM=null, faceRAF=null;
+
+// Smoothed eye position
+let ex=0, ey=0;
+
+// Dwell state
+let dwellStart=null, dwellLastPos={x:-999,y:-999};
+let isDwelling=false;
+
+// Calibration state
+const eyeCalib = {
+  // Collected reference points: [{rawX, rawY, screenX, screenY}]
+  points: [],
+  // Computed affine: offset + scale
+  offsetX: 0,
+  offsetY: 0,
+  scaleX: 1.0,   // stretch raw X range to fill screen
+  scaleY: 1.0,   // stretch raw Y range to fill screen
+  centerRawX: 0, // raw center used as pivot for scaling
+  centerRawY: 0,
+  // Manual fine-tune
+  manualOffsetX: 0,
+  manualOffsetY: 0,
+  manualScaleX: 1.0,
+  manualScaleY: 1.0,
+  // Smoothing factor (0=raw, 0.9=very smooth)
+  smoothing: 0.6,
+  calibrated: false
+};
+
+// 9 calibration target positions — full screen coverage including edges
+const CALIB_TARGETS = [
+  {nx:.5,  ny:.5 },   // ① center
+  {nx:.05, ny:.05},   // ② top-left corner
+  {nx:.95, ny:.05},   // ③ top-right corner
+  {nx:.05, ny:.95},   // ④ bottom-left corner
+  {nx:.95, ny:.95},   // ⑤ bottom-right corner
+  {nx:.5,  ny:.05},   // ⑥ top-center
+  {nx:.5,  ny:.95},   // ⑦ bottom-center
+  {nx:.05, ny:.5 },   // ⑧ left-center
+  {nx:.95, ny:.5 },   // ⑨ right-center
+];
+let calibIdx=0, calibRawSamples=[], calibCollecting=false, calibTimer=null;
+
+// ── Calibration UI ──────────────────────
+function openCalib() {
+  calibIdx=0; calibRawSamples=[];
+  const overlay=document.getElementById('calib-overlay');
+  const arena=document.getElementById('calib-arena');
+  overlay.classList.add('open');
+  document.getElementById('calib-close-btn').style.display='none';
+  buildCalibDots(arena);
+  document.getElementById('calib-progress-text').textContent='0 / '+CALIB_TARGETS.length+' 완료';
+  // start collecting for first dot
+  startCalibTarget(0);
+}
+
+function buildCalibDots(arena) {
+  arena.innerHTML='';
+  CALIB_TARGETS.forEach((t,i)=>{
+    const dot=document.createElement('div');
+    dot.className='calib-dot';
+    dot.id='cdot-'+i;
+    // Position as actual screen pixels so dots go to true edges
+    dot.style.left=(t.nx*window.innerWidth)+'px';
+    dot.style.top=(t.ny*window.innerHeight)+'px';
+    dot.textContent='👁️';
+    if(i>0) dot.style.opacity='0.3';
+    dot.addEventListener('click',()=>forceCollectCalib(i));
+    arena.appendChild(dot);
+  });
+}
+
+function startCalibTarget(idx) {
+  if(idx >= CALIB_TARGETS.length){ finishCalib(); return; }
+  calibIdx=idx; calibRawSamples=[];
+  // Highlight current dot
+  CALIB_TARGETS.forEach((_,i)=>{
+    const d=document.getElementById('cdot-'+i);
+    if(d) d.style.opacity=i===idx?'1':'0.3';
+  });
+  document.getElementById('calib-sub').textContent=
+    `(${idx+1}/${CALIB_TARGETS.length}) 노란 점 👁️ 을 바라보세요!`;
+  calibCollecting=true;
+  // Auto-collect after 1.5s of looking
+  calibTimer=setTimeout(()=>collectCalibSample(idx), 1500);
+}
+
+function forceCollectCalib(idx) {
+  if(idx!==calibIdx) return;
+  clearTimeout(calibTimer);
+  collectCalibSample(idx);
+}
+
+function collectCalibSample(idx) {
+  if(!calibCollecting) return;
+  calibCollecting=false;
+  const t=CALIB_TARGETS[idx];
+  const screenX=t.nx*window.innerWidth;
+  const screenY=t.ny*window.innerHeight;
+  // Use current smoothed raw position
+  eyeCalib.points.push({ rawX:ex, rawY:ey, screenX, screenY });
+  // Mark done
+  const d=document.getElementById('cdot-'+idx);
+  if(d){ d.classList.add('done'); d.textContent='✅'; }
+  document.getElementById('calib-progress-text').textContent=
+    (idx+1)+' / '+CALIB_TARGETS.length+' 완료';
+  setTimeout(()=>startCalibTarget(idx+1), 400);
+}
+
+function finishCalib() {
+  const pts = eyeCalib.points;
+  if(pts.length < 2) return;
+
+  // ── Compute scale + offset via least-squares fit ──
+  // For each axis independently:
+  //   screenX = scaleX * (rawX - centerRaw) + screenCenter + offsetX
+  // We find scaleX and offsetX that minimizes error.
+
+  // Raw ranges
+  const rawXs = pts.map(p=>p.rawX);
+  const rawYs = pts.map(p=>p.rawY);
+  const scrXs = pts.map(p=>p.screenX);
+  const scrYs = pts.map(p=>p.screenY);
+
+  const minRX=Math.min(...rawXs), maxRX=Math.max(...rawXs);
+  const minRY=Math.min(...rawYs), maxRY=Math.max(...rawYs);
+  const minSX=Math.min(...scrXs), maxSX=Math.max(...scrXs);
+  const minSY=Math.min(...scrYs), maxSY=Math.max(...scrYs);
+
+  const rawRangeX = maxRX - minRX;
+  const rawRangeY = maxRY - minRY;
+  const scrRangeX = maxSX - minSX;
+  const scrRangeY = maxSY - minSY;
+
+  // Scale: how much we need to stretch raw range to match screen range
+  eyeCalib.scaleX = rawRangeX > 10 ? scrRangeX / rawRangeX : 1.0;
+  eyeCalib.scaleY = rawRangeY > 10 ? scrRangeY / rawRangeY : 1.0;
+
+  // Pivot: raw center maps to screen center
+  eyeCalib.centerRawX = (minRX + maxRX) / 2;
+  eyeCalib.centerRawY = (minRY + maxRY) / 2;
+  const screenCX = (minSX + maxSX) / 2;
+  const screenCY = (minSY + maxSY) / 2;
+
+  // Offset: after scaling around raw center, shift to screen center
+  eyeCalib.offsetX = screenCX - eyeCalib.centerRawX * eyeCalib.scaleX;
+  eyeCalib.offsetY = screenCY - eyeCalib.centerRawY * eyeCalib.scaleY;
+
+  eyeCalib.calibrated = true;
+
+  // Show computed scale in UI for reference
+  const sxRounded = eyeCalib.scaleX.toFixed(2);
+  const syRounded = eyeCalib.scaleY.toFixed(2);
+
+  document.getElementById('calib-sub').textContent =
+    `영점 완료! ✨ 스케일 X:${sxRounded} Y:${syRounded}`;
+  document.getElementById('calib-close-btn').style.display='block';
+  document.getElementById('calib-progress-text').textContent='✅ 완료!';
+}
+
+function closeCalib() {
+  document.getElementById('calib-overlay').classList.remove('open');
+}
+
+// ── Apply calibration to raw gaze ───────
+function applyCalib(rx, ry) {
+  // 1. Auto calibration: scale around raw center, then offset to screen
+  const ax = eyeCalib.calibrated
+    ? rx * eyeCalib.scaleX + eyeCalib.offsetX
+    : rx;
+  const ay = eyeCalib.calibrated
+    ? ry * eyeCalib.scaleY + eyeCalib.offsetY
+    : ry;
+
+  // 2. Manual scale (pivot = screen center)
+  const scx = window.innerWidth  / 2;
+  const scy = window.innerHeight / 2;
+  const mx = (ax - scx) * eyeCalib.manualScaleX + scx + eyeCalib.manualOffsetX;
+  const my = (ay - scy) * eyeCalib.manualScaleY + scy + eyeCalib.manualOffsetY;
+
+  return { x: mx, y: my };
+}
+
+// ── Eye cursor display ───────────────────
+function updateEyeCursor(wx, wy, drawing) {
+  const ec=document.getElementById('eye-cursor');
+  ec.style.display='block';
+  ec.style.left=wx+'px';
+  ec.style.top=wy+'px';
+  ec.classList.toggle('drawing', drawing);
+}
+function hideEyeCursor() {
+  document.getElementById('eye-cursor').style.display='none';
+  document.getElementById('dwell-ring').style.display='none';
+}
+
+// ── Dwell ring ────────────────────────────
+const DWELL_CIRCUMFERENCE = 163.4; // 2π×26
+function updateDwellRing(wx, wy, progress) {
+  const ring=document.getElementById('dwell-ring');
+  const arc=document.getElementById('dwell-arc');
+  if(progress<=0){ ring.style.display='none'; return; }
+  ring.style.display='block';
+  ring.style.left=wx+'px'; ring.style.top=wy+'px';
+  const offset = DWELL_CIRCUMFERENCE*(1-Math.min(progress,1));
+  arc.style.strokeDashoffset=offset;
+  // Color: yellow→green as fills
+  const r=Math.round(255-(255-105)*progress);
+  const g=Math.round(211+(240-211)*progress);
+  const b=Math.round(42+(174-42)*progress);
+  arc.style.stroke=`rgb(${r},${g},${b})`;
+}
+
+// ── Main eye tracking loop ────────────────
+async function initEye() {
+  document.getElementById('dot-eye').classList.add('on');
+  updateEyeCursor(window.innerWidth/2, window.innerHeight/2, false);
+  try {
+    const { FaceLandmarker, FilesetResolver } =
+      await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.mjs');
+    const vision=await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm');
+    faceLM=await FaceLandmarker.createFromOptions(vision,{
+      baseOptions:{
+        modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+        delegate:'GPU'
+      },
+      runningMode:'VIDEO', numFaces:1,
+      outputFaceBlendshapes: true  // enables mouth/eye openness
+    });
+    await ensureCamera();
+    runEye();
+    // Prompt calibration first time
+    setTimeout(openCalib, 600);
+  } catch(e){ console.warn('eye',e); stopEye(); }
+}
+
+function stopEye() {
+  document.getElementById('dot-eye').classList.remove('on');
+  hideEyeCursor();
+  if(faceRAF){ cancelAnimationFrame(faceRAF); faceRAF=null; }
+}
+
+const dwellMs=[300,500,800,1200,1800];
+
+function runEye() {
+  const vid=document.getElementById('vid-hidden');
+
+  function loop() {
+    if(!cfg.sw.eye||!faceLM){ stopEye(); return; }
+    faceRAF=requestAnimationFrame(loop);
+    if(vid.readyState<2) return;
+
+    const res=faceLM.detectForVideo(vid, performance.now());
+    if(!res.faceLandmarks||!res.faceLandmarks.length){
+      hideEyeCursor(); return;
+    }
+
+    const lm=res.faceLandmarks[0];
+
+    // ── Estimate gaze from multiple face landmarks
+    // Use nose tip (4) + midpoint between eyes (168) for better accuracy
+    const nose=lm[4];
+    const eyeMid=lm[168]; // midpoint between eyes (forehead center)
+    const leftEye=lm[33];
+    const rightEye=lm[263];
+
+    // Primary: average of nose and eye-midpoint gives more stable result
+    // X: 중앙 기준 2배 확장
+    const blendX = (nose.x + eyeMid.x*0.5 + leftEye.x*0.25 + rightEye.x*0.25) / 2;
+    const rawX = (1 - ((blendX - 0.5) * 1.5 + 0.5)) * window.innerWidth;
+    // Y: 중앙 기준 3배 확장
+    const blendY = nose.y*0.6 + eyeMid.y*0.4;
+    const rawY = ((blendY - 0.5) * 2 + 0.5) * window.innerHeight;
+
+    // Smooth with configurable factor
+    const sm = eyeCalib.smoothing;
+    ex = ex*sm + rawX*(1-sm);
+    ey = ey*sm + rawY*(1-sm);
+
+    // Apply calibration offset
+    const {x:wx, y:wy} = applyCalib(ex, ey);
+
+    // ── Blink detection for "click" via blendshapes
+    let blinkL=0, blinkR=0;
+    if(res.faceBlendshapes&&res.faceBlendshapes.length){
+      const bs=res.faceBlendshapes[0].categories;
+      const findScore=(name)=>{const c=bs.find(b=>b.categoryName===name);return c?c.score:0;};
+      blinkL=findScore('eyeBlinkLeft');
+      blinkR=findScore('eyeBlinkRight');
+    }
+    const isBlinking = blinkL>0.55 && blinkR>0.55; // both eyes closed
+
+    // ── Update cursor
+    updateEyeCursor(wx, wy, isDwelling);
+
+    // ── Calibration: feed raw values while collecting
+    if(calibCollecting) {
+      ex=ex; // already smoothed above, fine
+    }
+
+    // ── Dwell painting logic
+    const dms=dwellMs[cfg.dwellLv-1];
+    const moveThreshold=45 - (cfg.dwellLv-1)*5; // stricter at higher sensitivity
+    const moved=Math.hypot(wx-dwellLastPos.x, wy-dwellLastPos.y) > moveThreshold;
+
+    if(moved){
+      dwellLastPos={x:wx,y:wy};
+      dwellStart=Date.now();
+      isDwelling=false;
+      updateDwellRing(wx,wy,0);
+    } else {
+      const elapsed=Date.now()-dwellStart;
+      const progress=elapsed/dms;
+      updateDwellRing(wx,wy,progress);
+
+      if(elapsed>dms){
+        isDwelling=true;
+        const {x,y}=worldToCanvas(wx,wy);
+        if(inCanvas(x,y)){
+          // Brush sweeps in small spiral while dwelling
+          const t=(elapsed-dms)/500;
+          const spiralR=8*(1-Math.min(t,1)); // shrinks to 0 after 500ms
+          const ox=Math.cos(t*Math.PI*4)*spiralR;
+          const oy=Math.sin(t*Math.PI*4)*spiralR;
+          paintAt(x+ox, y+oy, !isDwelling);
+        }
+      }
+    }
+
+    // ── Blink = instant paint dot
+    if(isBlinking){
+      const {x,y}=worldToCanvas(wx,wy);
+      if(inCanvas(x,y)) paintAt(x,y,true);
+    }
+  }
+  loop();
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function navChar(dir) {
+  const chars=MODES[mode].chars;
+  charIdx=Math.max(0,Math.min(chars.length-1,charIdx+dir));
+  lastPX=-1; lastPY=-1;
+  drawScene();
+  playNav();
+}
+
+// ═══════════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════════
+function setMode(m) {
+  mode=m; charIdx=0; lastPX=-1;
+  ['korean','number','english'].forEach(k=>document.getElementById('mb-'+k).classList.toggle('active',k===m));
+  drawScene();
+  playNav();
+}
+
+// ═══════════════════════════════════════════
+// SIDEBAR SWITCHES
+// ═══════════════════════════════════════════
+function toggleSw(key) {
+  cfg.sw[key]=!cfg.sw[key];
+  document.getElementById('sw-'+key).classList.toggle('on',cfg.sw[key]);
+  if(key==='hand') cfg.sw.hand ? initHand() : stopHand();
+  if(key==='eye')  cfg.sw.eye  ? initEye()  : stopEye();
+  if(key==='guide') drawGuide(MODES[mode].chars[charIdx]);
+}
+
+function toggleSidebar() {
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('closed');
+  document.getElementById('sb-tab').textContent=sb.classList.contains('closed')?'▶':'◀';
+  setTimeout(initCanvases, 320);
+}
+
+// ═══════════════════════════════════════════
+// CHAR PICKER (sidebar)
+// ═══════════════════════════════════════════
+function updateCharPicker() {
+  const chars=MODES[mode].chars;
+  const cont=document.getElementById('char-picker');
+  cont.innerHTML='';
+  chars.forEach((ch,i)=>{
+    const b=document.createElement('button');
+    b.className='cp-btn'+(done[mode+'_'+ch]?' done':i===charIdx?' cur':'');
+    b.textContent=ch;
+    b.onclick=()=>{ charIdx=i; drawScene(); playNav(); };
+    cont.appendChild(b);
+  });
+}
+
+// ═══════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════
+function resetAll() {
+  if(!confirm('처음부터 다시 시작할까요? 😊')) return;
+  done={}; score=0; charIdx=0;
+  document.getElementById('score-badge').textContent='⭐ 0';
+  drawScene();
+}
+
+// ═══════════════════════════════════════════
+// CLOUDS ANIMATION
+// ═══════════════════════════════════════════
+function spawnClouds() {
+  const sky=document.getElementById('sky-bg');
+  sky.innerHTML='';
+  for(let i=0;i<6;i++){
+    const c=document.createElement('div');
+    c.className='cloud';
+    const size=40+Math.random()*80;
+    const top=Math.random()*80;
+    const dur=18+Math.random()*30;
+    c.style.cssText=`width:${size*2}px;height:${size}px;top:${top}%;left:-${size*2}px;opacity:${.15+Math.random()*.25};animation-duration:${dur}s;animation-delay:-${Math.random()*dur}s;`;
+    sky.appendChild(c);
+  }
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') navChar(1);
+  if(e.key==='ArrowLeft')  navChar(-1);
+  if(e.key==='Delete'||e.key==='Backspace') clearPaint();
+  if(e.key==='h') toggleSidebar();
+});
+
+// hidden video
+const vid=document.createElement('video');
+vid.id='vid-hidden'; vid.autoplay=true; vid.muted=true; vid.playsInline=true;
+vid.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;';
+document.body.appendChild(vid);
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  spawnClouds();
+  initCanvases();
+  setupMouseTouch();
+  document.addEventListener('click',()=>{ if(AC.state==='suspended') AC.resume(); },{once:true});
+});
+window.addEventListener('resize', initCanvases);
+</script>
+</body>
+</html>

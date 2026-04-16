@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link IT 2.0 — MEMORY</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #0D2B4E;
+    --blue:   #1B4F8A;
+    --sky:    #4A9ECA;
+    --mint:   #00C9A7;
+    --white:  #FFFFFF;
+    --text:   #E8F2FF;
+    --muted:  rgba(232,242,255,0.50);
+    --glass:  rgba(255,255,255,0.06);
+    --glass2: rgba(255,255,255,0.11);
+    --border: rgba(74,158,202,0.15);
+    --amber:  #F5A623;
+    --rose:   #FF6B7A;
+    --purp:   #9B6EFF;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:'Noto Sans KR',sans-serif;
+    background:var(--navy); color:var(--text);
+    min-height:100vh; overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; opacity:.4;
+  }
+
+  /* NAV */
+  nav {
+    position:sticky; top:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 32px; height:56px;
+    background:rgba(13,43,78,0.9); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-left { display:flex; align-items:center; gap:12px; }
+  .nav-back {
+    width:32px; height:32px; border-radius:9px;
+    background:var(--glass2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:14px; color:var(--muted);
+    transition:all .2s; text-decoration:none;
+  }
+  .nav-back:hover { color:var(--text); border-color:rgba(74,158,202,0.4); }
+  .nav-logo-mark {
+    width:28px; height:28px; border-radius:8px;
+    background:linear-gradient(135deg,var(--mint),var(--sky));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--navy);
+  }
+  .nav-title { font-size:15px; font-weight:700; color:var(--white); }
+  .nav-sub   { font-size:11px; color:var(--purp); font-weight:500; }
+
+  /* SHELL */
+  .game-shell {
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:260px 1fr 260px;
+    min-height:calc(100vh - 56px);
+  }
+
+  /* ── LEFT PANEL ── */
+  .panel-left {
+    border-right:1px solid var(--border);
+    padding:22px 18px;
+    display:flex; flex-direction:column; gap:14px;
+    background:rgba(13,43,78,0.4);
+  }
+  .panel-tag   { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+  .panel-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--white); margin-top:2px; }
+
+  /* How to play */
+  .howto-card {
+    background:rgba(155,110,255,0.08); border:1px solid rgba(155,110,255,0.25);
+    border-radius:13px; padding:14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .howto-label { font-size:10px; font-weight:700; color:var(--purp); letter-spacing:1.5px; text-transform:uppercase; }
+  .howto-step  {
+    display:flex; align-items:flex-start; gap:8px;
+    font-size:12px; color:var(--muted); line-height:1.5;
+  }
+  .howto-num {
+    width:18px; height:18px; border-radius:50%; flex-shrink:0;
+    background:rgba(155,110,255,0.2); border:1px solid rgba(155,110,255,0.3);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:var(--purp);
+  }
+
+  /* Level selector */
+  .level-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .level-card {
+    border-radius:10px; padding:10px 6px; text-align:center;
+    background:var(--glass); border:1px solid var(--border);
+    cursor:pointer; transition:all .2s;
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .level-card:hover { border-color:rgba(155,110,255,0.4); }
+  .level-card.active { background:rgba(155,110,255,0.15); border-color:rgba(155,110,255,0.5); }
+  .level-icon  { font-size:18px; }
+  .level-name  { font-size:11px; font-weight:700; color:var(--text); }
+  .level-pairs { font-size:10px; color:var(--muted); }
+
+  /* Match progress */
+  .match-progress {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:12px; padding:13px;
+  }
+  .mp-label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .mp-track { height:8px; border-radius:4px; background:rgba(255,255,255,0.07); overflow:hidden; margin-bottom:6px; }
+  .mp-fill  { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--purp),var(--mint)); transition:width .5s ease; }
+  .mp-text  { font-size:12px; color:var(--text); font-weight:600; }
+  .mp-text span { color:var(--mint); }
+
+  /* Score board */
+  .score-board {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:13px; padding:14px;
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-top:auto;
+  }
+  .score-item  { display:flex; flex-direction:column; gap:2px; }
+  .score-label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+  .score-value { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:600; color:var(--white); }
+  .score-value.green { color:var(--mint); }
+  .score-value.blue  { color:var(--sky); }
+  .score-value.purp  { color:var(--purp); }
+  .score-value.amber { color:var(--amber); }
+
+  .hint-btn {
+    width:100%; padding:9px;
+    background:rgba(155,110,255,0.1); border:1px solid rgba(155,110,255,0.2);
+    border-radius:10px; color:var(--purp); font-size:12px; font-weight:600;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+  }
+  .hint-btn:hover { background:rgba(155,110,255,0.18); }
+  .hint-box {
+    background:rgba(155,110,255,0.08); border:1px solid rgba(155,110,255,0.2);
+    border-radius:10px; padding:10px; font-size:11px; color:var(--purp);
+    line-height:1.65; display:none;
+  }
+  .hint-box.show { display:block; animation:fadeUp .3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── CENTER ── */
+  .center-wrap {
+    display:flex; flex-direction:column; align-items:center;
+    padding:20px; gap:14px;
+    background:rgba(13,43,78,0.15);
+  }
+
+  /* TOP BAR */
+  .game-topbar {
+    width:100%; max-width:680px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .stat-pill {
+    display:flex; align-items:center; gap:6px;
+    background:var(--glass2); border:1px solid var(--border);
+    border-radius:20px; padding:5px 14px;
+    font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600;
+  }
+  .stat-pill-label { font-size:10px; color:var(--muted); font-family:'Noto Sans KR',sans-serif; margin-right:2px; }
+
+  /* FEEDBACK */
+  .feedback-flash {
+    height:32px; display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700;
+  }
+  .flash-match   { color:var(--mint); }
+  .flash-no      { color:var(--rose); }
+  .flash-done    { color:var(--amber); }
+
+  /* CARD GRID */
+  .card-arena {
+    width:100%; max-width:680px;
+    background:rgba(10,22,40,0.55);
+    border:1px solid var(--border); border-radius:20px;
+    padding:20px; backdrop-filter:blur(10px);
+    position:relative; overflow:hidden;
+  }
+  .card-arena::before {
+    content:''; position:absolute; inset:0; border-radius:20px;
+    background:
+      linear-gradient(rgba(155,110,255,0.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(155,110,255,0.03) 1px,transparent 1px);
+    background-size:36px 36px; pointer-events:none;
+  }
+
+  .card-grid {
+    display:grid; gap:10px;
+    justify-content:center;
+    position:relative; z-index:1;
+  }
+
+  /* CARD */
+  .mem-card {
+    perspective:800px; cursor:pointer;
+    aspect-ratio:1;
+  }
+  .card-inner {
+    position:relative; width:100%; height:100%;
+    transition:transform .45s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d;
+  }
+  .mem-card.flipped   .card-inner { transform:rotateY(180deg); }
+  .mem-card.matched   .card-inner { transform:rotateY(180deg); }
+  .mem-card.no-match  { animation:cardShake .35s ease; }
+  @keyframes cardShake { 0%{transform:translateX(0)} 20%{transform:translateX(-5px)} 60%{transform:translateX(5px)} 100%{transform:translateX(0)} }
+
+  .card-face {
+    position:absolute; inset:0; border-radius:14px;
+    backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid;
+  }
+  /* BACK */
+  .card-back {
+    background:linear-gradient(145deg,#1A3050,#0D2B4E);
+    border-color:rgba(155,110,255,0.25);
+    overflow:hidden;
+  }
+  .card-back::after {
+    content:'?';
+    font-size:26px; font-weight:700;
+    color:rgba(155,110,255,0.35);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .card-back-pattern {
+    position:absolute; inset:0; border-radius:12px;
+    background:repeating-linear-gradient(
+      45deg,
+      transparent, transparent 6px,
+      rgba(155,110,255,0.04) 6px, rgba(155,110,255,0.04) 7px
+    );
+  }
+  /* FRONT */
+  .card-front {
+    transform:rotateY(180deg);
+    background:linear-gradient(145deg,#1A2A40,#0F2035);
+    border-color:rgba(74,158,202,0.25);
+    flex-direction:column; gap:4px;
+  }
+  .mem-card.matched .card-front {
+    background:linear-gradient(145deg,rgba(0,201,167,0.2),rgba(0,201,167,0.08));
+    border-color:rgba(0,201,167,0.5);
+    box-shadow:0 0 16px rgba(0,201,167,0.2);
+  }
+  .card-emoji { font-size:clamp(20px,3.5vw,34px); pointer-events:none; }
+  .card-label {
+    font-size:10px; color:var(--muted); pointer-events:none;
+    font-weight:500; letter-spacing:0.3px;
+  }
+  .mem-card.matched .card-label { color:var(--mint); }
+
+  /* matched sparkle */
+  .match-sparkle {
+    position:absolute; inset:0; border-radius:12px;
+    pointer-events:none; overflow:hidden;
+  }
+  .sparkle-dot {
+    position:absolute; border-radius:50%;
+    animation:sparklePop .5s ease forwards;
+  }
+  @keyframes sparklePop {
+    0%  { transform:scale(0); opacity:1; }
+    100%{ transform:scale(3); opacity:0; }
+  }
+
+  /* OVERLAY */
+  .board-overlay {
+    position:absolute; inset:0; border-radius:18px; z-index:10;
+    background:rgba(13,43,78,0.94); backdrop-filter:blur(6px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; text-align:center; padding:32px;
+  }
+  .board-overlay.hidden { display:none; }
+  .overlay-icon  { font-size:52px; animation:popIn .4s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+  .overlay-title { font-family:'DM Serif Display',serif; font-size:24px; color:var(--white); }
+  .overlay-sub   { font-size:13px; color:var(--muted); line-height:1.65; }
+  .overlay-btn {
+    padding:12px 32px; border-radius:12px;
+    background:linear-gradient(135deg,var(--purp),#7B4EDD);
+    border:none; color:var(--white); font-size:14px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .25s;
+    box-shadow:0 6px 20px rgba(155,110,255,0.35);
+  }
+  .overlay-btn:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(155,110,255,0.5); }
+  .overlay-btn.green {
+    background:linear-gradient(135deg,var(--mint),#00A88E);
+    box-shadow:0 6px 20px rgba(0,201,167,0.35); color:var(--navy);
+  }
+  .overlay-btn.green:hover { box-shadow:0 10px 28px rgba(0,201,167,0.5); }
+
+  /* ── RIGHT PANEL ── */
+  .panel-right {
+    border-left:1px solid var(--border);
+    padding:22px 18px;
+    display:flex; flex-direction:column; gap:14px;
+    background:rgba(13,43,78,0.4);
+  }
+  .panel-right-tag   { font-size:10px; font-weight:700; color:var(--purp); letter-spacing:2px; text-transform:uppercase; }
+  .panel-right-title { font-size:16px; font-weight:700; color:var(--white); margin-top:2px; }
+
+  /* match history */
+  .match-hist { display:flex; flex-direction:column; gap:6px; overflow-y:auto; max-height:200px; }
+  .hist-item {
+    display:flex; align-items:center; gap:8px;
+    padding:7px 10px; border-radius:9px;
+    background:var(--glass); border:1px solid var(--border);
+    animation:fadeUp .25s ease;
+    font-size:12px;
+  }
+  .hist-item.match  { border-color:rgba(0,201,167,0.3); background:rgba(0,201,167,0.07); }
+  .hist-item.fail   { border-color:rgba(255,107,122,0.3); background:rgba(255,107,122,0.07); }
+  .hist-emojis { font-size:15px; flex-shrink:0; }
+  .hist-text   { flex:1; color:var(--text); }
+  .hist-text em { font-style:normal; color:var(--mint); font-weight:600; }
+  .hist-tries  { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); }
+
+  /* Cognition bars */
+  .cog-box {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:12px; padding:13px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .cog-title { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+  .cog-row   { display:flex; flex-direction:column; gap:3px; }
+  .cog-top   { display:flex; justify-content:space-between; font-size:11px; }
+  .cog-label { color:var(--muted); }
+  .cog-val   { font-weight:600; }
+  .cog-track { height:5px; border-radius:3px; background:rgba(255,255,255,0.07); overflow:hidden; }
+  .cog-fill  { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--purp),var(--mint)); transition:width .8s ease; }
+
+  /* strategy log */
+  .strategy-box {
+    background:rgba(155,110,255,0.07); border:1px solid rgba(155,110,255,0.2);
+    border-radius:12px; padding:13px; display:flex; flex-direction:column; gap:6px;
+  }
+  .strat-title { font-size:10px; color:var(--purp); letter-spacing:1px; text-transform:uppercase; }
+  .strat-item  { font-size:11px; color:var(--muted); line-height:1.55; }
+  .strat-item b { color:var(--text); font-weight:600; }
+
+  /* RESULT OVERLAY */
+  .result-overlay {
+    position:fixed; inset:0; z-index:300;
+    background:rgba(13,43,78,0.88); backdrop-filter:blur(10px);
+    display:none; align-items:center; justify-content:center;
+  }
+  .result-overlay.show { display:flex; }
+  .result-modal {
+    background:linear-gradient(145deg,#0D2B4E,#1A1060);
+    border:1px solid rgba(155,110,255,0.35); border-radius:24px;
+    padding:36px 32px; text-align:center; max-width:420px; width:90%;
+    animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .r-stars  { font-size:36px; letter-spacing:4px; margin-bottom:10px; }
+  .r-title  { font-family:'DM Serif Display',serif; font-size:26px; color:var(--white); margin-bottom:5px; }
+  .r-sub    { font-size:13px; color:var(--muted); margin-bottom:22px; }
+  .r-scores { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:22px; }
+  .rs-item  { display:flex; flex-direction:column; gap:3px; }
+  .rs-val   { font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:600; color:var(--white); }
+  .rs-val span { font-size:11px; color:var(--muted); }
+  .rs-label { font-size:9px; color:var(--muted); letter-spacing:0.5px; text-transform:uppercase; }
+  .r-cog    { background:rgba(155,110,255,0.1); border:1px solid rgba(155,110,255,0.2); border-radius:12px; padding:12px; margin-bottom:18px; }
+  .r-cog-title { font-size:10px; color:var(--purp); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .r-cog-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
+  .r-cog-label { color:var(--muted); }
+  .r-cog-val   { color:var(--purp); font-weight:700; }
+  .r-btn { width:100%; padding:13px; border-radius:12px; background:linear-gradient(135deg,var(--mint),#00A88E); border:none; color:var(--navy); font-size:14px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .25s; margin-bottom:8px; }
+  .r-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,201,167,.35); }
+  .r-btn-sec { width:100%; padding:11px; border-radius:12px; background:var(--glass2); border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:500; font-family:'Noto Sans KR',sans-serif; cursor:pointer; }
+
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(155,110,255,0.3); border-radius:2px; }
+
+/* ═══ V2 DESIGN SYSTEM — Purme assess-beige unified ═══ */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+  --navy:#F2F4FF !important;
+  --blue:#7B68EE !important;
+  --sky:#9B8BF4 !important;
+  --mint:#0EA5A0 !important;
+  --text:#1A1B2E !important;
+  --muted:#9093B0 !important;
+  --glass:rgba(123,104,238,0.06) !important;
+  --glass2:rgba(123,104,238,0.10) !important;
+  --border:rgba(123,104,238,0.18) !important;
+  --white:#FFFFFF !important;
+  --amber:#F59E0B !important;
+  --rose:#F04438 !important;
+  --purp:#9B6EFF !important;
+
+  /* v2 tokens */
+  --bg:#F2F4FF;
+  --surface:#FFFFFF;
+  --surface-alt:#F8F9FF;
+  --b:#E2E5F4;
+  --b-mid:#C8CEEA;
+  --accent:#7B68EE;
+  --accent-2:#9B8BF4;
+  --accent-dim:#F0EEFF;
+  --accent-ring:rgba(123,104,238,.18);
+  --accent-dark:#5A4BD1;
+  --teal:#0EA5A0;
+  --teal-dim:#F0FAFA;
+  --green:#12B76A;
+  --green-dim:#ECFDF5;
+  --red:#F04438;
+  --red-dim:#FEF3F2;
+  --t1:#1A1B2E;
+  --t2:#4A4E6B;
+  --t3:#9093B0;
+  --t4:#C5C8DC;
+  --font:'Pretendard',-apple-system,sans-serif !important;
+  --sh-xs:0 1px 3px rgba(30,30,80,.06);
+  --sh:0 3px 14px rgba(30,30,80,.08);
+  --sh-lg:0 8px 32px rgba(30,30,80,.12);
+}
+
+/* ─ Base overrides ─ */
+body {
+  background: #F2F4FF !important;
+  color: #1A1B2E !important;
+  font-family: 'Pretendard', -apple-system, sans-serif !important;
+}
+body::before { display:none !important; }
+
+/* ─ NAV ─ */
+nav {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E2E5F4 !important;
+  box-shadow: 0 1px 3px rgba(30,30,80,.06) !important;
+  backdrop-filter: none !important;
+}
+.nav-logo-mark, .logo-mark {
+  background: linear-gradient(135deg,#7B68EE,#9B8BF4) !important;
+}
+.nav-logo-text, .nav-title, .nav-brand { color: #1A1B2E !important; }
+.nav-links a { color: #4A4E6B !important; }
+.nav-links a:hover, .nav-links a.active { color: #7B68EE !important; background: #F0EEFF !important; }
+.nav-back { color:#9093B0 !important; border-color:#E2E5F4 !important; background:none !important; }
+.nav-back:hover { color:#7B68EE !important; border-color:rgba(123,104,238,.3) !important; }
+.user-chip { background:#F8F9FF !important; border-color:#E2E5F4 !important; color:#4A4E6B !important; }
+
+/* ─ GAME SHELL panels ─ */
+.panel-left, .panel-mission, .panel-feedback,
+.panel-right, .sidebar { 
+  background: #FFFFFF !important; 
+  border-color: #E2E5F4 !important;
+}
+
+/* ─ Cards / surfaces ─ */
+.mission-card, .howto-card, .rule-card.go-card, .rule-card.nogo-card,
+.score-board, .trial-track, .round-info, .pip-card,
+.cog-box, .cognition-box, .match-progress, .strategy-box,
+.order-summary, .level-grid > *, .session-row,
+.rec-item, .rec-list > * {
+  background: #F8F9FF !important;
+  border-color: #E2E5F4 !important;
+}
+.rule-card.go-card   { background: #ECFDF5 !important; border-color: rgba(18,183,106,.25) !important; }
+.rule-card.nogo-card { background: #FEF3F2 !important; border-color: rgba(240,68,56,.25) !important; }
+.howto-card { background: #F3EFFF !important; border-color: rgba(155,110,255,.2) !important; }
+
+/* ─ GAME BOARD / ARENA ─ */
+.game-board, .card-arena, .stim-stage, .stimulus-arena, .arena {
+  background: #FFFFFF !important;
+  border-color: #E2E5F4 !important;
+  box-shadow: 0 3px 14px rgba(30,30,80,.08) !important;
+}
+
+/* ─ Board overlay ─ */
+.board-overlay, .stage-overlay { 
+  background: rgba(248,249,255,0.96) !important; 
+}
+.overlay-title, .ov-title { color: #1A1B2E !important; }
+.overlay-sub,   .ov-sub   { color: #4A4E6B !important; }
+.overlay-btn, .ov-btn {
+  background: #7B68EE !important;
+  box-shadow: 0 4px 12px rgba(123,104,238,.3) !important;
+  color: #fff !important;
+}
+.overlay-btn:hover, .ov-btn:hover { background: #5A4BD1 !important; }
+.overlay-btn.green, .ov-btn.green { background: linear-gradient(135deg,#0EA5A0,#0CC5BE) !important; color:#fff !important; }
+
+/* ─ Shape cells / game cards ─ */
+.shape-cell, .game-card, .mem-card .card-back {
+  background: #F8F9FF !important;
+  border-color: #E2E5F4 !important;
+}
+.shape-cell:hover { background: #F0EEFF !important; border-color: #C8CEEA !important; }
+.shape-cell.correct-flash, .shape-cell.flash-ok {
+  background: #ECFDF5 !important;
+  border-color: #12B76A !important;
+}
+.shape-cell.wrong-flash, .shape-cell.flash-fail {
+  background: #FEF3F2 !important;
+  border-color: #F04438 !important;
+}
+
+/* ─ Stimulus elements ─ */
+.stim-box { border-color: rgba(123,104,238,.3) !important; background: #F0EEFF !important; }
+.stim-box.show-stim { border-color: rgba(123,104,238,.6) !important; background: #F0EEFF !important; box-shadow: 0 0 24px rgba(123,104,238,.15) !important; }
+.stim-circle { border-color: #E2E5F4 !important; background: #F8F9FF !important; }
+.stim-circle.go-style   { border-color: rgba(18,183,106,.5) !important; background: #ECFDF5 !important; }
+.stim-circle.nogo-style { border-color: rgba(240,68,56,.5) !important;  background: #FEF3F2 !important; }
+
+/* ─ Action log items ─ */
+.log-item { background: #F8F9FF !important; border-color: #E2E5F4 !important; color: #4A4E6B !important; }
+.log-item.correct, .log-item.c, .log-item.match  { background: #ECFDF5 !important; border-color: rgba(18,183,106,.2) !important; }
+.log-item.wrong,   .log-item.w, .log-item.fail    { background: #FEF3F2 !important; border-color: rgba(240,68,56,.2) !important; }
+.log-item.info,    .log-item.m, .log-item.time    { background: #FFFBEB !important; border-color: rgba(245,158,11,.2) !important; }
+.log-item.n                                        { background: #F3EFFF !important; border-color: rgba(155,110,255,.2) !important; }
+.log-text, .li-text { color: #4A4E6B !important; }
+.log-text em, .li-text em { color: #7B68EE !important; }
+
+/* ─ Result overlay ─ */
+.result-overlay { background: rgba(242,244,255,.88) !important; backdrop-filter: blur(10px) !important; }
+.result-modal {
+  background: #FFFFFF !important;
+  border-color: #E2E5F4 !important;
+  box-shadow: 0 8px 32px rgba(30,30,80,.12) !important;
+}
+.result-title, .r-title { color: #1A1B2E !important; }
+.result-sub,   .r-sub   { color: #9093B0 !important; }
+.result-btn,   .r-btn {
+  background: #7B68EE !important;
+  box-shadow: 0 4px 12px rgba(123,104,238,.3) !important;
+  color: #fff !important;
+}
+.result-btn:hover, .r-btn:hover { background: #5A4BD1 !important; }
+.result-btn-sec, .r-btn-sec { border-color: #E2E5F4 !important; color: #4A4E6B !important; background: none !important; }
+.result-scores, .r-scores { color: #1A1B2E !important; }
+
+/* ─ Match card front/back ─ */
+.card-face.card-back   { background: linear-gradient(145deg,#F8F9FF,#F0EEFF) !important; border-color: rgba(123,104,238,.2) !important; }
+.card-back::after      { color: rgba(123,104,238,.35) !important; }
+.card-face.card-front  { background: #F8F9FF !important; border-color: #E2E5F4 !important; }
+.mem-card.matched .card-front { background: #ECFDF5 !important; border-color: rgba(14,165,160,.4) !important; }
+.card-name, .card-label { color: #4A4E6B !important; }
+.mem-card.matched .card-label { color: #0EA5A0 !important; }
+
+/* ─ Kiosk frame ─ */
+.kiosk-frame   { box-shadow: var(--sh-lg) !important; }
+.kiosk-top-bar { background: #1A1B2E !important; }
+.kiosk-brand   { color: #F59E0B !important; }
+.kiosk-brand span { color: #F04438 !important; }
+.phone-frame   { box-shadow: var(--sh-lg) !important; }
+
+/* ─ Histogram / sparkline ─ */
+.rt-bar.ok, .rt-fill.ok, .go-bar   { background: rgba(123,104,238,.65) !important; }
+.rt-bar.slow, .miss-bar             { background: rgba(245,158,11,.65) !important; }
+.rt-bar.fa, .nogo-bar               { background: rgba(240,68,56,.6) !important; }
+
+/* ─ Top color strip ─ */
+body > .top-strip:first-child,
+nav + .top-strip { display: block !important; }
+
+/* ─ Pie / ring ─ */
+.ring-fg    { stroke: #7B68EE !important; }
+.d-match    { stroke: #7B68EE !important; }
+
+/* ─ Misc text ─ */
+.panel-title, .mission-title, .feedback-title, .pr-title { color: #1A1B2E !important; }
+.panel-tag, .mission-tag, .pr-tag { color: #9093B0 !important; }
+.score-label, .sb-label, .kpi-label { color: #9093B0 !important; }
+.score-value, .sb-value, .kpi-value { color: #1A1B2E !important; }
+.sv-green, .score-value.green { color: #12B76A !important; }
+.sv-accent { color: #7B68EE !important; }
+.sv-amber  { color: #F59E0B !important; }
+.sv-teal, .mint-text { color: #0EA5A0 !important; }
+
+/* ─ Hints ─ */
+.hint-box { background: #FFFBEB !important; border-color: rgba(245,158,11,.2) !important; color: #4A4E6B !important; }
+.hint-btn { border-color: #E2E5F4 !important; color: #4A4E6B !important; background: none !important; }
+.hint-btn:hover { border-color: #F59E0B !important; color: #F59E0B !important; background: #FFFBEB !important; }
+
+/* ─ Sequence history (N-Back) ─ */
+.seq-card { background: #F8F9FF !important; border-color: #E2E5F4 !important; }
+.seq-item.n-back-mark .seq-card { background: #F0EEFF !important; border-color: rgba(123,104,238,.5) !important; }
+.seq-idx { color: #9093B0 !important; }
+
+/* ─ Match button (N-Back) ─ */
+.match-btn.yes-btn { background: #ECFDF5 !important; border-color: rgba(14,165,160,.4) !important; color: #0EA5A0 !important; }
+.match-btn.yes-btn:hover { background: #0EA5A0 !important; color: #fff !important; }
+.match-btn.no-btn  { background: #F8F9FF !important; border-color: #E2E5F4 !important; color: #9093B0 !important; }
+
+/* ─ Donut ring ─ */
+.d-bg  { stroke: #E2E5F4 !important; }
+.r-bg  { stroke: #E2E5F4 !important; }
+.ring-pct, .donut-pct { color: #1A1B2E !important; }
+.ring-sub2, .donut-sub { color: #9093B0 !important; }
+
+/* ─ Scrollbar ─ */
+::-webkit-scrollbar-thumb { background: #C8CEEA !important; }
+
+</style>
+</head>
+<body>
+<div style="height:3px;background:linear-gradient(90deg,#7B68EE,#9B8BF4,#0EA5A0);"></div>
+
+
+<nav>
+  <div class="nav-left">
+    <a href="hub.html" class="nav-back">←</a>
+    <div class="nav-logo-mark">LIT</div>
+    <div>
+      <div class="nav-title">카드 뒤집기</div>
+      <div class="nav-sub">C4 · 기억·순서 훈련</div>
+    </div>
+  </div>
+</nav>
+
+<div class="game-shell">
+
+  <!-- LEFT -->
+  <aside class="panel-left">
+    <div>
+      <div class="panel-tag" style="color:var(--purp);">Area C4</div>
+      <div class="panel-title">카드 뒤집기</div>
+    </div>
+
+    <div class="howto-card">
+      <div class="howto-label">게임 방법</div>
+      <div class="howto-step"><div class="howto-num">1</div>카드 두 장을 뒤집어요</div>
+      <div class="howto-step"><div class="howto-num">2</div>같은 그림이면 짝 완성!</div>
+      <div class="howto-step"><div class="howto-num">3</div>다르면 다시 뒤집혀요</div>
+      <div class="howto-step"><div class="howto-num">4</div>모든 짝을 맞추면 완료!</div>
+    </div>
+
+    <!-- Level -->
+    <div>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;">난이도</div>
+      <div class="level-grid">
+        <div class="level-card active" id="lvl1" onclick="setLevel(1)">
+          <div class="level-icon">🌱</div>
+          <div class="level-name">초급</div>
+          <div class="level-pairs">6쌍</div>
+        </div>
+        <div class="level-card" id="lvl2" onclick="setLevel(2)">
+          <div class="level-icon">🌿</div>
+          <div class="level-name">중급</div>
+          <div class="level-pairs">10쌍</div>
+        </div>
+        <div class="level-card" id="lvl3" onclick="setLevel(3)">
+          <div class="level-icon">🌳</div>
+          <div class="level-name">고급</div>
+          <div class="level-pairs">15쌍</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="match-progress">
+      <div class="mp-label">짝 맞추기 진행</div>
+      <div class="mp-track"><div class="mp-fill" id="mpFill" style="width:0%"></div></div>
+      <div class="mp-text"><span id="matchedCount">0</span> / <span id="totalPairs">6</span> 쌍 완성</div>
+    </div>
+
+    <!-- Score -->
+    <div class="score-board">
+      <div class="score-item">
+        <div class="score-label">점수</div>
+        <div class="score-value green" id="scoreDisp">0</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">시도</div>
+        <div class="score-value blue" id="triesDisp">0</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">시간</div>
+        <div class="score-value" id="timerDisp">00:00</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">효율</div>
+        <div class="score-value purp" id="effDisp">—</div>
+      </div>
+    </div>
+
+    <button class="hint-btn" onclick="toggleHint()">💡 힌트</button>
+    <div class="hint-box" id="hintBox">카드 위치를 기억했다가 같은 그림을 찾아봐요. 처음에 잘 살펴두면 더 쉬워요!</div>
+  </aside>
+
+  <!-- CENTER -->
+  <div class="center-wrap">
+
+    <!-- TOP BAR -->
+    <div class="game-topbar">
+      <div class="stat-pill">
+        <span class="stat-pill-label">시도</span>
+        <span id="triesPill" style="color:var(--sky);">0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">짝 완성</span>
+        <span id="matchPill" style="color:var(--mint);">0</span>
+        <span style="color:var(--muted);font-size:11px;">/ <span id="totalPill">6</span></span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">⏱</span>
+        <span id="timerPill" style="color:var(--text);">00:00</span>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="feedback-flash" id="feedbackFlash"></div>
+
+    <!-- CARD ARENA -->
+    <div class="card-arena">
+      <div class="card-grid" id="cardGrid"></div>
+
+      <!-- Overlay -->
+      <div class="board-overlay" id="boardOverlay">
+        <div class="overlay-icon">🃏</div>
+        <div class="overlay-title">카드 뒤집기</div>
+        <div class="overlay-sub">
+          뒤집힌 카드의 그림을 기억하고<br>
+          <strong style="color:var(--purp);">같은 짝</strong>을 찾아 모두 맞춰요!<br><br>
+          처음 카드를 볼 때 위치를 잘 기억해두면<br>더 빠르게 맞출 수 있어요.
+        </div>
+        <button class="overlay-btn" onclick="startGame()">▶ 훈련 시작</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <aside class="panel-right">
+    <div>
+      <div class="panel-right-tag">기억 분석</div>
+      <div class="panel-right-title">짝 맞추기 기록</div>
+    </div>
+
+    <!-- Match history -->
+    <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">최근 시도</div>
+    <div class="match-hist" id="matchHist">
+      <div class="hist-item">
+        <span class="hist-emojis">🃏</span>
+        <div class="hist-text">훈련을 시작해봐요!</div>
+      </div>
+    </div>
+
+    <!-- Cognition -->
+    <div class="cog-box">
+      <div class="cog-title">인지 기능 분석</div>
+      <div class="cog-row">
+        <div class="cog-top"><span class="cog-label">시각 기억력</span><span class="cog-val" id="cogMem" style="color:var(--purp);">측정중</span></div>
+        <div class="cog-track"><div class="cog-fill" id="cogMemBar" style="width:0%"></div></div>
+      </div>
+      <div class="cog-row">
+        <div class="cog-top"><span class="cog-label">공간 위치 기억</span><span class="cog-val" id="cogSpa" style="color:var(--purp);">측정중</span></div>
+        <div class="cog-track"><div class="cog-fill" id="cogSpaBar" style="width:0%"></div></div>
+      </div>
+      <div class="cog-row">
+        <div class="cog-top"><span class="cog-label">전략적 사고</span><span class="cog-val" id="cogStr" style="color:var(--purp);">측정중</span></div>
+        <div class="cog-track"><div class="cog-fill" id="cogStrBar" style="width:0%"></div></div>
+      </div>
+      <div class="cog-row">
+        <div class="cog-top"><span class="cog-label">집중 지속력</span><span class="cog-val" id="cogFoc" style="color:var(--purp);">측정중</span></div>
+        <div class="cog-track"><div class="cog-fill" id="cogFocBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Strategy -->
+    <div class="strategy-box">
+      <div class="strat-title">🧠 전략 분석</div>
+      <div class="strat-item" id="stratText">훈련을 시작하면 기억 전략을 분석해요.</div>
+    </div>
+  </aside>
+</div>
+
+<!-- RESULT -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-modal">
+    <div class="r-stars" id="rStars">⭐⭐⭐</div>
+    <div class="r-title"  id="rTitle">완벽한 기억력!</div>
+    <div class="r-sub"    id="rSub">카드 뒤집기 훈련 완료</div>
+    <div class="r-scores">
+      <div class="rs-item"><div class="rs-val" id="rScore">0</div><div class="rs-label">점수</div></div>
+      <div class="rs-item"><div class="rs-val" id="rTries">0<span>회</span></div><div class="rs-label">총 시도</div></div>
+      <div class="rs-item"><div class="rs-val" id="rTime">0<span>초</span></div><div class="rs-label">소요시간</div></div>
+      <div class="rs-item"><div class="rs-val" id="rEff">0<span>%</span></div><div class="rs-label">효율</div></div>
+    </div>
+    <div class="r-cog">
+      <div class="r-cog-title">인지 기능 평가</div>
+      <div class="r-cog-row"><span class="r-cog-label">시각 기억력</span><span class="r-cog-val" id="rcMem">—</span></div>
+      <div class="r-cog-row"><span class="r-cog-label">공간 위치 기억</span><span class="r-cog-val" id="rcSpa">—</span></div>
+      <div class="r-cog-row"><span class="r-cog-label">전략적 사고</span><span class="r-cog-val" id="rcStr">—</span></div>
+      <div class="r-cog-row"><span class="r-cog-label">집중 지속력</span><span class="r-cog-val" id="rcFoc">—</span></div>
+    </div>
+    <button class="r-btn"     onclick="restartGame()">🔄 다시 훈련하기</button>
+    <button class="r-btn-sec" onclick="location.href='hub.html'">← 허브로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   CARD CONTENT POOL
+══════════════════════════════════════ */
+const CARD_POOL = [
+  { id:'cat',     emoji:'🐱', label:'고양이' },
+  { id:'dog',     emoji:'🐶', label:'강아지' },
+  { id:'apple',   emoji:'🍎', label:'사과'   },
+  { id:'banana',  emoji:'🍌', label:'바나나' },
+  { id:'car',     emoji:'🚗', label:'자동차' },
+  { id:'bus',     emoji:'🚌', label:'버스'   },
+  { id:'sun',     emoji:'☀️', label:'태양'   },
+  { id:'moon',    emoji:'🌙', label:'달'     },
+  { id:'star',    emoji:'⭐', label:'별'     },
+  { id:'flower',  emoji:'🌸', label:'꽃'     },
+  { id:'fish',    emoji:'🐟', label:'물고기' },
+  { id:'bird',    emoji:'🐦', label:'새'     },
+  { id:'pizza',   emoji:'🍕', label:'피자'   },
+  { id:'cake',    emoji:'🎂', label:'케이크' },
+  { id:'soccer',  emoji:'⚽', label:'축구공' },
+];
+
+const LEVEL_CFG = {
+  1: { pairs:6,  cols:4, cardSize:110 },
+  2: { pairs:10, cols:5, cardSize:96  },
+  3: { pairs:15, cols:6, cardSize:82  },
+};
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let level        = 1;
+let cards        = [];       // [{id, emoji, label, matched, el}]
+let flipped      = [];       // max 2 indices
+let matched      = 0;
+let tries        = 0;
+let score        = 0;
+let isLocked     = false;
+let startTime    = null;
+let timerInt     = null;
+let firstMatchT  = null;
+let matchTimes   = [];       // ms per match
+let consecMatches= 0;
+let maxConsec    = 0;
+
+/* ══════════════════════════════════════
+   SETUP
+══════════════════════════════════════ */
+function setLevel(l) {
+  level = l;
+  [1,2,3].forEach(i => document.getElementById('lvl'+i).classList.toggle('active', i===l));
+  document.getElementById('totalPairs').textContent = LEVEL_CFG[l].pairs;
+  document.getElementById('totalPill').textContent  = LEVEL_CFG[l].pairs;
+}
+
+function shuffle(arr) {
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function startGame() {
+  const cfg = LEVEL_CFG[level];
+
+  // Reset state
+  matched=0; tries=0; score=0; isLocked=false;
+  flipped=[]; matchTimes=[]; consecMatches=0; maxConsec=0; firstMatchT=null;
+  clearInterval(timerInt);
+  startTime = Date.now();
+
+  // Build card data
+  const pool = shuffle([...CARD_POOL]).slice(0, cfg.pairs);
+  cards = shuffle([...pool, ...pool].map((c,i) => ({...c, uid:i, matched:false, el:null})));
+
+  // Score / progress reset
+  updateScoreUI();
+  document.getElementById('mpFill').style.width = '0%';
+  document.getElementById('matchedCount').textContent = '0';
+  document.getElementById('totalPairs').textContent   = cfg.pairs;
+  document.getElementById('matchPill').textContent    = '0';
+  document.getElementById('totalPill').textContent    = cfg.pairs;
+
+  // Cognition reset
+  updateCognition(0);
+  document.getElementById('stratText').textContent = '게임 진행 중 분석해요...';
+
+  // Build grid DOM
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${cfg.cols}, ${cfg.cardSize}px)`;
+  grid.style.justifyContent = 'center';
+
+  cards.forEach((card, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'mem-card';
+    cell.style.width  = cfg.cardSize + 'px';
+    cell.style.height = cfg.cardSize + 'px';
+    cell.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-back">
+          <div class="card-back-pattern"></div>
+        </div>
+        <div class="card-face card-front">
+          <div class="card-emoji">${card.emoji}</div>
+          <div class="card-label">${card.label}</div>
+          <div class="match-sparkle" id="sparkle-${idx}"></div>
+        </div>
+      </div>`;
+    cell.addEventListener('click', () => onCardClick(idx));
+    cards[idx].el = cell;
+    grid.appendChild(cell);
+  });
+
+  // Hide overlay
+  document.getElementById('boardOverlay').classList.add('hidden');
+
+  // Match history reset
+  document.getElementById('matchHist').innerHTML = `
+    <div class="hist-item">
+      <span class="hist-emojis">🃏</span>
+      <div class="hist-text">게임 시작! 카드를 뒤집어봐요</div>
+    </div>`;
+
+  // Timer
+  timerInt = setInterval(() => {
+    const el = Math.floor((Date.now()-startTime)/1000);
+    const ts = String(Math.floor(el/60)).padStart(2,'0')+':'+String(el%60).padStart(2,'0');
+    document.getElementById('timerDisp').textContent = ts;
+    document.getElementById('timerPill').textContent = ts;
+  }, 500);
+
+  // Brief preview: show all cards for 1.5s on easy
+  if (level === 1) {
+    isLocked = true;
+    cards.forEach(c => c.el.classList.add('flipped'));
+    setTimeout(() => {
+      cards.forEach(c => { if(!c.matched) c.el.classList.remove('flipped'); });
+      isLocked = false;
+    }, 1500);
+    showFeedback('👀 잘 기억해두세요!', 'done');
+  }
+}
+
+/* ══════════════════════════════════════
+   CARD CLICK
+══════════════════════════════════════ */
+function onCardClick(idx) {
+  if (isLocked) return;
+  if (cards[idx].matched) return;
+  if (flipped.includes(idx)) return;
+  if (flipped.length >= 2) return;
+
+  cards[idx].el.classList.add('flipped');
+  flipped.push(idx);
+
+  if (flipped.length === 2) {
+    tries++;
+    document.getElementById('triesDisp').textContent = tries;
+    document.getElementById('triesPill').textContent = tries;
+    isLocked = true;
+
+    const [a, b] = flipped;
+    const cardA = cards[a], cardB = cards[b];
+
+    if (cardA.id === cardB.id) {
+      // MATCH
+      const now = Date.now();
+      if (!firstMatchT) firstMatchT = now;
+      matchTimes.push(now - startTime);
+      matched++;
+      consecMatches++;
+      maxConsec = Math.max(maxConsec, consecMatches);
+
+      const pts = level===1?10:level===2?15:20;
+      const bonus = consecMatches >= 3 ? Math.round(pts * 0.5) : 0;
+      score += pts + bonus;
+
+      setTimeout(() => {
+        cardA.el.classList.add('matched');
+        cardB.el.classList.add('matched');
+        cardA.matched = cardB.matched = true;
+        addSparkle(a); addSparkle(b);
+        flipped = [];
+        isLocked = false;
+
+        const msg = bonus > 0
+          ? `✅ ${cardA.emoji} ${cardA.label} 짝 완성! 🔥 연속보너스 +${pts+bonus}점`
+          : `✅ ${cardA.emoji} ${cardA.label} 짝 완성! +${pts}점`;
+        showFeedback(msg, 'match');
+        addHist(cardA.emoji, cardB.emoji, cardA.label, true, tries);
+        updateProgress();
+        updateScoreUI();
+        updateCognition(matched);
+        updateStrategy();
+
+        document.getElementById('matchPill').textContent = matched;
+
+        if (matched === LEVEL_CFG[level].pairs) {
+          clearInterval(timerInt);
+          setTimeout(showResult, 700);
+        }
+      }, 400);
+
+    } else {
+      // NO MATCH
+      consecMatches = 0;
+      setTimeout(() => {
+        cardA.el.classList.remove('flipped');
+        cardB.el.classList.remove('flipped');
+        cardA.el.classList.add('no-match');
+        cardB.el.classList.add('no-match');
+        setTimeout(() => {
+          cardA.el.classList.remove('no-match');
+          cardB.el.classList.remove('no-match');
+        }, 350);
+        flipped = [];
+        isLocked = false;
+        showFeedback(`❌ 다른 카드예요. 다시 시도!`, 'no');
+        addHist(cardA.emoji, cardB.emoji, `${cardA.label} ≠ ${cardB.label}`, false, tries);
+        updateScoreUI();
+        updateCognition(matched);
+        updateStrategy();
+      }, 900);
+    }
+  }
+}
+
+/* ══════════════════════════════════════
+   SPARKLE EFFECT
+══════════════════════════════════════ */
+function addSparkle(idx) {
+  const sparkle = document.getElementById('sparkle-'+idx);
+  if (!sparkle) return;
+  sparkle.innerHTML = '';
+  const colors = ['#00C9A7','#4A9ECA','#9B6EFF','#F5A623','#FFFFFF'];
+  for (let i=0;i<6;i++) {
+    const dot = document.createElement('div');
+    dot.className = 'sparkle-dot';
+    const size = 4 + Math.random()*5;
+    dot.style.cssText = `
+      width:${size}px; height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${10+Math.random()*80}%;
+      top:${10+Math.random()*80}%;
+      animation-delay:${Math.random()*0.2}s;`;
+    sparkle.appendChild(dot);
+  }
+}
+
+/* ══════════════════════════════════════
+   UI UPDATES
+══════════════════════════════════════ */
+function updateProgress() {
+  const total = LEVEL_CFG[level].pairs;
+  const pct   = Math.round(matched/total*100);
+  document.getElementById('mpFill').style.width   = pct + '%';
+  document.getElementById('matchedCount').textContent = matched;
+}
+
+function updateScoreUI() {
+  const total = LEVEL_CFG[level].pairs;
+  const minTries = total;
+  const eff = tries > 0 ? Math.round(Math.min(100, minTries/tries*100)) : 0;
+  document.getElementById('scoreDisp').textContent = score;
+  document.getElementById('triesDisp').textContent = tries;
+  document.getElementById('effDisp').textContent   = tries > 0 ? eff+'%' : '—';
+}
+
+function updateCognition(matchCount) {
+  const total = LEVEL_CFG[level].pairs;
+  const prog  = total > 0 ? matchCount/total : 0;
+  const eff   = tries > 0 ? Math.min(1, LEVEL_CFG[level].pairs/tries) : 0;
+
+  const mem = Math.round(prog * 100);
+  const spa = Math.round(eff * 85 + prog * 15);
+  const str = Math.round(Math.min(100, maxConsec/3 * 100 * 0.6 + eff * 40));
+  const foc = Math.round(prog * 70 + eff * 30);
+
+  const label = v => v===0?'측정중':v<40?'훈련중':v<70?'향상중':v<90?'우수':'완료 ✓';
+  document.getElementById('cogMem').textContent = label(mem);
+  document.getElementById('cogSpa').textContent = label(spa);
+  document.getElementById('cogStr').textContent = label(str);
+  document.getElementById('cogFoc').textContent = label(foc);
+  document.getElementById('cogMemBar').style.width = mem + '%';
+  document.getElementById('cogSpaBar').style.width = spa + '%';
+  document.getElementById('cogStrBar').style.width = str + '%';
+  document.getElementById('cogFocBar').style.width = foc + '%';
+}
+
+function updateStrategy() {
+  const eff = tries > 0 ? Math.min(100, Math.round(LEVEL_CFG[level].pairs/tries*100)) : 0;
+  let msg = '';
+  if      (tries < 3)  msg = '게임 초반이에요. 카드 위치를 잘 기억해봐요!';
+  else if (eff >= 80)  msg = `<b>훌륭한 전략!</b> 기억 효율 ${eff}% — 카드 위치를 잘 기억하고 있어요.`;
+  else if (eff >= 60)  msg = `기억 효율 ${eff}%. 한 번 본 카드 위치를 <b>더 오래 기억</b>해봐요.`;
+  else if (maxConsec>=3) msg = `<b>🔥 ${maxConsec}연속 성공!</b> 집중력이 좋아요!`;
+  else                 msg = `기억 효율 ${eff}%. 처음 카드를 볼 때 <b>위치와 그림을 같이</b> 기억해봐요.`;
+  document.getElementById('stratText').innerHTML = msg;
+}
+
+function showFeedback(msg, type) {
+  const el = document.getElementById('feedbackFlash');
+  el.textContent = msg;
+  el.className = 'feedback-flash flash-' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.textContent=''; el.className='feedback-flash'; }, 1200);
+}
+
+function addHist(e1, e2, label, ok, t) {
+  const hist = document.getElementById('matchHist');
+  const item = document.createElement('div');
+  item.className = 'hist-item ' + (ok ? 'match' : 'fail');
+  item.innerHTML = `
+    <span class="hist-emojis">${e1}${e2}</span>
+    <div class="hist-text">${ok ? `<em>짝 완성!</em> ${label}` : label}</div>
+    <span class="hist-tries">${t}번째</span>`;
+  hist.insertBefore(item, hist.firstChild);
+  if (hist.children.length > 12) hist.lastChild.remove();
+}
+
+function toggleHint() { document.getElementById('hintBox').classList.toggle('show'); }
+
+/* ══════════════════════════════════════
+   RESULT
+══════════════════════════════════════ */
+function showResult() {
+  const elapsed = Math.floor((Date.now()-startTime)/1000);
+  const total   = LEVEL_CFG[level].pairs;
+  const minTries= total;
+  const eff     = Math.round(Math.min(100, minTries/tries*100));
+  const stars   = eff>=90?'⭐⭐⭐':eff>=70?'⭐⭐':'⭐';
+  const title   = eff>=90?'완벽한 기억력!':eff>=70?'훌륭해요!':eff>=50?'잘 했어요!':'더 연습해봐요';
+
+  document.getElementById('rStars').textContent  = stars;
+  document.getElementById('rTitle').textContent  = title;
+  document.getElementById('rSub').textContent    = `${total}쌍 완성 · ${tries}번 시도 · 난이도 ${'⭐'.repeat(level)}`;
+  document.getElementById('rScore').textContent  = score;
+  document.getElementById('rTries').innerHTML    = `${tries}<span>회</span>`;
+  document.getElementById('rTime').innerHTML     = `${elapsed}<span>초</span>`;
+  document.getElementById('rEff').innerHTML      = `${eff}<span>%</span>`;
+
+  const lv = v => v>=90?'매우 우수':v>=70?'우수':v>=50?'보통':'훈련 필요';
+  const prog = matched/total;
+  const effN = tries > 0 ? Math.min(1, total/tries) : 0;
+  document.getElementById('rcMem').textContent = lv(Math.round(prog*100));
+  document.getElementById('rcSpa').textContent = lv(Math.round(effN*85+prog*15));
+  document.getElementById('rcStr').textContent = lv(Math.round(Math.min(100,maxConsec/3*100*0.6+effN*40)));
+  document.getElementById('rcFoc').textContent = lv(Math.round(prog*70+effN*30));
+
+  setTimeout(() => document.getElementById('resultOverlay').classList.add('show'), 400);
+}
+
+/* ══════════════════════════════════════
+   RESTART
+══════════════════════════════════════ */
+function restartGame() {
+  document.getElementById('resultOverlay').classList.remove('show');
+
+  const overlay = document.getElementById('boardOverlay');
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="overlay-icon">🃏</div>
+    <div class="overlay-title">다시 도전!</div>
+    <div class="overlay-sub">이번엔 더 잘 기억할 수 있어요!</div>
+    <button class="overlay-btn green" onclick="startGame()">▶ 다시 시작</button>`;
+
+  document.getElementById('cardGrid').innerHTML = '';
+  document.getElementById('scoreDisp').textContent  = '0';
+  document.getElementById('triesDisp').textContent  = '0';
+  document.getElementById('timerDisp').textContent  = '00:00';
+  document.getElementById('effDisp').textContent    = '—';
+  document.getElementById('triesPill').textContent  = '0';
+  document.getElementById('matchPill').textContent  = '0';
+  document.getElementById('timerPill').textContent  = '00:00';
+  document.getElementById('mpFill').style.width     = '0%';
+  document.getElementById('matchedCount').textContent = '0';
+  document.getElementById('feedbackFlash').textContent = '';
+  document.getElementById('stratText').textContent  = '훈련을 시작하면 기억 전략을 분석해요.';
+  updateCognition(0);
+  clearInterval(timerInt);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>문구야놀자 키오스크 훈련</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="kiosk-image-save.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --yellow:#FFD600;
+  --yellow-dark:#E6C000;
+  --yellow-light:#FFF9CC;
+  --black:#1a1a1a;
+  --gray1:#f5f5f5;
+  --gray2:#e0e0e0;
+  --gray3:#9e9e9e;
+  --text:#212121;
+  --text2:#616161;
+  --green:#2E7D32;
+  --green-light:#E8F5E9;
+  --red:#C62828;
+  --blue:#1565C0;
+}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:#2a2a2a;
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+}
+
+/* ======== LAYOUT ======== */
+#app-root{display:flex;width:100%;min-height:100vh;}
+
+/* ======== THERAPIST PANEL ======== */
+#tp{
+  width:260px;min-width:260px;
+  background:#1a1a2e;color:white;
+  display:flex;flex-direction:column;
+  transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s;
+  overflow:hidden;
+  position:sticky;top:0;height:100vh;
+}
+#tp.collapsed{width:0;min-width:0;}
+.tp-hd{background:#0f0f1a;padding:14px 14px 10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.tp-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;}
+.tp-name{font-size:15px;font-weight:900;color:#FFD600;margin-top:2px;white-space:nowrap;}
+.tp-body{flex:1;overflow-y:auto;padding:0;}
+.tp-body::-webkit-scrollbar{width:3px;}
+.tp-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);}
+.tp-sec{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.tp-sec-t{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;white-space:nowrap;}
+/* toggles */
+.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px;}
+.tog-info{flex:1;}
+.tog-lbl{font-size:12px;font-weight:700;white-space:nowrap;}
+.tog-sub{font-size:10px;color:rgba(255,255,255,.4);}
+.tog-sw{width:38px;height:20px;border-radius:10px;background:rgba(255,255,255,.2);border:none;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0;}
+.tog-sw.on{background:#FFD600;}
+.tog-sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;transition:transform .25s;}
+.tog-sw.on::after{transform:translateX(18px);}
+/* diff */
+.diff-row{display:flex;gap:5px;}
+.diff-btn{flex:1;padding:7px 0;text-align:center;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);font-size:11px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.5);background:transparent;font-family:'Noto Sans KR',sans-serif;transition:all .2s;white-space:nowrap;}
+.diff-btn.ae{border-color:#4ade80;background:rgba(74,222,128,.2);color:#4ade80;}
+.diff-btn.am{border-color:#FFD600;background:rgba(255,214,0,.2);color:#FFD600;}
+.diff-btn.ah{border-color:#f87171;background:rgba(248,113,113,.2);color:#f87171;}
+/* stats */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.stat-c{background:rgba(255,255,255,.08);border-radius:8px;padding:8px 4px;text-align:center;}
+.stat-n{font-size:22px;font-weight:900;color:#FFD600;}
+.stat-l{font-size:9px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;}
+/* buttons */
+.tp-btn{margin:6px 14px 0;padding:10px 14px;border-radius:10px;border:none;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 28px);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;white-space:nowrap;}
+.tp-btn:hover{opacity:.85;}
+.tp-btn-bc{background:linear-gradient(135deg,#FFD600,#E6A800);color:#1a1a1a;}
+.tp-btn-rst{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1.5px solid rgba(255,255,255,.2);}
+
+/* panel toggle */
+#pt-btn{
+  position:fixed;top:14px;left:14px;z-index:300;
+  width:42px;height:42px;border-radius:11px;
+  background:#1a1a2e;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:white;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);
+  transition:left .35s cubic-bezier(.4,0,.2,1);
+}
+#pt-btn.open{left:272px;}
+
+/* ======== KIOSK WRAP ======== */
+#kiosk-wrap{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;padding:16px 16px 40px;
+  min-height:100vh;
+}
+
+/* WM bar */
+#wm-bar{width:100%;max-width:460px;margin-bottom:10px;padding-left:58px;}
+.wm-inner{
+  background:linear-gradient(135deg,#1a1a2e,#2d1b69);
+  border-radius:14px;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.wm-icon{font-size:22px;flex-shrink:0;}
+.wm-texts{flex:1;}
+.wm-lbl{font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.wm-task{font-size:14px;font-weight:700;color:white;margin-top:1px;}
+.wm-task.blr{filter:blur(5px);user-select:none;}
+.wm-reveal{padding:5px 12px;border-radius:20px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:white;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
+/* kiosk frame */
+#kiosk-frame{
+  width:100%;max-width:460px;
+  background:white;
+  border-radius:18px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  min-height:680px;
+  display:flex;flex-direction:column;
+  border:4px solid #FFD600;
+}
+
+/* ======== HEADER ======== */
+.mj-header{
+  background:#FFD600;
+  padding:0;flex-shrink:0;
+}
+.mj-header-top{
+  padding:10px 18px 8px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mj-logo-row{display:flex;align-items:center;gap:10px;}
+.mj-logo-char{font-size:28px;}
+.mj-logo-text{
+  font-size:22px;font-weight:900;color:var(--black);
+  letter-spacing:-0.5px;line-height:1.1;
+}
+.mj-logo-sub{font-size:11px;font-weight:700;color:rgba(0,0,0,.55);}
+.mj-clock{font-size:18px;font-weight:700;color:var(--black);font-variant-numeric:tabular-nums;}
+
+/* step bar */
+.mj-steps{
+  background:rgba(0,0,0,.12);
+  padding:7px 16px;
+  display:flex;align-items:center;
+}
+.mj-step{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:rgba(0,0,0,.4);flex-shrink:0;}
+.mj-step.active{color:var(--black);}
+.mj-step.done{color:var(--green);}
+.mj-step-dot{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0;}
+.mj-step.active .mj-step-dot{background:var(--black);color:var(--yellow);}
+.mj-step.done .mj-step-dot{background:var(--green);color:white;}
+.mj-step-line{flex:1;height:1.5px;background:rgba(0,0,0,.2);margin:0 4px;}
+.mj-step-line.done{background:var(--green);}
+.mj-step span{white-space:nowrap;}
+
+/* screen body */
+.mj-body{flex:1;background:#FFFDE7;overflow-y:auto;}
+.mj-body::-webkit-scrollbar{width:4px;}
+.mj-body::-webkit-scrollbar-thumb{background:#FFD600;border-radius:2px;}
+
+/* fade enter */
+.fe{animation:fadeEnter .3s ease;}
+@keyframes fadeEnter{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ======================================================
+   SCREEN: IDLE
+   ====================================================== */
+.sc-idle{
+  background:linear-gradient(180deg,#FFD600 0%,#FFE033 60%,#FFF59D 100%);
+  min-height:620px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:20px;padding:32px 28px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.idle-bg-char{
+  position:absolute;opacity:.07;font-size:200px;
+  top:-40px;right:-40px;transform:rotate(15deg);
+  pointer-events:none;
+}
+.idle-tag{
+  background:var(--black);color:var(--yellow);
+  font-size:12px;font-weight:900;padding:6px 18px;
+  border-radius:20px;letter-spacing:1px;
+}
+.idle-main{
+  background:var(--black);color:var(--yellow);
+  border-radius:22px;padding:18px 28px;
+  box-shadow:0 6px 24px rgba(0,0,0,.25);
+}
+.idle-main-t{font-size:13px;font-weight:700;opacity:.7;margin-bottom:4px;}
+.idle-main-b{font-size:18px;font-weight:900;line-height:1.4;}
+.idle-start-btn{
+  background:var(--black);color:var(--yellow);
+  border:none;border-radius:16px;
+  padding:20px 56px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:26px;font-weight:900;
+  cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+  transition:transform .15s;
+  animation:idle-pulse 2.5s infinite;
+  letter-spacing:-0.5px;
+}
+.idle-start-btn:hover{transform:scale(1.04);}
+@keyframes idle-pulse{
+  0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  50%{box-shadow:0 8px 40px rgba(0,0,0,.5),0 0 0 8px rgba(0,0,0,.08);}
+}
+.idle-char-row{display:flex;gap:12px;font-size:40px;}
+
+/* ======================================================
+   SCREEN: SCAN
+   ====================================================== */
+.sc-scan{
+  background:#FFFDE7;
+  min-height:620px;
+  display:flex;flex-direction:column;
+}
+.scan-guide{
+  background:var(--yellow);
+  padding:12px 18px;
+  display:flex;align-items:center;gap:12px;
+  border-bottom:2px solid var(--yellow-dark);
+}
+.scan-g-icon{font-size:26px;}
+.scan-g-title{font-size:16px;font-weight:900;color:var(--black);}
+.scan-g-sub{font-size:11px;color:rgba(0,0,0,.6);margin-top:1px;}
+
+/* viewport */
+.scan-vp-wrap{padding:14px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.scan-vp{
+  width:100%;max-width:340px;aspect-ratio:4/3;
+  background:#1a1a1a;border-radius:14px;overflow:hidden;
+  position:relative;border:3px solid var(--yellow-dark);
+  display:flex;align-items:center;justify-content:center;
+}
+.sc-corner{position:absolute;width:28px;height:28px;border-color:var(--yellow);border-style:solid;z-index:3;}
+.sc-corner.tl{top:8px;left:8px;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.sc-corner.tr{top:8px;right:8px;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.sc-corner.bl{bottom:8px;left:8px;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.sc-corner.br{bottom:8px;right:8px;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.sc-scanline{position:absolute;width:75%;height:2px;background:linear-gradient(90deg,transparent,#FFD600 50%,transparent);z-index:2;animation:scl 2s infinite ease-in-out;}
+@keyframes scl{0%,100%{top:15%;}50%{top:78%;}}
+#scan-video{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;display:none;}
+#scan-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:rgba(255,255,255,.4);text-align:center;padding:16px;position:relative;z-index:1;}
+#scan-ph .ph-ico{font-size:48px;}
+#scan-ph p{font-size:12px;line-height:1.6;}
+.scan-success-pop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:rgba(46,125,50,.92);color:white;border-radius:12px;padding:10px 18px;font-size:15px;font-weight:700;z-index:10;text-align:center;pointer-events:none;transition:transform .2s,opacity .3s;white-space:nowrap;}
+.scan-success-pop.show{transform:translate(-50%,-50%) scale(1);}
+
+/* scan buttons */
+.scan-btn-row{display:flex;gap:10px;width:100%;max-width:340px;}
+.scan-cam-btn{
+  flex:1;padding:13px;background:var(--black);border:none;border-radius:12px;
+  color:var(--yellow);font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .2s;
+}
+.scan-cam-btn.scanning{background:#C62828;color:white;}
+.scan-manual-btn{
+  padding:13px 14px;background:rgba(0,0,0,.08);border:2px solid rgba(0,0,0,.12);border-radius:12px;
+  color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+  white-space:nowrap;transition:background .2s;
+}
+.scan-manual-btn:hover{background:rgba(0,0,0,.14);}
+
+/* scanned list */
+.scanned-wrap{
+  margin:0 14px;background:white;border-radius:14px;
+  overflow:hidden;border:2px solid var(--yellow);
+}
+.scanned-hd{
+  background:var(--yellow);
+  padding:8px 16px;display:flex;align-items:center;justify-content:space-between;
+}
+.scanned-hd-t{font-size:13px;font-weight:900;color:var(--black);}
+.scanned-cnt{font-size:13px;font-weight:900;color:var(--black);}
+.scanned-list{max-height:170px;overflow-y:auto;}
+.scanned-list::-webkit-scrollbar{width:3px;}
+.scanned-list::-webkit-scrollbar-thumb{background:var(--yellow);}
+.scanned-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-bottom:1px solid #FFF9CC;
+  animation:item-pop .25s ease;
+}
+@keyframes item-pop{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+.scanned-item:last-child{border-bottom:none;}
+.si-em{font-size:22px;flex-shrink:0;}
+.si-nm{flex:1;font-size:14px;font-weight:700;color:var(--text);}
+.si-qty-row{display:flex;align-items:center;gap:5px;}
+.si-qb{width:24px;height:24px;border-radius:6px;background:var(--gray1);border:1.5px solid var(--gray2);font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.si-qb:hover{background:var(--yellow);}
+.si-qn{font-size:14px;font-weight:900;min-width:22px;text-align:center;color:var(--text);}
+.si-pr{font-size:14px;font-weight:900;color:var(--black);min-width:50px;text-align:right;}
+
+/* total + pay btn */
+.scan-total-bar{
+  margin:10px 14px 0;
+  background:var(--black);border-radius:12px;
+  padding:12px 18px;display:flex;align-items:center;justify-content:space-between;
+}
+.stb-lbl{color:rgba(255,255,255,.7);font-size:14px;font-weight:700;}
+.stb-num{color:var(--yellow);font-size:26px;font-weight:900;}
+.scan-pay-btn{
+  margin:10px 14px 18px;
+  width:calc(100% - 28px);padding:17px;
+  background:var(--yellow);border:none;border-radius:14px;
+  color:var(--black);font-family:'Noto Sans KR',sans-serif;
+  font-size:20px;font-weight:900;cursor:pointer;
+  box-shadow:0 4px 16px rgba(255,214,0,.5);
+  transition:opacity .2s;
+}
+.scan-pay-btn:hover{opacity:.88;}
+.scan-pay-btn:disabled{background:var(--gray2);color:var(--gray3);box-shadow:none;cursor:not-allowed;}
+
+/* ======================================================
+   SCREEN: PAY METHOD
+   ====================================================== */
+.sc-pay{
+  background:#FFFDE7;
+  min-height:620px;
+  padding:24px 20px;
+  display:flex;flex-direction:column;
+}
+.pay-title{font-size:22px;font-weight:900;color:var(--text);}
+.pay-sub{font-size:13px;color:var(--text2);margin-top:4px;margin-bottom:18px;}
+.pay-amount-box{
+  background:var(--black);border-radius:16px;
+  padding:18px 22px;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.pab-lbl{color:rgba(255,255,255,.65);font-size:13px;font-weight:700;}
+.pab-num{color:var(--yellow);font-size:34px;font-weight:900;}
+.pay-opts{display:flex;flex-direction:column;gap:12px;}
+.pay-opt{
+  background:white;border-radius:16px;
+  border:3px solid var(--gray2);
+  padding:18px 20px;
+  display:flex;align-items:center;gap:16px;
+  cursor:pointer;transition:all .2s;
+}
+.pay-opt:hover{border-color:var(--yellow);box-shadow:0 4px 16px rgba(255,214,0,.25);}
+.pay-opt.sel{border-color:var(--black);background:var(--yellow-light);}
+.pay-opt-ico{font-size:38px;flex-shrink:0;}
+.pay-opt-nm{font-size:17px;font-weight:900;color:var(--text);}
+.pay-opt-desc{font-size:12px;color:var(--text2);margin-top:2px;}
+.pay-opt-chk{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--black);color:var(--yellow);font-size:16px;font-weight:900;display:none;align-items:center;justify-content:center;flex-shrink:0;}
+.pay-opt.sel .pay-opt-chk{display:flex;}
+.pay-next-btn{
+  margin-top:auto;padding-top:20px;
+}
+.pay-next-btn button{
+  width:100%;padding:17px;
+  background:var(--black);border:none;border-radius:14px;
+  color:var(--yellow);font-family:'Noto Sans KR',sans-serif;
+  font-size:18px;font-weight:900;cursor:pointer;
+  transition:opacity .2s;
+}
+.pay-next-btn button:hover{opacity:.88;}
+.pay-next-btn button:disabled{background:var(--gray2);color:var(--gray3);cursor:not-allowed;}
+
+/* ======================================================
+   SCREEN: POINT (전화번호 입력)
+   ====================================================== */
+.sc-point{
+  background:#FFFDE7;
+  min-height:620px;
+  padding:24px 20px;
+  display:flex;flex-direction:column;
+  align-items:center;
+}
+.point-icon{font-size:64px;margin-bottom:8px;}
+.point-question{font-size:22px;font-weight:900;color:var(--text);text-align:center;line-height:1.4;}
+.point-sub{font-size:13px;color:var(--text2);text-align:center;margin-top:6px;margin-bottom:20px;line-height:1.6;}
+
+/* skip */
+.point-skip-row{display:flex;gap:10px;width:100%;margin-bottom:18px;}
+.point-skip-no{
+  flex:1;padding:15px;
+  background:var(--gray2);border:none;border-radius:14px;
+  font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;color:var(--text2);transition:background .2s;
+}
+.point-skip-no:hover{background:#d0d0d0;}
+.point-skip-yes{
+  flex:2;padding:15px;
+  background:var(--yellow);border:none;border-radius:14px;
+  font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;color:var(--black);
+  box-shadow:0 4px 12px rgba(255,214,0,.4);
+  transition:opacity .2s;
+}
+.point-skip-yes:hover{opacity:.88;}
+
+/* phone input display */
+.phone-display-box{
+  width:100%;background:white;
+  border:3px solid var(--yellow);border-radius:16px;
+  padding:16px 20px;
+  text-align:center;margin-bottom:16px;
+}
+.phone-display-label{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;}
+.phone-display-num{
+  font-size:32px;font-weight:900;color:var(--black);
+  letter-spacing:3px;min-height:44px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.phone-cursor{
+  display:inline-block;width:2px;height:36px;
+  background:var(--black);
+  animation:blink .8s infinite;
+  vertical-align:middle;margin-left:2px;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.phone-display-fmt{font-size:12px;color:var(--gray3);margin-top:4px;}
+
+/* numpad */
+.numpad{
+  width:100%;display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.num-btn{
+  padding:0;aspect-ratio:1.4/1;
+  background:white;border:2px solid var(--gray2);
+  border-radius:14px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:24px;font-weight:900;color:var(--black);
+  cursor:pointer;transition:all .12s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.num-btn:hover{background:var(--yellow-light);border-color:var(--yellow);}
+.num-btn:active{transform:scale(.94);background:var(--yellow);}
+.num-btn.del-btn{background:var(--gray1);font-size:20px;}
+.num-btn.del-btn:hover{background:#ffd6d6;border-color:#e57373;}
+.num-btn.confirm-btn{
+  background:var(--black);color:var(--yellow);
+  border-color:var(--black);font-size:18px;
+}
+.num-btn.confirm-btn:hover{background:#333;}
+.num-btn.confirm-btn:disabled{background:var(--gray2);color:var(--gray3);border-color:var(--gray2);cursor:not-allowed;}
+
+/* ======================================================
+   SCREEN: FINAL PAY (결제 진행)
+   ====================================================== */
+.sc-finalpay{
+  background:#1a1a1a;min-height:620px;
+  padding:24px 20px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.fp-title{font-size:20px;font-weight:900;color:white;}
+.fp-sub{font-size:13px;color:rgba(255,255,255,.5);margin-top:2px;}
+.fp-amt{
+  background:#0a0a0a;border-radius:16px;
+  padding:20px;text-align:center;
+  border:1px solid #333;
+}
+.fp-amt-l{font-size:13px;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:4px;}
+.fp-amt-n{font-size:48px;font-weight:900;color:var(--yellow);}
+.fp-pay-method{
+  background:rgba(255,214,0,.12);
+  border:1.5px solid var(--yellow);
+  border-radius:12px;padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+}
+.fp-pm-ico{font-size:24px;}
+.fp-pm-txt{font-size:15px;font-weight:700;color:white;}
+.fp-steps{display:flex;flex-direction:column;gap:10px;}
+.fp-step-card{
+  background:#111;border-radius:12px;
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  border:1px solid #2a2a2a;
+}
+.fp-sc-ico{font-size:28px;flex-shrink:0;}
+.fp-sc-txt{font-size:14px;color:rgba(255,255,255,.8);font-weight:600;flex:1;line-height:1.5;}
+.fp-sc-num{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--yellow);color:var(--black);
+  font-size:13px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-left:auto;
+}
+.fp-sim-btn{
+  margin-top:auto;width:100%;padding:18px;
+  background:var(--yellow);border:none;border-radius:14px;
+  color:var(--black);font-family:'Noto Sans KR',sans-serif;
+  font-size:18px;font-weight:900;cursor:pointer;
+  box-shadow:0 4px 16px rgba(255,214,0,.4);
+  transition:opacity .2s;
+}
+.fp-sim-btn:hover{opacity:.88;}
+
+/* ======================================================
+   SCREEN: COMPLETE
+   ====================================================== */
+.sc-complete{
+  background:linear-gradient(180deg,#FFD600 0%,#FFE033 40%,#FFF59D 100%);
+  min-height:620px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:28px 24px;gap:16px;text-align:center;
+}
+.comp-circle{
+  width:90px;height:90px;border-radius:50%;
+  background:var(--black);
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;
+  animation:pop-in .5s cubic-bezier(.4,0,.2,1);
+}
+@keyframes pop-in{from{transform:scale(0.3);opacity:0;}60%{transform:scale(1.15);}to{transform:scale(1);opacity:1;}}
+.comp-title{font-size:30px;font-weight:900;color:var(--black);}
+.comp-sub{font-size:14px;color:rgba(0,0,0,.6);line-height:1.5;}
+.comp-receipt{
+  background:var(--black);border-radius:16px;
+  padding:18px 20px;width:100%;text-align:left;
+}
+.comp-rec-t{font-size:11px;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.comp-rec-row{
+  display:flex;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);
+  font-size:13px;color:rgba(255,255,255,.8);
+}
+.comp-rec-row:last-child{border-bottom:none;}
+.comp-total-row{
+  display:flex;justify-content:space-between;
+  padding:12px 0 0;margin-top:8px;
+  border-top:2px solid rgba(255,255,255,.2);
+}
+.comp-total-l{font-size:15px;font-weight:900;color:white;}
+.comp-total-n{font-size:24px;font-weight:900;color:var(--yellow);}
+.comp-point-confirm{
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);
+  border-radius:10px;padding:10px 16px;
+  font-size:13px;font-weight:700;color:rgba(255,255,255,.8);
+  display:flex;align-items:center;gap:8px;margin-top:10px;
+}
+.comp-btn-row{display:flex;gap:10px;width:100%;}
+.tp-btn-save{margin-top:8px;width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:rgba(255,255,255,.92);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.tp-btn-save:hover{background:rgba(255,255,255,.18);}
+.comp-rec-btn{
+  flex:1;padding:14px;
+  background:rgba(0,0,0,.15);border:2px solid rgba(0,0,0,.2);
+  border-radius:12px;color:var(--black);
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:background .2s;
+}
+.comp-rec-btn:hover{background:rgba(0,0,0,.25);}
+.comp-home-btn{
+  flex:2;padding:14px;
+  background:var(--black);border:none;border-radius:12px;
+  color:var(--yellow);font-family:'Noto Sans KR',sans-serif;
+  font-size:14px;font-weight:900;cursor:pointer;
+  transition:opacity .2s;
+}
+.comp-home-btn:hover{opacity:.85;}
+
+/* ======================================================
+   MODAL
+   ====================================================== */
+.modal-ov{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.modal-ov.show{opacity:1;pointer-events:all;}
+.modal-box{
+  background:white;border-radius:20px;
+  padding:24px 20px;width:90%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+  transform:scale(.92);transition:transform .25s;
+  max-height:80vh;display:flex;flex-direction:column;
+}
+.modal-ov.show .modal-box{transform:scale(1);}
+.modal-t{font-size:18px;font-weight:900;margin-bottom:4px;}
+.modal-s{font-size:13px;color:var(--text2);margin-bottom:14px;}
+.modal-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.modal-list::-webkit-scrollbar{width:4px;}
+.modal-list::-webkit-scrollbar-thumb{background:var(--yellow);}
+.modal-item{
+  padding:11px 14px;border-radius:12px;border:2px solid var(--gray2);
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  transition:all .2s;
+}
+.modal-item:hover{border-color:var(--yellow);background:var(--yellow-light);}
+.mi-em{font-size:26px;flex-shrink:0;}
+.mi-nm{font-size:14px;font-weight:700;flex:1;}
+.mi-pr{font-size:14px;font-weight:700;color:var(--black);}
+.modal-close{width:100%;padding:12px;background:var(--gray1);border:none;border-radius:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text2);}
+
+/* ======================================================
+   QUIZ
+   ====================================================== */
+.quiz-ov{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.quiz-ov.show{opacity:1;pointer-events:all;}
+.quiz-box{
+  background:white;border-radius:22px;
+  padding:28px 22px;width:90%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+  border:4px solid var(--yellow);
+  transform:scale(.92);transition:transform .25s;
+}
+.quiz-ov.show .quiz-box{transform:scale(1);}
+.quiz-ico{font-size:48px;text-align:center;margin-bottom:8px;}
+.quiz-t{font-size:20px;font-weight:900;text-align:center;margin-bottom:4px;}
+.quiz-s{font-size:13px;color:var(--text2);text-align:center;margin-bottom:16px;}
+.quiz-choices{display:flex;flex-direction:column;gap:8px;}
+.quiz-choice{
+  padding:13px 16px;border-radius:12px;
+  border:2px solid var(--gray2);
+  font-size:14px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  background:#fafafa;transition:all .2s;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.quiz-choice:hover:not(:disabled){border-color:var(--yellow);background:var(--yellow-light);}
+.quiz-choice.correct{border-color:var(--green);background:#E8F5E9;color:var(--green);}
+.quiz-choice.wrong{border-color:var(--red);background:#FFEBEE;color:var(--red);}
+.quiz-fb{margin-top:12px;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:700;text-align:center;display:none;}
+.quiz-fb.show.good{display:block;background:#E8F5E9;color:var(--green);}
+.quiz-fb.show.bad{display:block;background:#FFEBEE;color:var(--red);}
+.quiz-nxt{margin-top:12px;width:100%;padding:13px;background:var(--black);border:none;border-radius:12px;color:var(--yellow);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:none;}
+.quiz-nxt.show{display:block;}
+
+/* ======================================================
+   BARCODE PRINT PAGE
+   ====================================================== */
+#bc-page{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:white;overflow-y:auto;
+}
+.bcp-hd{
+  background:var(--yellow);padding:14px 18px;
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:10;
+  border-bottom:3px solid var(--yellow-dark);
+}
+.bcp-back{width:38px;height:38px;border-radius:10px;background:rgba(0,0,0,.12);border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.bcp-title{font-size:18px;font-weight:900;color:var(--black);flex:1;}
+.bcp-print{padding:8px 16px;border-radius:10px;background:var(--black);color:var(--yellow);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;border:none;cursor:pointer;}
+.bcp-body{padding:18px;}
+.bcp-intro{background:var(--yellow-light);border:2px solid var(--yellow);border-radius:14px;padding:14px;margin-bottom:20px;}
+.bcp-intro-t{font-size:14px;font-weight:900;color:var(--black);margin-bottom:4px;}
+.bcp-intro-b{font-size:12px;color:rgba(0,0,0,.65);line-height:1.6;}
+.bcp-sec-t{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;margin-top:20px;padding-bottom:6px;border-bottom:2px solid var(--yellow);}
+.bcp-sec-t:first-of-type{margin-top:0;}
+.bcp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.bcp-card{background:white;border-radius:14px;border:2px solid var(--yellow);padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.bcp-em{font-size:30px;}
+.bcp-nm{font-size:13px;font-weight:700;text-align:center;color:var(--text);}
+.bcp-pr{font-size:13px;font-weight:900;color:var(--black);}
+.bcp-bc-lbl{font-size:9px;color:var(--gray3);}
+.bcp-qr-host{display:flex;justify-content:center;align-items:center;width:100%;max-width:160px;min-height:132px;padding:4px;background:#fff;border-radius:8px;}
+.bcp-qr-host img.qr-bitmap,.bcp-qr-host canvas.qr-bitmap{display:block!important;margin:0 auto;max-width:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;}
+.bcp-pa-qr{display:flex;justify-content:center;align-items:center;width:100%;min-height:104px;padding:4px;background:#fff;border-radius:6px;}
+.bcp-pa-qr img.qr-bitmap,.bcp-pa-qr canvas.qr-bitmap{display:block!important;margin:0 auto;max-width:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;}
+.bcp-print-area{margin-top:24px;background:var(--gray1);border-radius:14px;padding:18px;border:2px dashed var(--gray2);}
+.bcp-pa-t{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;text-align:center;}
+.bcp-pa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.bcp-pa-item{background:white;border-radius:10px;border:1.5px solid var(--yellow);padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.bcp-pa-em{font-size:20px;}
+.bcp-pa-nm{font-size:10px;font-weight:700;text-align:center;}
+.bcp-pa-pr{font-size:10px;font-weight:700;color:var(--black);}
+@media print{#app-root,#pt-btn{display:none!important;}#bc-page{display:block!important;position:static;}  .bcp-hd{display:none;}.bcp-intro{display:none;}.bcp-print-area{border:none;background:none;}.bcp-card{break-inside:avoid;}.bcp-qr-host img.qr-bitmap,.bcp-qr-host canvas.qr-bitmap,.bcp-pa-qr img.qr-bitmap,.bcp-pa-qr canvas.qr-bitmap{-webkit-print-color-adjust:exact;print-color-adjust:exact;width:38mm!important;height:38mm!important;max-width:none!important;}.bcp-pa-qr img.qr-bitmap,.bcp-pa-qr canvas.qr-bitmap{width:32mm!important;height:32mm!important;}}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:rgba(26,26,26,.95);color:var(--yellow);
+  padding:12px 22px;border-radius:50px;
+  font-size:14px;font-weight:700;
+  z-index:700;pointer-events:none;
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  white-space:nowrap;border:2px solid var(--yellow-dark);
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ===== BARCODE PRINT PAGE ===== -->
+<div id="bc-page">
+  <div class="bcp-hd">
+    <button class="bcp-back" onclick="closeBcPage()">←</button>
+    <div class="bcp-title">🏷️ 상품 QR 카드 출력</div>
+    <button type="button" class="bcp-print" onclick="printBarcodeToPdf()">📄 인쇄·PDF 저장</button>
+  </div>
+  <div class="bcp-body">
+    <div class="bcp-intro">
+      <div class="bcp-intro-t">📋 치료사 선생님께</div>
+      <div class="bcp-intro-b">
+        아래 <strong>QR 코드</strong>에는 앱에 등록된 <strong>상품 ID</strong>만 들어 있습니다. 카메라로 읽으면 1D 바코드보다 인식이 수월한 편입니다.<br>
+        인쇄 후 오려서 상품 카드로 사용하세요.<br>
+        <strong>PDF로 저장:</strong> 「인쇄·PDF 저장」→ 인쇄 창에서 <strong>대상</strong>을 <strong>PDF로 저장</strong>(또는 Microsoft Print to PDF)으로 고르세요.<br>
+        <strong>스캔·인쇄 팁:</strong> 인쇄는 <strong>배율 100%</strong>·<strong>고품질/표준</strong>(초절약·초안 끔)·QR이 <strong>잘리지 않게</strong>·카메라는 <strong>25~40cm</strong>·밝은 곳에서 정면으로 맞추세요.<br>
+        <strong>난이도에 맞는 상품 카드만 골라 제공하세요.</strong>
+      </div>
+    </div>
+    <div class="bcp-sec-t">✏️ 문구류</div>
+    <div class="bcp-grid" id="bcp-stationery"></div>
+    <div class="bcp-sec-t">🎨 미술용품</div>
+    <div class="bcp-grid" id="bcp-art"></div>
+    <div class="bcp-sec-t">📚 학용품</div>
+    <div class="bcp-grid" id="bcp-school"></div>
+    <div class="bcp-sec-t">🎮 장난감 / 기타</div>
+    <div class="bcp-grid" id="bcp-toy"></div>
+    <div class="bcp-print-area">
+      <div class="bcp-pa-t">✂️ 인쇄 후 오려서 사용하세요</div>
+      <div class="bcp-pa-grid" id="bcp-print-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app-root">
+
+  <!-- THERAPIST PANEL -->
+  <div id="tp">
+    <div class="tp-hd">
+      <div class="tp-label">치료사 컨트롤</div>
+      <div class="tp-name">🏪 문구야놀자 훈련</div>
+    </div>
+    <div class="tp-body">
+      <div class="tp-sec">
+        <div class="tp-sec-t">🧠 워킹메모리 옵션</div>
+        <div class="tog-row">
+          <div class="tog-info"><div class="tog-lbl">미션 제시</div><div class="tog-sub">주문 전 목표 보여주기</div></div>
+          <button class="tog-sw on" id="sw-mission" onclick="toggleOpt('mission',this)"></button>
+        </div>
+        <div class="tog-row">
+          <div class="tog-info"><div class="tog-lbl">지연회상 퀴즈</div><div class="tog-sub">완료 후 내용 테스트</div></div>
+          <button class="tog-sw on" id="sw-quiz" onclick="toggleOpt('quiz',this)"></button>
+        </div>
+        <div class="tog-row">
+          <div class="tog-info"><div class="tog-lbl">미션 숨김</div><div class="tog-sub">기억 후 블러 처리</div></div>
+          <button class="tog-sw" id="sw-hide" onclick="toggleOpt('hide',this)"></button>
+        </div>
+      </div>
+      <div class="tp-sec">
+        <div class="tp-sec-t">⚡ 난이도</div>
+        <div class="diff-row">
+          <button class="diff-btn ae" onclick="setDiff('e',this)">쉬움</button>
+          <button class="diff-btn" onclick="setDiff('m',this)">보통</button>
+          <button class="diff-btn" onclick="setDiff('h',this)">어려움</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px;line-height:1.6;" id="diff-desc-tp">상품 1가지 구매</div>
+      </div>
+      <div class="tp-sec">
+        <div class="tp-sec-t">📊 세션 기록</div>
+        <div class="stats-grid">
+          <div class="stat-c"><div class="stat-n" id="st-t">0</div><div class="stat-l">시도</div></div>
+          <div class="stat-c"><div class="stat-n" id="st-c">0</div><div class="stat-l">정답</div></div>
+          <div class="stat-c"><div class="stat-n" id="st-p">0%</div><div class="stat-l">정확도</div></div>
+        </div>
+        <button type="button" class="tp-btn-save" onclick="kioskSaveResultScreen('munggu',toast)">📷 결과 화면 저장</button>
+      </div>
+    </div>
+    <div style="padding:8px 0 14px;">
+      <button class="tp-btn tp-btn-bc" onclick="openBcPage()">🏷️ QR 카드 출력</button>
+      <button class="tp-btn tp-btn-rst" style="margin-top:6px;" onclick="resetAll()">🔄 새 세션 시작</button>
+    </div>
+  </div>
+
+  <!-- PANEL TOGGLE -->
+  <button id="pt-btn" class="open" onclick="togglePanel()">☰</button>
+
+  <!-- KIOSK WRAP -->
+  <div id="kiosk-wrap">
+    <!-- WM BAR -->
+    <div id="wm-bar">
+      <div class="wm-inner">
+        <span class="wm-icon">🎯</span>
+        <div class="wm-texts">
+          <div class="wm-lbl">오늘의 미션</div>
+          <div class="wm-task" id="wm-task">색연필 1개를 사 오세요!</div>
+        </div>
+        <button class="wm-reveal" id="wm-reveal" onclick="revealMission()" style="display:none;">보기</button>
+      </div>
+    </div>
+
+    <!-- KIOSK FRAME -->
+    <div id="kiosk-frame">
+      <!-- HEADER -->
+      <div class="mj-header">
+        <div class="mj-header-top">
+          <div class="mj-logo-row">
+            <span class="mj-logo-char">👻</span>
+            <div>
+              <div class="mj-logo-text">문구야놀자</div>
+              <div class="mj-logo-sub">무인매장 셀프계산대</div>
+            </div>
+          </div>
+          <div class="mj-clock" id="mj-clock">00:00</div>
+        </div>
+        <div class="mj-steps" id="mj-steps"></div>
+      </div>
+
+      <!-- BODY -->
+      <div class="mj-body fe" id="mj-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal-ov">
+  <div class="modal-box">
+    <div class="modal-t">📦 상품 직접 선택</div>
+    <div class="modal-s">QR 없이 상품을 선택하세요</div>
+    <div class="modal-list" id="modal-list"></div>
+    <button class="modal-close" onclick="closeModal()">닫기</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-ov" id="quiz-ov">
+  <div class="quiz-box">
+    <div class="quiz-ico">🧠</div>
+    <div class="quiz-t" id="quiz-t">기억해 볼까요?</div>
+    <div class="quiz-s" id="quiz-s">아까 산 물건이 뭐였지?</div>
+    <div class="quiz-choices" id="quiz-choices"></div>
+    <div class="quiz-fb" id="quiz-fb"></div>
+    <button class="quiz-nxt" id="quiz-nxt" onclick="closeQuiz()">다음 →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ 스캔 완료!</div>
+
+<script>
+/* ====================================================
+   PRODUCTS
+   ==================================================== */
+const PRODUCTS = [
+  {id:'5001001',name:'색연필 12색',emoji:'🖍️',price:3500,cat:'stationery'},
+  {id:'5001002',name:'형광펜 세트',emoji:'✏️',price:2500,cat:'stationery'},
+  {id:'5001003',name:'볼펜 (파란색)',emoji:'🖊️',price:1000,cat:'stationery'},
+  {id:'5001004',name:'연필 세트',emoji:'✏️',price:2000,cat:'stationery'},
+  {id:'5001005',name:'지우개',emoji:'🩹',price:500,cat:'stationery'},
+  {id:'5001006',name:'화이트 수정액',emoji:'🤍',price:1500,cat:'stationery'},
+  {id:'5002001',name:'물감 세트',emoji:'🎨',price:5000,cat:'art'},
+  {id:'5002002',name:'붓 세트',emoji:'🖌️',price:3000,cat:'art'},
+  {id:'5002003',name:'스케치북',emoji:'📒',price:3500,cat:'art'},
+  {id:'5002004',name:'색종이',emoji:'🟥',price:1500,cat:'art'},
+  {id:'5003001',name:'자 (30cm)',emoji:'📏',price:1000,cat:'school'},
+  {id:'5003002',name:'가위',emoji:'✂️',price:2000,cat:'school'},
+  {id:'5003003',name:'풀 (딱풀)',emoji:'🟡',price:1200,cat:'school'},
+  {id:'5003004',name:'공책',emoji:'📓',price:2500,cat:'school'},
+  {id:'5004001',name:'스티커 세트',emoji:'⭐',price:1000,cat:'toy'},
+  {id:'5004002',name:'미니 퍼즐',emoji:'🧩',price:4500,cat:'toy'},
+  {id:'5004003',name:'컬러 클레이',emoji:'🫧',price:3000,cat:'toy'},
+  {id:'5004004',name:'야광 별 스티커',emoji:'🌟',price:800,cat:'toy'},
+];
+const prodMap = {};
+PRODUCTS.forEach(p => prodMap[p.id] = p);
+
+/* ====================================================
+   STATE
+   ==================================================== */
+const S = {
+  screen:'idle',
+  cart:[],
+  payMethod:null,
+  phoneNumber:'',
+  doPoint:false,
+  difficulty:'e',
+  mission:'',
+  opts:{mission:true,quiz:true,hide:false},
+  stats:{trials:0,correct:0},
+  panelOpen:true,
+  scanActive:false,
+  _stream:null,
+  _bcInterval:null,
+};
+
+const STEPS_DEF = ['스캔','결제','포인트','완료'];
+const SCREEN_STEP = {idle:-1,scan:0,paymethod:1,point:1,finalpay:1,complete:3};
+const MISSIONS = {
+  e:['색연필 1개를 사 오세요!','지우개 1개를 사 오세요!','볼펜 1개를 사 오세요!','스티커 1개를 사 오세요!'],
+  m:['색연필과 공책을 1개씩 사 오세요!','볼펜과 지우개를 1개씩 사 오세요!','풀과 가위를 1개씩 사 오세요!'],
+  h:['문구류 3가지를 5000원 이내로 골라보세요!','색연필, 공책, 스티커를 각 1개씩 사 오세요!','볼펜, 풀, 스케치북을 사 오세요!'],
+};
+const DIFF_DESC = {e:'상품 1가지 구매',m:'상품 2가지 구매',h:'상품 3가지 (금액 조건 포함)'};
+const PAY_OPTS = [
+  {emoji:'💳',name:'카드 결제',desc:'신용 / 체크카드 단말기에 꽂기'},
+  {emoji:'📱',name:'삼성페이',desc:'휴대폰을 단말기에 태그'},
+  {emoji:'🛵',name:'LG페이',desc:'LG 기기 NFC 결제'},
+  {emoji:'💵',name:'현금 (지폐)',desc:'지폐만 가능 · 동전 거스름돈 지급'},
+];
+
+/* ====================================================
+   CLOCK
+   ==================================================== */
+setInterval(()=>{
+  const n=new Date();
+  const el=document.getElementById('mj-clock');
+  if(el) el.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+},1000);
+(()=>{const n=new Date();const el=document.getElementById('mj-clock');if(el)el.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');})();
+
+/* ====================================================
+   STEP BAR
+   ==================================================== */
+function renderSteps(){
+  const cur = SCREEN_STEP[S.screen] ?? -1;
+  document.getElementById('mj-steps').innerHTML = STEPS_DEF.map((s,i)=>{
+    const cls = i<cur?'done':i===cur?'active':'';
+    const dot = i<cur?'✓':(i+1);
+    const line = i<STEPS_DEF.length-1?`<div class="mj-step-line ${i<cur?'done':''}"></div>`:'';
+    return `<div class="mj-step ${cls}"><div class="mj-step-dot">${dot}</div><span>${s}</span></div>${line}`;
+  }).join('');
+}
+
+/* ====================================================
+   TOAST
+   ==================================================== */
+let toastTmr;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ====================================================
+   RENDER
+   ==================================================== */
+function render(){
+  renderSteps();
+  const body=document.getElementById('mj-body');
+  body.className='mj-body fe';
+  void body.offsetWidth;
+  switch(S.screen){
+    case 'idle':      body.innerHTML=rIdle(); break;
+    case 'scan':      body.innerHTML=rScan(); bindScanEvents(); break;
+    case 'paymethod': body.innerHTML=rPay(); break;
+    case 'point':     body.innerHTML=rPoint(); break;
+    case 'finalpay':  body.innerHTML=rFinalPay(); break;
+    case 'complete':  body.innerHTML=rComplete();
+      if(S.opts.quiz) setTimeout(triggerQuiz,1800); break;
+  }
+}
+
+/* ---- IDLE ---- */
+function rIdle(){
+  return `<div class="sc-idle">
+    <div class="idle-bg-char">👻</div>
+    <div class="idle-tag">무인매장 셀프계산대</div>
+    <div class="idle-char-row"><span>👻</span><span>🦆</span></div>
+    <div class="idle-main">
+      <div class="idle-main-t">이곳은 셀프 결제로 운영되고 있는</div>
+      <div class="idle-main-b">무인매장입니다.</div>
+    </div>
+    <button class="idle-start-btn" onclick="goScreen('scan')">시작하기</button>
+  </div>`;
+}
+
+/* ---- SCAN ---- */
+function rScan(){
+  const total=S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const itemsHTML=S.cart.length===0
+    ?`<div style="padding:14px;text-align:center;color:var(--gray3);font-size:13px;">스캔한 상품이 없습니다</div>`
+    :S.cart.map(item=>`
+      <div class="scanned-item">
+        <span class="si-em">${item.emoji}</span>
+        <span class="si-nm">${item.name}</span>
+        <div class="si-qty-row">
+          <button class="si-qb" onclick="changeQty('${item.id}',-1)">−</button>
+          <span class="si-qn">${item.qty}</span>
+          <button class="si-qb" onclick="changeQty('${item.id}',1)">+</button>
+        </div>
+        <span class="si-pr">${(item.price*item.qty).toLocaleString()}원</span>
+      </div>`).join('');
+  return `<div class="sc-scan">
+    <div class="scan-guide">
+      <span class="scan-g-icon">📦</span>
+      <div>
+        <div class="scan-g-title">상품 QR을 스캔하세요</div>
+        <div class="scan-g-sub">인쇄한 QR 카드를 카메라에 비춰 주세요</div>
+      </div>
+    </div>
+    <div class="scan-vp-wrap">
+      <div class="scan-vp" id="scan-vp">
+        <div class="sc-corner tl"></div><div class="sc-corner tr"></div>
+        <div class="sc-corner bl"></div><div class="sc-corner br"></div>
+        <div class="sc-scanline"></div>
+        <video id="scan-video" autoplay playsinline muted></video>
+        <div id="scan-ph">
+          <div class="ph-ico">📷</div>
+          <p>카메라 버튼을 눌러<br>QR을 스캔하세요</p>
+        </div>
+        <div class="scan-success-pop" id="scan-spop"></div>
+      </div>
+      <div class="scan-btn-row">
+        <button class="scan-cam-btn" id="scan-cam-btn" onclick="toggleCamera()">📷 카메라 스캔</button>
+        <button class="scan-manual-btn" onclick="openModal()">직접 선택</button>
+      </div>
+    </div>
+    <div class="scanned-wrap">
+      <div class="scanned-hd">
+        <span class="scanned-hd-t">🛒 스캔된 상품</span>
+        <span class="scanned-cnt" id="scanned-cnt">${S.cart.length}개</span>
+      </div>
+      <div class="scanned-list" id="scanned-list">${itemsHTML}</div>
+    </div>
+    ${S.cart.length>0?`
+    <div class="scan-total-bar">
+      <span class="stb-lbl">합계</span>
+      <span class="stb-num" id="stb-num">${total.toLocaleString()}원</span>
+    </div>`:''}
+    <button class="scan-pay-btn" id="scan-pay-btn" onclick="goScreen('paymethod')" ${S.cart.length===0?'disabled':''}>
+      결제하기 →
+    </button>
+  </div>`;
+}
+
+/* ---- PAY ---- */
+function rPay(){
+  const total=S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  return `<div class="sc-pay">
+    <div class="pay-title">결제 수단을 선택해주세요</div>
+    <div class="pay-sub">원하시는 방법을 터치하세요</div>
+    <div class="pay-amount-box">
+      <span class="pab-lbl">결제 금액</span>
+      <span class="pab-num">${total.toLocaleString()}원</span>
+    </div>
+    <div class="pay-opts">
+      ${PAY_OPTS.map((p,i)=>`
+        <div class="pay-opt ${S.payMethod===i?'sel':''}" onclick="selectPay(${i})">
+          <span class="pay-opt-ico">${p.emoji}</span>
+          <div>
+            <div class="pay-opt-nm">${p.name}</div>
+            <div class="pay-opt-desc">${p.desc}</div>
+          </div>
+          <div class="pay-opt-chk">✓</div>
+        </div>`).join('')}
+    </div>
+    <div class="pay-next-btn">
+      <button onclick="goScreen('point')" ${S.payMethod===null?'disabled':''}>다음 →</button>
+    </div>
+  </div>`;
+}
+
+/* ---- POINT ---- */
+function rPoint(){
+  if(S._pointStep===2){
+    // numpad input
+    const rawNum = S.phoneNumber;
+    let displayNum = '';
+    if(rawNum.length<=3) displayNum=rawNum;
+    else if(rawNum.length<=7) displayNum=rawNum.slice(0,3)+'-'+rawNum.slice(3);
+    else displayNum=rawNum.slice(0,3)+'-'+rawNum.slice(3,7)+'-'+rawNum.slice(7);
+    const isComplete = rawNum.length===11;
+    return `<div class="sc-point">
+      <div class="point-icon">📱</div>
+      <div class="point-question">전화번호를 입력해주세요</div>
+      <div class="point-sub">선생님이 불러주시는 번호를<br>눌러주세요 (010-XXXX-XXXX)</div>
+      <div class="phone-display-box">
+        <div class="phone-display-label">입력 중인 번호</div>
+        <div class="phone-display-num">
+          ${displayNum || ' '}${!isComplete?'<span class="phone-cursor"></span>':''}
+        </div>
+        <div class="phone-display-fmt">${rawNum.length}/11자리</div>
+      </div>
+      <div class="numpad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`
+          <button class="num-btn" onclick="numInput('${n}')">${n}</button>`).join('')}
+        <button class="num-btn del-btn" onclick="numDelete()">⌫</button>
+        <button class="num-btn" onclick="numInput('0')">0</button>
+        <button class="num-btn confirm-btn" onclick="confirmPhone()" ${!isComplete?'disabled':''}>확인</button>
+      </div>
+    </div>`;
+  }
+  // ask yes/no
+  return `<div class="sc-point">
+    <div class="point-icon">⭐</div>
+    <div class="point-question">포인트를 적립하시겠어요?</div>
+    <div class="point-sub">전화번호로 포인트를 적립하면<br>다음에 할인을 받을 수 있어요!</div>
+    <div class="point-skip-row">
+      <button class="point-skip-no" onclick="skipPoint()">아니오</button>
+      <button class="point-skip-yes" onclick="startPoint()">네, 적립할게요 ⭐</button>
+    </div>
+  </div>`;
+}
+
+function startPoint(){
+  S._pointStep=2;
+  S.phoneNumber='';
+  render();
+}
+function skipPoint(){
+  S.doPoint=false;
+  S._pointStep=null;
+  goScreen('finalpay');
+}
+function numInput(n){
+  if(S.phoneNumber.length>=11) return;
+  S.phoneNumber+=n;
+  reRenderPoint();
+}
+function numDelete(){
+  S.phoneNumber=S.phoneNumber.slice(0,-1);
+  reRenderPoint();
+}
+function confirmPhone(){
+  if(S.phoneNumber.length!==11){toast('⚠️ 11자리 번호를 입력해주세요!');return;}
+  S.doPoint=true;
+  toast('⭐ 포인트 적립 완료! '+formatPhone(S.phoneNumber));
+  goScreen('finalpay');
+}
+function formatPhone(n){return n.length===11?n.slice(0,3)+'-'+n.slice(3,7)+'-'+n.slice(7):n;}
+function reRenderPoint(){
+  const body=document.getElementById('mj-body');
+  if(body) body.innerHTML=rPoint();
+}
+
+/* ---- FINAL PAY ---- */
+function rFinalPay(){
+  const total=S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const po=PAY_OPTS[S.payMethod]||PAY_OPTS[0];
+  const steps=[
+    {ico:po.emoji,txt:po.name+' 준비'},
+    {ico:'📟',txt:'단말기에서 결제를 진행하세요'},
+    {ico:'✅',txt:'결제 완료 후 영수증을 확인하세요'},
+  ];
+  return `<div class="sc-finalpay">
+    <div>
+      <div class="fp-title">결제를 진행해주세요</div>
+      <div class="fp-sub">아래 안내에 따라 결제해주세요</div>
+    </div>
+    <div class="fp-amt">
+      <div class="fp-amt-l">최종 결제 금액</div>
+      <div class="fp-amt-n">${total.toLocaleString()}원</div>
+    </div>
+    <div class="fp-pay-method">
+      <span class="fp-pm-ico">${po.emoji}</span>
+      <span class="fp-pm-txt">${po.name}</span>
+      ${S.doPoint?`<span style="margin-left:auto;font-size:12px;color:rgba(255,255,255,.6);">⭐ ${formatPhone(S.phoneNumber)}</span>`:''}
+    </div>
+    <div class="fp-steps">
+      ${steps.map((s,i)=>`
+        <div class="fp-step-card">
+          <span class="fp-sc-ico">${s.ico}</span>
+          <span class="fp-sc-txt">${s.txt}</span>
+          <div class="fp-sc-num">${i+1}</div>
+        </div>`).join('')}
+    </div>
+    <button class="fp-sim-btn" onclick="goScreen('complete')">💳 결제 완료 (시뮬레이션)</button>
+  </div>`;
+}
+
+/* ---- COMPLETE ---- */
+function rComplete(){
+  const total=S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const po=PAY_OPTS[S.payMethod]||PAY_OPTS[0];
+  S.stats.trials++;
+  S._lastOrderNo=String(Math.floor(Math.random()*9000000)+1000000);
+  updateStats();
+  return `<div class="sc-complete">
+    <div id="kiosk-result-capture">
+      <div class="comp-circle">✅</div>
+      <div class="comp-title">결제 완료!</div>
+      <div class="comp-sub">${po.name}으로 결제되었습니다<br>이용해 주셔서 감사합니다 👻</div>
+      <div class="comp-receipt">
+        <div class="comp-rec-t">영수증</div>
+        ${S.cart.map(i=>`
+          <div class="comp-rec-row">
+            <span>${i.emoji} ${i.name} × ${i.qty}</span>
+            <span>${(i.price*i.qty).toLocaleString()}원</span>
+          </div>`).join('')}
+        <div class="comp-total-row">
+          <span class="comp-total-l">합계</span>
+          <span class="comp-total-n">${total.toLocaleString()}원</span>
+        </div>
+        ${S.doPoint?`
+        <div class="comp-point-confirm">
+          ⭐ <span>${formatPhone(S.phoneNumber)} 포인트 적립 완료!</span>
+        </div>`:''}
+      </div>
+    </div>
+    <div class="comp-btn-row">
+      <button class="comp-rec-btn" onclick="mjOpenReceiptPrint()">영수증 출력</button>
+      <button class="comp-home-btn" onclick="resetAll()">🔄 처음으로</button>
+    </div>
+  </div>`;
+}
+
+function mjOpenReceiptPrint(){
+  if(S.screen!=='complete'){toast('완료 화면에서 출력해 주세요');return;}
+  const total=S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const items=S.cart.map(function(i){
+    return{name:(i.emoji?i.emoji+' ':'')+i.name,unitPrice:i.price,qty:i.qty,lineTotal:i.price*i.qty};
+  });
+  openKioskReceiptModal({
+    toast:toast,
+    filenameBase:'munggu-receipt',
+    orderNo:S._lastOrderNo,
+    purchaseDate:new Date(),
+    items:items,
+    total:total
+  });
+}
+
+/* ====================================================
+   CAMERA
+   ==================================================== */
+function bindScanEvents(){if(S.scanActive) startCamera();}
+async function toggleCamera(){S.scanActive?stopCamera():startCamera();}
+
+async function startCamera(){
+  const btn=document.getElementById('scan-cam-btn');
+  const vid=document.getElementById('scan-video');
+  const ph=document.getElementById('scan-ph');
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{
+      facingMode:'environment',
+      width:{ideal:1280,min:640},
+      height:{ideal:720,min:480}
+    }});
+    vid.srcObject=stream; vid.style.display='block';
+    if(ph) ph.style.display='none';
+    if(btn){btn.textContent='⏹ 스캔 중지';btn.classList.add('scanning');}
+    S.scanActive=true; S._stream=stream;
+    startBarcodeDetect(vid);
+  }catch(e){
+    toast('📷 카메라 불가 — "직접 선택"을 이용하세요');
+  }
+}
+function stopCamera(){
+  if(S._stream){S._stream.getTracks().forEach(t=>t.stop());S._stream=null;}
+  clearInterval(S._bcInterval);
+  const vid=document.getElementById('scan-video');
+  const ph=document.getElementById('scan-ph');
+  const btn=document.getElementById('scan-cam-btn');
+  if(vid){vid.srcObject=null;vid.style.display='none';}
+  if(ph) ph.style.display='flex';
+  if(btn){btn.textContent='📷 카메라 스캔';btn.classList.remove('scanning');}
+  S.scanActive=false;
+}
+
+let lastScanCode='',lastScanTime=0;
+/** 스캐너·카메라가 돌려주는 문자열 정규화 (공백·제로폭·선행 0) */
+function normalizeScanCode(raw){
+  if(raw==null||raw===undefined) return '';
+  let s=String(raw).trim().replace(/[\s\r\n\u200B-\u200D\uFEFF]/g,'');
+  s=s.replace(/[０-９]/g,function(ch){ return String.fromCharCode(ch.charCodeAt(0)-0xFEE0); });
+  return s;
+}
+function resolveProductFromScan(raw){
+  const c0=normalizeScanCode(raw);
+  if(!c0) return null;
+  if(prodMap[c0]) return prodMap[c0];
+  if(/^\d+$/.test(c0)){
+    const noZero=c0.replace(/^0+/,'')||'0';
+    if(noZero!==c0 && prodMap[noZero]) return prodMap[noZero];
+    for(let i=0;i<PRODUCTS.length;i++){
+      const p=PRODUCTS[i];
+      if(c0===p.id || (c0.endsWith(p.id) && c0.length<=p.id.length+6)) return p;
+    }
+  }
+  return PRODUCTS.find(function(x){ return c0===x.id || c0.indexOf(x.id)>=0 || x.id.indexOf(c0)>=0; })||null;
+}
+var _mungguScanCanvas=null,_mungguScanCtx=null;
+function startBarcodeDetect(vid){
+  if('BarcodeDetector' in window){
+    const det=new BarcodeDetector({formats:['qr_code','code_128','ean_13','ean_8','upc_a','upc_e','code_39']});
+    S._bcInterval=setInterval(async()=>{
+      try{
+        if(vid.readyState<2) return;
+        const vw=vid.videoWidth,vh=vid.videoHeight;
+        if(!vw||!vh) return;
+        var src=vid,scale=vw<1280?2:1;
+        if(scale>1){
+          if(!_mungguScanCanvas){_mungguScanCanvas=document.createElement('canvas');_mungguScanCtx=_mungguScanCanvas.getContext('2d');}
+          _mungguScanCanvas.width=vw*scale;_mungguScanCanvas.height=vh*scale;
+          _mungguScanCtx.imageSmoothingEnabled=false;
+          _mungguScanCtx.drawImage(vid,0,0,_mungguScanCanvas.width,_mungguScanCanvas.height);
+          src=_mungguScanCanvas;
+        }
+        const codes=await det.detect(src);
+        if(codes.length>0) handleBarcode(codes[0].rawValue);
+      }catch(e){}
+    },220);
+  } else {
+    toast('💡 이 기기는 "직접 선택"을 권장합니다');
+  }
+}
+function handleBarcode(code){
+  const norm=normalizeScanCode(code);
+  const now=Date.now();
+  if(norm===lastScanCode&&now-lastScanTime<2000) return;
+  lastScanCode=norm; lastScanTime=now;
+  const p=resolveProductFromScan(code);
+  if(!p){toast('⚠️ 미등록 코드: '+norm);return;}
+  addProduct(p);
+}
+function addProduct(p){
+  const ex=S.cart.find(c=>c.id===p.id);
+  if(ex) ex.qty++;
+  else S.cart.push({...p,qty:1});
+  const pop=document.getElementById('scan-spop');
+  if(pop){pop.textContent='✅ '+p.emoji+' '+p.name;pop.classList.add('show');setTimeout(()=>pop.classList.remove('show'),1100);}
+  toast('🛒 '+p.name+' 담았어요!');
+  refreshScanList();
+}
+function changeQty(id,d){
+  const item=S.cart.find(c=>c.id===id);
+  if(!item) return;
+  item.qty+=d;
+  if(item.qty<=0) S.cart=S.cart.filter(c=>c.id!==id);
+  refreshScanList();
+}
+function refreshScanList(){
+  const list=document.getElementById('scanned-list');
+  const cnt=document.getElementById('scanned-cnt');
+  const numEl=document.getElementById('stb-num');
+  const payBtn=document.getElementById('scan-pay-btn');
+  const total=S.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  if(list){
+    list.innerHTML=S.cart.length===0
+      ?`<div style="padding:14px;text-align:center;color:var(--gray3);font-size:13px;">스캔한 상품이 없습니다</div>`
+      :S.cart.map(i=>`
+        <div class="scanned-item">
+          <span class="si-em">${i.emoji}</span>
+          <span class="si-nm">${i.name}</span>
+          <div class="si-qty-row">
+            <button class="si-qb" onclick="changeQty('${i.id}',-1)">−</button>
+            <span class="si-qn">${i.qty}</span>
+            <button class="si-qb" onclick="changeQty('${i.id}',1)">+</button>
+          </div>
+          <span class="si-pr">${(i.price*i.qty).toLocaleString()}원</span>
+        </div>`).join('');
+  }
+  if(cnt) cnt.textContent=S.cart.length+'개';
+  if(numEl) numEl.textContent=total.toLocaleString()+'원';
+  if(payBtn) payBtn.disabled=S.cart.length===0;
+  // show/hide total bar
+  const tb=document.querySelector('.scan-total-bar');
+  if(S.cart.length>0&&!tb){
+    const scanEl=document.querySelector('.sc-scan');
+    if(scanEl){
+      const div=document.createElement('div');
+      div.className='scan-total-bar';
+      div.innerHTML=`<span class="stb-lbl">합계</span><span class="stb-num" id="stb-num">${total.toLocaleString()}원</span>`;
+      const payBtnEl=document.querySelector('.scan-pay-btn');
+      if(payBtnEl) scanEl.insertBefore(div,payBtnEl);
+    }
+  }
+}
+
+/* ====================================================
+   MODAL
+   ==================================================== */
+function openModal(){
+  document.getElementById('modal-list').innerHTML=PRODUCTS.map(p=>`
+    <div class="modal-item" onclick="addProduct(prodMap['${p.id}']);closeModal();">
+      <span class="mi-em">${p.emoji}</span>
+      <span class="mi-nm">${p.name}</span>
+      <span class="mi-pr">${p.price.toLocaleString()}원</span>
+    </div>`).join('');
+  document.getElementById('modal-ov').classList.add('show');
+}
+function closeModal(){document.getElementById('modal-ov').classList.remove('show');}
+
+/* ====================================================
+   QUIZ
+   ==================================================== */
+function triggerQuiz(){
+  const real=S.cart;
+  if(!real.length) return;
+  const correct=real[Math.floor(Math.random()*real.length)];
+  const distractors=PRODUCTS.filter(p=>p.id!==correct.id).sort(()=>Math.random()-.5).slice(0,3);
+  const choices=[...distractors.map(p=>({...p,c:false})),{...correct,c:true}].sort(()=>Math.random()-.5);
+  document.getElementById('quiz-t').textContent='아까 산 물건이 뭐였지?';
+  document.getElementById('quiz-s').textContent='방금 결제한 내용을 기억해 보세요!';
+  document.getElementById('quiz-choices').innerHTML=choices.map((c,i)=>`
+    <button class="quiz-choice" onclick="answerQuiz(this,${c.c})" data-c="${c.c}">
+      <span>${c.emoji}</span>${c.name}
+    </button>`).join('');
+  document.getElementById('quiz-fb').className='quiz-fb';
+  document.getElementById('quiz-nxt').className='quiz-nxt';
+  document.getElementById('quiz-ov').classList.add('show');
+}
+function answerQuiz(el,isOk){
+  document.querySelectorAll('.quiz-choice').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.c==='true') b.classList.add('correct');
+  });
+  if(!isOk) el.classList.add('wrong');
+  const fb=document.getElementById('quiz-fb');
+  if(isOk){fb.textContent='🎉 정답! 기억력이 훌륭해요!';fb.className='quiz-fb show good';S.stats.correct++;}
+  else{fb.textContent='🤔 아쉬워요! 다음에 더 잘 기억해봐요!';fb.className='quiz-fb show bad';}
+  document.getElementById('quiz-nxt').className='quiz-nxt show';
+  updateStats();
+}
+function closeQuiz(){document.getElementById('quiz-ov').classList.remove('show');}
+
+/* ====================================================
+   NAVIGATION
+   ==================================================== */
+function goScreen(name){
+  stopCamera();
+  S.screen=name;
+  render();
+}
+function selectPay(i){S.payMethod=i;render();}
+
+function resetAll(){
+  stopCamera();
+  S.screen='idle';S.cart=[];S.payMethod=null;
+  S.phoneNumber='';S.doPoint=false;S._pointStep=null;
+  setMission(); render();
+  toast('🔄 새 세션 시작!');
+}
+
+/* ====================================================
+   SIDEBAR
+   ==================================================== */
+function togglePanel(){
+  const p=document.getElementById('tp');
+  const b=document.getElementById('pt-btn');
+  p.classList.toggle('collapsed');
+  S.panelOpen=!p.classList.contains('collapsed');
+  b.classList.toggle('open',S.panelOpen);
+}
+function toggleOpt(k,el){
+  S.opts[k]=!S.opts[k];
+  el.classList.toggle('on');
+  if(k==='mission') document.getElementById('wm-bar').style.display=S.opts.mission?'block':'none';
+  if(k==='hide') updateWmBar();
+}
+function setDiff(d,el){
+  S.difficulty=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.className='diff-btn');
+  el.className=`diff-btn a${d}`;
+  document.getElementById('diff-desc-tp').textContent=DIFF_DESC[d];
+  setMission();
+}
+function setMission(){
+  const list=MISSIONS[S.difficulty];
+  S.mission=list[Math.floor(Math.random()*list.length)];
+  updateWmBar();
+}
+function updateWmBar(){
+  const t=document.getElementById('wm-task');
+  const r=document.getElementById('wm-reveal');
+  if(!t) return;
+  t.textContent=S.mission;
+  if(S.opts.hide){t.classList.add('blr');r.style.display='block';}
+  else{t.classList.remove('blr');r.style.display='none';}
+  document.getElementById('wm-bar').style.display=S.opts.mission?'block':'none';
+}
+function revealMission(){
+  const t=document.getElementById('wm-task');
+  const r=document.getElementById('wm-reveal');
+  t.classList.remove('blr'); r.style.display='none';
+  setTimeout(()=>{if(S.opts.hide){t.classList.add('blr');r.style.display='block';}},3000);
+}
+function updateStats(){
+  document.getElementById('st-t').textContent=S.stats.trials;
+  document.getElementById('st-c').textContent=S.stats.correct;
+  const p=S.stats.trials>0?Math.round(S.stats.correct/S.stats.trials*100):0;
+  document.getElementById('st-p').textContent=p+'%';
+}
+
+/* ====================================================
+   QR CARD PAGE
+   ==================================================== */
+function renderProductQr(hostEl,text,displayPx){
+  if(!hostEl||typeof QRCode==='undefined') return;
+  hostEl.innerHTML='';
+  var d=displayPx||132;
+  var internal=Math.max(400,Math.round(d*3));
+  try{
+    new QRCode(hostEl,{
+      text:String(text),
+      width:internal,
+      height:internal,
+      colorDark:'#000000',
+      colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+    var img=hostEl.querySelector('img'),cv=hostEl.querySelector('canvas');
+    if(img){
+      img.classList.add('qr-bitmap');
+      img.style.width=d+'px';img.style.height=d+'px';img.alt='QR';
+    }
+    if(cv){
+      cv.classList.add('qr-bitmap');
+      if(!img){cv.style.width=d+'px';cv.style.height=d+'px';}
+    }
+  }catch(e){console.warn('QR',e);}
+}
+function printBarcodeToPdf(){
+  toast('인쇄 창에서 «대상» → PDF로 저장을 선택하세요');
+  setTimeout(function(){ window.print(); }, 450);
+}
+function openBcPage(){
+  buildBcPage();
+  document.getElementById('bc-page').style.display='block';
+  document.getElementById('app-root').style.display='none';
+  document.getElementById('pt-btn').style.display='none';
+}
+function closeBcPage(){
+  document.getElementById('bc-page').style.display='none';
+  document.getElementById('app-root').style.display='flex';
+  document.getElementById('pt-btn').style.display='flex';
+}
+function makeBcCard(p,selId){
+  const c=document.getElementById(selId);
+  if(!c) return;
+  const div=document.createElement('div');
+  div.className='bcp-card';
+  div.innerHTML=`
+    <span class="bcp-em">${p.emoji}</span>
+    <div class="bcp-nm">${p.name}</div>
+    <div class="bcp-pr">${p.price.toLocaleString()}원</div>
+    <div class="bcp-bc-lbl">QR · ${p.id}</div>
+    <div class="bcp-qr-host" id="bcsvg-${p.id}"></div>`;
+  c.appendChild(div);
+  setTimeout(function(){
+    var el=document.getElementById('bcsvg-'+p.id);
+    if(el) renderProductQr(el,p.id,132);
+  },60);
+}
+function buildBcPage(){
+  ['bcp-stationery','bcp-art','bcp-school','bcp-toy','bcp-print-grid'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML='';
+  });
+  const catMap={stationery:'bcp-stationery',art:'bcp-art',school:'bcp-school',toy:'bcp-toy'};
+  PRODUCTS.forEach(p=>{
+    if(catMap[p.cat]) makeBcCard(p,catMap[p.cat]);
+    // print strip
+    const pg=document.getElementById('bcp-print-grid');
+    if(pg){
+      const item=document.createElement('div');
+      item.className='bcp-pa-item';
+      item.innerHTML=`
+        <span class="bcp-pa-em">${p.emoji}</span>
+        <div class="bcp-pa-nm">${p.name}</div>
+        <div class="bcp-pa-pr">${p.price.toLocaleString()}원</div>
+        <div class="bcp-pa-qr" id="bcpa-${p.id}"></div>`;
+      pg.appendChild(item);
+      setTimeout(function(){
+        var el=document.getElementById('bcpa-'+p.id);
+        if(el) renderProductQr(el,p.id,104);
+      },80);
+    }
+  });
+}
+
+/* ====================================================
+   INIT
+   ==================================================== */
+setMission();
+render();
+</script>
+</body>
+</html>

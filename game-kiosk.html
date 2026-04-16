@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link IT 2.0 — KIOSK</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #0D2B4E;
+    --blue:   #1B4F8A;
+    --sky:    #4A9ECA;
+    --mint:   #00C9A7;
+    --white:  #FFFFFF;
+    --text:   #E8F2FF;
+    --muted:  rgba(232,242,255,0.50);
+    --glass:  rgba(255,255,255,0.06);
+    --glass2: rgba(255,255,255,0.11);
+    --border: rgba(74,158,202,0.15);
+
+    /* 맥도날드 스타일 키오스크 */
+    --kk-bg:     #1A1A1A;
+    --kk-panel:  #222222;
+    --kk-red:    #DA291C;
+    --kk-yellow: #FFC72C;
+    --kk-white:  #FFFFFF;
+    --kk-gray:   #AAAAAA;
+    --kk-border: #333333;
+    --kk-green:  #27AE60;
+    --kk-card:   #2A2A2A;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:'Noto Sans KR',sans-serif;
+    background:var(--navy);
+    color:var(--text);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; opacity:.4;
+  }
+
+  /* NAV */
+  nav {
+    position:sticky; top:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 32px; height:56px;
+    background:rgba(13,43,78,0.9); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-left { display:flex; align-items:center; gap:12px; }
+  .nav-back {
+    width:32px; height:32px; border-radius:9px;
+    background:var(--glass2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:14px; color:var(--muted);
+    transition:all .2s; text-decoration:none;
+  }
+  .nav-back:hover { color:var(--text); border-color:rgba(74,158,202,0.4); }
+  .nav-logo-mark {
+    width:28px; height:28px; border-radius:8px;
+    background:linear-gradient(135deg,var(--mint),var(--sky));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--navy);
+  }
+  .nav-title { font-size:15px; font-weight:700; color:var(--white); }
+  .nav-sub   { font-size:11px; color:var(--mint); font-weight:500; }
+
+  /* SHELL */
+  .game-shell {
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns:280px 1fr 280px;
+    min-height:calc(100vh - 56px);
+  }
+
+  /* LEFT PANEL */
+  .panel-left {
+    border-right:1px solid var(--border);
+    padding:22px 18px;
+    display:flex; flex-direction:column; gap:14px;
+    background:rgba(13,43,78,0.4);
+  }
+  .mission-tag   { font-size:10px; font-weight:700; color:var(--mint); letter-spacing:2px; text-transform:uppercase; }
+  .mission-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--white); margin-top:2px; }
+
+  .mission-card {
+    background:rgba(0,201,167,0.08); border:1px solid rgba(0,201,167,0.25);
+    border-radius:13px; padding:14px;
+  }
+  .mission-label { font-size:10px; font-weight:700; color:var(--mint); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+  .mission-text  { font-size:14px; font-weight:700; color:var(--white); line-height:1.5; }
+  .mission-sub   { font-size:12px; color:var(--muted); margin-top:6px; line-height:1.6; font-weight:300; }
+
+  /* ORDER SUMMARY */
+  .order-summary {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:13px; padding:14px;
+  }
+  .order-summary-title {
+    font-size:11px; font-weight:700; color:var(--muted);
+    letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px;
+  }
+  .order-item-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:6px 0; border-bottom:1px solid rgba(74,158,202,0.08);
+    font-size:12px;
+  }
+  .order-item-row:last-child { border-bottom:none; }
+  .order-item-name { color:var(--text); font-weight:500; }
+  .order-item-price{ font-family:'JetBrains Mono',monospace; color:var(--mint); font-weight:600; }
+  .order-total-row {
+    display:flex; justify-content:space-between;
+    margin-top:10px; padding-top:10px;
+    border-top:1px solid rgba(74,158,202,0.15);
+    font-size:14px; font-weight:700;
+    color:var(--white);
+  }
+  .order-total-price { font-family:'JetBrains Mono',monospace; color:var(--yellow,#FFC72C); }
+
+  /* STEPS */
+  .steps-wrap { display:flex; flex-direction:column; gap:0; }
+  .step-item {
+    display:flex; gap:10px; align-items:flex-start;
+    padding:8px 0; position:relative;
+  }
+  .step-item:not(:last-child)::after {
+    content:''; position:absolute;
+    left:14px; top:32px; bottom:-8px; width:2px;
+    background:rgba(74,158,202,0.12);
+  }
+  .step-num {
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    border:2px solid rgba(74,158,202,0.2);
+    color:var(--muted); background:var(--glass);
+    transition:all .3s; position:relative; z-index:1;
+  }
+  .step-num.done   { background:rgba(0,201,167,0.2); border-color:var(--mint); color:var(--mint); }
+  .step-num.active { background:rgba(74,158,202,0.2); border-color:var(--sky); color:var(--sky); animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,202,0.4)} 50%{box-shadow:0 0 0 6px rgba(74,158,202,0)} }
+  .step-info  { flex:1; padding-top:4px; }
+  .step-name  { font-size:12px; font-weight:600; color:var(--text); }
+  .step-name.active-text { color:var(--sky); }
+  .step-name.done-text   { color:var(--mint); }
+  .step-desc  { font-size:10px; color:var(--muted); margin-top:1px; }
+
+  /* SCORE BOARD */
+  .score-board {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:13px; padding:14px;
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-top:auto;
+  }
+  .score-item  { display:flex; flex-direction:column; gap:2px; }
+  .score-label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+  .score-value { font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:600; color:var(--white); }
+  .score-value.green { color:var(--mint); }
+  .score-value.blue  { color:var(--sky); }
+  .score-value.amber { color:#FFC72C; }
+
+  .hint-btn {
+    width:100%; padding:9px;
+    background:rgba(74,158,202,0.1); border:1px solid rgba(74,158,202,0.2);
+    border-radius:10px; color:var(--sky); font-size:12px; font-weight:600;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+  }
+  .hint-btn:hover { background:rgba(74,158,202,0.18); }
+  .hint-box {
+    background:rgba(74,158,202,0.08); border:1px solid rgba(74,158,202,0.2);
+    border-radius:10px; padding:10px; font-size:11px; color:var(--sky);
+    line-height:1.65; display:none;
+  }
+  .hint-box.show { display:block; animation:fadeUp .3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* CENTER */
+  .simulator-wrap {
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 20px; background:rgba(13,43,78,0.15);
+  }
+
+  /* KIOSK FRAME */
+  .kiosk-frame {
+    width:480px; border-radius:20px;
+    background:var(--kk-bg);
+    box-shadow:0 40px 100px rgba(0,0,0,0.7), 0 0 0 2px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.08);
+    overflow:hidden; flex-shrink:0;
+  }
+  .kiosk-top-bar {
+    background:#111; padding:8px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .kiosk-brand {
+    font-size:22px; font-weight:900; color:var(--kk-yellow);
+    font-family:'Noto Sans KR',sans-serif; letter-spacing:-0.5px;
+  }
+  .kiosk-brand span { color:var(--kk-red); }
+  .kiosk-time { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--kk-gray); }
+  .kiosk-screen {
+    background:var(--kk-bg); min-height:620px;
+    overflow:hidden; position:relative;
+  }
+
+  /* KIOSK SCREENS */
+  .kscreen {
+    position:absolute; inset:0;
+    display:none; flex-direction:column;
+    overflow-y:auto; overflow-x:hidden;
+    animation:kSlide .2s ease;
+  }
+  .kscreen.active { display:flex; }
+  @keyframes kSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* WELCOME */
+  .welcome-bg {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(160deg,#1A1A1A,#2A1A00);
+    padding:40px 30px; text-align:center; gap:16px;
+  }
+  .welcome-logo { font-size:64px; }
+  .welcome-name {
+    font-size:28px; font-weight:900; color:var(--kk-yellow);
+    font-family:'Noto Sans KR',sans-serif; letter-spacing:-1px;
+  }
+  .welcome-name span { color:var(--kk-white); }
+  .welcome-sub { font-size:13px; color:var(--kk-gray); }
+  .welcome-btn {
+    margin-top:12px; padding:16px 40px;
+    background:var(--kk-yellow); border:none; border-radius:12px;
+    font-size:16px; font-weight:700; color:#1A1A00;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer;
+    transition:all .2s;
+    box-shadow:0 4px 16px rgba(255,199,44,0.35);
+  }
+  .welcome-btn:hover { background:#FFD45C; transform:scale(1.03); }
+  .welcome-btn:active { transform:scale(0.98); }
+
+  /* DINE TYPE */
+  .dine-header {
+    background:var(--kk-red); padding:16px 20px;
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .dine-back {
+    width:32px; height:32px; border-radius:8px;
+    background:rgba(255,255,255,0.15); border:none; cursor:pointer;
+    color:var(--kk-white); font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .dine-back:hover { background:rgba(255,255,255,0.25); }
+  .dine-title { font-size:16px; font-weight:700; color:var(--kk-white); }
+
+  .dine-options {
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    padding:24px 20px; flex:1;
+  }
+  .dine-card {
+    background:var(--kk-card); border:2px solid var(--kk-border);
+    border-radius:16px; padding:24px 16px;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    cursor:pointer; transition:all .2s;
+  }
+  .dine-card:hover { border-color:var(--kk-yellow); transform:translateY(-2px); }
+  .dine-card:active { transform:scale(0.97); }
+  .dine-card.target-dine:hover { border-color:var(--kk-yellow); }
+  .dine-icon  { font-size:44px; }
+  .dine-label { font-size:15px; font-weight:700; color:var(--kk-white); }
+  .dine-sub   { font-size:11px; color:var(--kk-gray); text-align:center; }
+
+  /* MENU */
+  .menu-header {
+    background:var(--kk-red); padding:12px 16px;
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .menu-title { font-size:15px; font-weight:700; color:var(--kk-white); flex:1; }
+  .cart-chip {
+    display:flex; align-items:center; gap:5px;
+    background:var(--kk-yellow); border:none; border-radius:20px;
+    padding:5px 12px; cursor:pointer;
+    font-size:12px; font-weight:700; color:#1A1A00;
+    font-family:'Noto Sans KR',sans-serif;
+    transition:all .15s;
+  }
+  .cart-chip:hover { background:#FFD45C; }
+  .cart-count {
+    background:var(--kk-red); color:#fff; border-radius:50%;
+    width:16px; height:16px; display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700;
+  }
+
+  .cat-tabs {
+    display:flex; gap:0; background:#111; flex-shrink:0;
+    border-bottom:2px solid var(--kk-border); overflow-x:auto;
+  }
+  .cat-tab {
+    flex-shrink:0; padding:10px 16px;
+    font-size:12px; font-weight:600; color:var(--kk-gray);
+    cursor:pointer; border:none; background:none;
+    font-family:'Noto Sans KR',sans-serif;
+    border-bottom:2px solid transparent; margin-bottom:-2px;
+    transition:all .15s;
+  }
+  .cat-tab.active { color:var(--kk-yellow); border-bottom-color:var(--kk-yellow); }
+  .cat-tab:hover  { color:var(--kk-white); }
+
+  .menu-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:1px;
+    background:var(--kk-border); flex:1;
+  }
+  .menu-item {
+    background:var(--kk-card); padding:14px 12px;
+    cursor:pointer; transition:all .15s;
+    display:flex; flex-direction:column; gap:6px;
+    position:relative;
+  }
+  .menu-item:hover   { background:#333; }
+  .menu-item:active  { background:#3A3A3A; transform:scale(0.99); }
+  .menu-item.target  { border:2px solid transparent; }
+  .menu-emoji { font-size:36px; text-align:center; }
+  .menu-name  { font-size:12px; font-weight:600; color:var(--kk-white); line-height:1.35; }
+  .menu-price { font-size:13px; font-weight:700; color:var(--kk-yellow); }
+  .menu-cal   { font-size:10px; color:var(--kk-gray); }
+  .menu-badge {
+    position:absolute; top:8px; right:8px;
+    font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px;
+    background:var(--kk-red); color:#fff;
+  }
+  .add-btn {
+    width:28px; height:28px; border-radius:50%;
+    background:var(--kk-yellow); border:none; cursor:pointer;
+    font-size:18px; font-weight:700; color:#1A1A00;
+    display:flex; align-items:center; justify-content:center;
+    align-self:flex-end; margin-top:2px; transition:all .15s;
+    font-family:monospace;
+  }
+  .add-btn:hover { background:#FFD45C; transform:scale(1.1); }
+
+  /* SET MENU OPTION */
+  .option-header {
+    background:var(--kk-red); padding:12px 16px;
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .option-title { font-size:15px; font-weight:700; color:var(--kk-white); flex:1; }
+  .option-body { padding:16px; display:flex; flex-direction:column; gap:12px; flex:1; }
+  .option-item-preview {
+    display:flex; align-items:center; gap:14px;
+    background:var(--kk-card); border-radius:12px; padding:14px;
+  }
+  .opt-emoji { font-size:40px; }
+  .opt-info  { flex:1; }
+  .opt-name  { font-size:14px; font-weight:700; color:var(--kk-white); }
+  .opt-price { font-size:16px; font-weight:700; color:var(--kk-yellow); margin-top:3px; }
+
+  .option-section-title {
+    font-size:13px; font-weight:700; color:var(--kk-white); margin-bottom:8px;
+  }
+  .drink-options { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .drink-opt {
+    background:var(--kk-card); border:2px solid var(--kk-border);
+    border-radius:10px; padding:10px 6px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; transition:all .15s;
+  }
+  .drink-opt:hover    { border-color:var(--kk-yellow); }
+  .drink-opt.selected { border-color:var(--kk-yellow); background:#2A2500; }
+  .drink-emoji { font-size:24px; }
+  .drink-name  { font-size:10px; color:var(--kk-white); font-weight:500; text-align:center; }
+
+  .qty-row {
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--kk-card); border-radius:10px; padding:12px 14px;
+  }
+  .qty-label { font-size:13px; color:var(--kk-white); font-weight:600; }
+  .qty-ctrl  { display:flex; align-items:center; gap:0; }
+  .qty-btn-k {
+    width:32px; height:32px; border-radius:8px;
+    background:#444; border:none; font-size:18px; cursor:pointer;
+    color:var(--kk-white); font-family:monospace;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s;
+  }
+  .qty-btn-k:hover { background:#555; }
+  .qty-num-k {
+    width:40px; height:32px; background:#2A2A2A;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; font-weight:700; color:var(--kk-white);
+    border-left:1px solid var(--kk-border); border-right:1px solid var(--kk-border);
+  }
+  .option-footer {
+    padding:14px 16px; display:flex; gap:10px; flex-shrink:0;
+    border-top:1px solid var(--kk-border); background:var(--kk-panel);
+  }
+  .btn-cancel {
+    flex:1; padding:13px; border-radius:10px;
+    background:#333; border:none; color:var(--kk-white);
+    font-size:13px; font-weight:700; font-family:'Noto Sans KR',sans-serif;
+    cursor:pointer; transition:all .15s;
+  }
+  .btn-cancel:hover { background:#444; }
+  .btn-add-cart {
+    flex:2; padding:13px; border-radius:10px;
+    background:var(--kk-yellow); border:none; color:#1A1A00;
+    font-size:13px; font-weight:700; font-family:'Noto Sans KR',sans-serif;
+    cursor:pointer; transition:all .15s;
+  }
+  .btn-add-cart:hover { background:#FFD45C; }
+
+  /* CART REVIEW */
+  .cart-header-bar {
+    background:var(--kk-red); padding:12px 16px;
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .cart-title-bar { font-size:15px; font-weight:700; color:var(--kk-white); flex:1; }
+  .cart-body { flex:1; padding:14px 16px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+  .cart-row {
+    display:flex; align-items:center; gap:12px;
+    background:var(--kk-card); border-radius:12px; padding:12px 14px;
+  }
+  .cart-emoji { font-size:28px; flex-shrink:0; }
+  .cart-item-info { flex:1; }
+  .cart-item-name  { font-size:13px; font-weight:600; color:var(--kk-white); }
+  .cart-item-opt   { font-size:11px; color:var(--kk-gray); margin-top:2px; }
+  .cart-item-price { font-size:14px; font-weight:700; color:var(--kk-yellow); }
+  .cart-del {
+    width:26px; height:26px; border-radius:50%;
+    background:#444; border:none; color:var(--kk-gray);
+    cursor:pointer; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .cart-del:hover { background:var(--kk-red); color:#fff; }
+
+  .cart-price-box {
+    background:var(--kk-card); border-radius:12px; padding:14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .cprice-row { display:flex; justify-content:space-between; font-size:12px; color:var(--kk-gray); }
+  .cprice-row.total {
+    font-size:16px; font-weight:700; color:var(--kk-white);
+    padding-top:8px; margin-top:4px; border-top:1px solid var(--kk-border);
+  }
+  .cprice-row.total span:last-child { color:var(--kk-yellow); }
+
+  .cart-footer {
+    padding:14px 16px; border-top:1px solid var(--kk-border);
+    background:var(--kk-panel); flex-shrink:0;
+  }
+  .pay-btn {
+    width:100%; padding:15px; border-radius:12px;
+    background:linear-gradient(135deg,var(--kk-red),#FF4040); border:none;
+    color:var(--kk-white); font-size:15px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer;
+    transition:all .2s;
+    box-shadow:0 4px 16px rgba(218,41,28,0.35);
+  }
+  .pay-btn:hover { background:linear-gradient(135deg,#FF3333,#FF5555); transform:scale(1.01); }
+
+  /* PAYMENT */
+  .pay-screen-body {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:28px 24px; text-align:center; gap:16px;
+  }
+  .pay-amount {
+    font-size:36px; font-weight:700; color:var(--kk-yellow);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .pay-methods {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    width:100%; margin-top:8px;
+  }
+  .pay-method {
+    background:var(--kk-card); border:2px solid var(--kk-border);
+    border-radius:14px; padding:18px 12px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; transition:all .2s;
+  }
+  .pay-method:hover  { border-color:var(--kk-yellow); transform:translateY(-2px); }
+  .pay-method:active { transform:scale(0.97); }
+  .pay-method.target-pay { border-color:transparent; }
+  .pay-method-icon  { font-size:32px; }
+  .pay-method-label { font-size:13px; font-weight:700; color:var(--kk-white); }
+  .pay-method-sub   { font-size:10px; color:var(--kk-gray); text-align:center; }
+
+  /* COMPLETE */
+  .complete-screen {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:28px 24px; text-align:center; gap:14px;
+    background:linear-gradient(160deg,#1A1A1A,#001A0D);
+  }
+  .complete-ring {
+    width:80px; height:80px; border-radius:50%;
+    background:linear-gradient(135deg,var(--kk-green),#2ECC71);
+    display:flex; align-items:center; justify-content:center;
+    font-size:36px;
+    animation:popIn .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+  .complete-title { font-size:20px; font-weight:700; color:var(--kk-white); }
+  .complete-num {
+    font-family:'JetBrains Mono',monospace;
+    font-size:28px; font-weight:700; color:var(--kk-yellow);
+    background:var(--kk-card); padding:10px 24px; border-radius:10px;
+  }
+  .complete-sub { font-size:12px; color:var(--kk-gray); line-height:1.6; }
+  .complete-restart {
+    margin-top:8px; padding:12px 28px;
+    background:var(--kk-yellow); border:none; border-radius:10px;
+    font-size:13px; font-weight:700; color:#1A1A00;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .2s;
+  }
+  .complete-restart:hover { background:#FFD45C; }
+
+  /* RIGHT PANEL */
+  .panel-right {
+    border-left:1px solid var(--border);
+    padding:22px 18px;
+    display:flex; flex-direction:column; gap:14px;
+    background:rgba(13,43,78,0.4);
+  }
+  .feedback-tag   { font-size:10px; font-weight:700; color:var(--sky); letter-spacing:2px; text-transform:uppercase; }
+  .feedback-title { font-size:16px; font-weight:700; color:var(--white); margin-top:2px; }
+
+  .action-log {
+    flex:1; display:flex; flex-direction:column; gap:6px;
+    overflow-y:auto; max-height:380px;
+  }
+  .log-item {
+    display:flex; align-items:flex-start; gap:8px;
+    padding:8px 10px; border-radius:9px;
+    background:var(--glass); border:1px solid var(--border);
+    animation:fadeUp .3s ease;
+  }
+  .log-item.correct { border-color:rgba(0,201,167,0.3); background:rgba(0,201,167,0.07); }
+  .log-item.wrong   { border-color:rgba(255,107,122,0.3); background:rgba(255,107,122,0.07); }
+  .log-item.info    { border-color:rgba(74,158,202,0.2); }
+  .log-icon { font-size:13px; flex-shrink:0; margin-top:1px; }
+  .log-text { font-size:11px; color:var(--text); line-height:1.5; flex:1; }
+  .log-text em { font-style:normal; color:var(--mint); font-weight:600; }
+  .log-time { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); flex-shrink:0; }
+
+  .cognition-box {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:12px; padding:13px;
+  }
+  .cog-title { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .cog-row {
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12px; margin-bottom:5px;
+  }
+  .cog-label { color:var(--muted); }
+  .cog-val   { font-weight:600; }
+  .cog-bar-wrap { height:3px; background:rgba(255,255,255,0.07); border-radius:2px; margin-top:2px; margin-bottom:6px; overflow:hidden; }
+  .cog-bar { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--sky),var(--mint)); transition:width .8s ease; }
+
+  /* RESULT OVERLAY */
+  .result-overlay {
+    position:fixed; inset:0; z-index:300;
+    background:rgba(13,43,78,0.85); backdrop-filter:blur(10px);
+    display:none; align-items:center; justify-content:center;
+  }
+  .result-overlay.show { display:flex; }
+  .result-modal {
+    background:linear-gradient(145deg,#0D2B4E,#1B4F8A);
+    border:1px solid rgba(74,158,202,0.3);
+    border-radius:24px; padding:36px 32px;
+    text-align:center; max-width:400px; width:90%;
+    animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .result-stars { font-size:36px; letter-spacing:4px; margin-bottom:12px; }
+  .result-title { font-family:'DM Serif Display',serif; font-size:26px; color:var(--white); margin-bottom:6px; }
+  .result-sub   { font-size:13px; color:var(--muted); margin-bottom:24px; }
+  .result-scores { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  .rs-item  { display:flex; flex-direction:column; gap:3px; }
+  .rs-val   { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:600; color:var(--white); }
+  .rs-val span { font-size:13px; color:var(--muted); }
+  .rs-label { font-size:10px; color:var(--muted); letter-spacing:0.5px; }
+  .result-btn {
+    width:100%; padding:13px; border-radius:12px;
+    background:linear-gradient(135deg,var(--mint),#00A88E);
+    border:none; color:var(--navy); font-size:14px; font-weight:700;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer; transition:all .25s;
+  }
+  .result-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,201,167,0.35); }
+  .result-btn-sec {
+    width:100%; padding:11px; border-radius:12px; margin-top:8px;
+    background:var(--glass2); border:1px solid var(--border);
+    color:var(--muted); font-size:12px; font-weight:500;
+    font-family:'Noto Sans KR',sans-serif; cursor:pointer;
+  }
+
+  ::-webkit-scrollbar { width:3px; height:3px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(74,158,202,0.3); border-radius:2px; }
+
+/* ═══ V2 DESIGN SYSTEM — Purme assess-beige unified ═══ */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+  --navy:#F2F4FF !important;
+  --blue:#7B68EE !important;
+  --sky:#9B8BF4 !important;
+  --mint:#0EA5A0 !important;
+  --text:#1A1B2E !important;
+  --muted:#9093B0 !important;
+  --glass:rgba(123,104,238,0.06) !important;
+  --glass2:rgba(123,104,238,0.10) !important;
+  --border:rgba(123,104,238,0.18) !important;
+  --white:#FFFFFF !important;
+  --amber:#F59E0B !important;
+  --rose:#F04438 !important;
+  --purp:#9B6EFF !important;
+
+  /* v2 tokens */
+  --bg:#F2F4FF;
+  --surface:#FFFFFF;
+  --surface-alt:#F8F9FF;
+  --b:#E2E5F4;
+  --b-mid:#C8CEEA;
+  --accent:#7B68EE;
+  --accent-2:#9B8BF4;
+  --accent-dim:#F0EEFF;
+  --accent-ring:rgba(123,104,238,.18);
+  --accent-dark:#5A4BD1;
+  --teal:#0EA5A0;
+  --teal-dim:#F0FAFA;
+  --green:#12B76A;
+  --green-dim:#ECFDF5;
+  --red:#F04438;
+  --red-dim:#FEF3F2;
+  --t1:#1A1B2E;
+  --t2:#4A4E6B;
+  --t3:#9093B0;
+  --t4:#C5C8DC;
+  --font:'Pretendard',-apple-system,sans-serif !important;
+  --sh-xs:0 1px 3px rgba(30,30,80,.06);
+  --sh:0 3px 14px rgba(30,30,80,.08);
+  --sh-lg:0 8px 32px rgba(30,30,80,.12);
+}
+
+/* ─ Base overrides ─ */
+body {
+  background: #F2F4FF !important;
+  color: #1A1B2E !important;
+  font-family: 'Pretendard', -apple-system, sans-serif !important;
+}
+body::before { display:none !important; }
+
+/* ─ NAV ─ */
+nav {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E2E5F4 !important;
+  box-shadow: 0 1px 3px rgba(30,30,80,.06) !important;
+  backdrop-filter: none !important;
+}
+.nav-logo-mark, .logo-mark {
+  background: linear-gradient(135deg,#7B68EE,#9B8BF4) !important;
+}
+.nav-logo-text, .nav-title, .nav-brand { color: #1A1B2E !important; }
+.nav-links a { color: #4A4E6B !important; }
+.nav-links a:hover, .nav-links a.active { color: #7B68EE !important; background: #F0EEFF !important; }
+.nav-back { color:#9093B0 !important; border-color:#E2E5F4 !important; background:none !important; }
+.nav-back:hover { color:#7B68EE !important; border-color:rgba(123,104,238,.3) !important; }
+.user-chip { background:#F8F9FF !important; border-color:#E2E5F4 !important; color:#4A4E6B !important; }
+
+/* ─ GAME SHELL panels ─ */
+.panel-left, .panel-mission, .panel-feedback,
+.panel-right, .sidebar { 
+  background: #FFFFFF !important; 
+  border-color: #E2E5F4 !important;
+}
+
+/* ─ Cards / surfaces ─ */
+.mission-card, .howto-card, .rule-card.go-card, .rule-card.nogo-card,
+.score-board, .trial-track, .round-info, .pip-card,
+.cog-box, .cognition-box, .match-progress, .strategy-box,
+.order-summary, .level-grid > *, .session-row,
+.rec-item, .rec-list > * {
+  background: #F8F9FF !important;
+  border-color: #E2E5F4 !important;
+}
+.rule-card.go-card   { background: #ECFDF5 !important; border-color: rgba(18,183,106,.25) !important; }
+.rule-card.nogo-card { background: #FEF3F2 !important; border-color: rgba(240,68,56,.25) !important; }
+.howto-card { background: #F3EFFF !important; border-color: rgba(155,110,255,.2) !important; }
+
+/* ─ GAME BOARD / ARENA ─ */
+.game-board, .card-arena, .stim-stage, .stimulus-arena, .arena {
+  background: #FFFFFF !important;
+  border-color: #E2E5F4 !important;
+  box-shadow: 0 3px 14px rgba(30,30,80,.08) !important;
+}
+
+/* ─ Board overlay ─ */
+.board-overlay, .stage-overlay { 
+  background: rgba(248,249,255,0.96) !important; 
+}
+.overlay-title, .ov-title { color: #1A1B2E !important; }
+.overlay-sub,   .ov-sub   { color: #4A4E6B !important; }
+.overlay-btn, .ov-btn {
+  background: #7B68EE !important;
+  box-shadow: 0 4px 12px rgba(123,104,238,.3) !important;
+  color: #fff !important;
+}
+.overlay-btn:hover, .ov-btn:hover { background: #5A4BD1 !important; }
+.overlay-btn.green, .ov-btn.green { background: linear-gradient(135deg,#0EA5A0,#0CC5BE) !important; color:#fff !important; }
+
+/* ─ Shape cells / game cards ─ */
+.shape-cell, .game-card, .mem-card .card-back {
+  background: #F8F9FF !important;
+  border-color: #E2E5F4 !important;
+}
+.shape-cell:hover { background: #F0EEFF !important; border-color: #C8CEEA !important; }
+.shape-cell.correct-flash, .shape-cell.flash-ok {
+  background: #ECFDF5 !important;
+  border-color: #12B76A !important;
+}
+.shape-cell.wrong-flash, .shape-cell.flash-fail {
+  background: #FEF3F2 !important;
+  border-color: #F04438 !important;
+}
+
+/* ─ Stimulus elements ─ */
+.stim-box { border-color: rgba(123,104,238,.3) !important; background: #F0EEFF !important; }
+.stim-box.show-stim { border-color: rgba(123,104,238,.6) !important; background: #F0EEFF !important; box-shadow: 0 0 24px rgba(123,104,238,.15) !important; }
+.stim-circle { border-color: #E2E5F4 !important; background: #F8F9FF !important; }
+.stim-circle.go-style   { border-color: rgba(18,183,106,.5) !important; background: #ECFDF5 !important; }
+.stim-circle.nogo-style { border-color: rgba(240,68,56,.5) !important;  background: #FEF3F2 !important; }
+
+/* ─ Action log items ─ */
+.log-item { background: #F8F9FF !important; border-color: #E2E5F4 !important; color: #4A4E6B !important; }
+.log-item.correct, .log-item.c, .log-item.match  { background: #ECFDF5 !important; border-color: rgba(18,183,106,.2) !important; }
+.log-item.wrong,   .log-item.w, .log-item.fail    { background: #FEF3F2 !important; border-color: rgba(240,68,56,.2) !important; }
+.log-item.info,    .log-item.m, .log-item.time    { background: #FFFBEB !important; border-color: rgba(245,158,11,.2) !important; }
+.log-item.n                                        { background: #F3EFFF !important; border-color: rgba(155,110,255,.2) !important; }
+.log-text, .li-text { color: #4A4E6B !important; }
+.log-text em, .li-text em { color: #7B68EE !important; }
+
+/* ─ Result overlay ─ */
+.result-overlay { background: rgba(242,244,255,.88) !important; backdrop-filter: blur(10px) !important; }
+.result-modal {
+  background: #FFFFFF !important;
+  border-color: #E2E5F4 !important;
+  box-shadow: 0 8px 32px rgba(30,30,80,.12) !important;
+}
+.result-title, .r-title { color: #1A1B2E !important; }
+.result-sub,   .r-sub   { color: #9093B0 !important; }
+.result-btn,   .r-btn {
+  background: #7B68EE !important;
+  box-shadow: 0 4px 12px rgba(123,104,238,.3) !important;
+  color: #fff !important;
+}
+.result-btn:hover, .r-btn:hover { background: #5A4BD1 !important; }
+.result-btn-sec, .r-btn-sec { border-color: #E2E5F4 !important; color: #4A4E6B !important; background: none !important; }
+.result-scores, .r-scores { color: #1A1B2E !important; }
+
+/* ─ Match card front/back ─ */
+.card-face.card-back   { background: linear-gradient(145deg,#F8F9FF,#F0EEFF) !important; border-color: rgba(123,104,238,.2) !important; }
+.card-back::after      { color: rgba(123,104,238,.35) !important; }
+.card-face.card-front  { background: #F8F9FF !important; border-color: #E2E5F4 !important; }
+.mem-card.matched .card-front { background: #ECFDF5 !important; border-color: rgba(14,165,160,.4) !important; }
+.card-name, .card-label { color: #4A4E6B !important; }
+.mem-card.matched .card-label { color: #0EA5A0 !important; }
+
+/* ─ Kiosk frame ─ */
+.kiosk-frame   { box-shadow: var(--sh-lg) !important; }
+.kiosk-top-bar { background: #1A1B2E !important; }
+.kiosk-brand   { color: #F59E0B !important; }
+.kiosk-brand span { color: #F04438 !important; }
+.phone-frame   { box-shadow: var(--sh-lg) !important; }
+
+/* ─ Histogram / sparkline ─ */
+.rt-bar.ok, .rt-fill.ok, .go-bar   { background: rgba(123,104,238,.65) !important; }
+.rt-bar.slow, .miss-bar             { background: rgba(245,158,11,.65) !important; }
+.rt-bar.fa, .nogo-bar               { background: rgba(240,68,56,.6) !important; }
+
+/* ─ Top color strip ─ */
+body > .top-strip:first-child,
+nav + .top-strip { display: block !important; }
+
+/* ─ Pie / ring ─ */
+.ring-fg    { stroke: #7B68EE !important; }
+.d-match    { stroke: #7B68EE !important; }
+
+/* ─ Misc text ─ */
+.panel-title, .mission-title, .feedback-title, .pr-title { color: #1A1B2E !important; }
+.panel-tag, .mission-tag, .pr-tag { color: #9093B0 !important; }
+.score-label, .sb-label, .kpi-label { color: #9093B0 !important; }
+.score-value, .sb-value, .kpi-value { color: #1A1B2E !important; }
+.sv-green, .score-value.green { color: #12B76A !important; }
+.sv-accent { color: #7B68EE !important; }
+.sv-amber  { color: #F59E0B !important; }
+.sv-teal, .mint-text { color: #0EA5A0 !important; }
+
+/* ─ Hints ─ */
+.hint-box { background: #FFFBEB !important; border-color: rgba(245,158,11,.2) !important; color: #4A4E6B !important; }
+.hint-btn { border-color: #E2E5F4 !important; color: #4A4E6B !important; background: none !important; }
+.hint-btn:hover { border-color: #F59E0B !important; color: #F59E0B !important; background: #FFFBEB !important; }
+
+/* ─ Sequence history (N-Back) ─ */
+.seq-card { background: #F8F9FF !important; border-color: #E2E5F4 !important; }
+.seq-item.n-back-mark .seq-card { background: #F0EEFF !important; border-color: rgba(123,104,238,.5) !important; }
+.seq-idx { color: #9093B0 !important; }
+
+/* ─ Match button (N-Back) ─ */
+.match-btn.yes-btn { background: #ECFDF5 !important; border-color: rgba(14,165,160,.4) !important; color: #0EA5A0 !important; }
+.match-btn.yes-btn:hover { background: #0EA5A0 !important; color: #fff !important; }
+.match-btn.no-btn  { background: #F8F9FF !important; border-color: #E2E5F4 !important; color: #9093B0 !important; }
+
+/* ─ Donut ring ─ */
+.d-bg  { stroke: #E2E5F4 !important; }
+.r-bg  { stroke: #E2E5F4 !important; }
+.ring-pct, .donut-pct { color: #1A1B2E !important; }
+.ring-sub2, .donut-sub { color: #9093B0 !important; }
+
+/* ─ Scrollbar ─ */
+::-webkit-scrollbar-thumb { background: #C8CEEA !important; }
+
+</style>
+</head>
+<body>
+<div style="height:3px;background:linear-gradient(90deg,#7B68EE,#9B8BF4,#0EA5A0);"></div>
+
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <a href="hub.html" class="nav-back">←</a>
+    <div class="nav-logo-mark">LIT</div>
+    <div>
+      <div class="nav-title">패스트푸드 키오스크</div>
+      <div class="nav-sub">D1 · 일상참여 훈련 · ⭐ 초급</div>
+    </div>
+  </div>
+</nav>
+
+<div class="game-shell">
+
+  <!-- LEFT -->
+  <aside class="panel-left">
+    <div>
+      <div class="mission-tag">Mission D1</div>
+      <div class="mission-title">패스트푸드<br>키오스크</div>
+    </div>
+
+    <div class="mission-card">
+      <div class="mission-label">🎯 오늘의 미션</div>
+      <div class="mission-text">빅맥 세트 1개를<br>콜라와 함께 주문해요!</div>
+      <div class="mission-sub">키오스크에서 직접 주문하고 결제까지 완성해보세요. 카드 결제로 진행해요.</div>
+    </div>
+
+    <!-- 주문 요약 -->
+    <div class="order-summary" id="orderSummary" style="display:none;">
+      <div class="order-summary-title">🛒 현재 주문</div>
+      <div id="orderItems"></div>
+      <div class="order-total-row">
+        <span>합계</span>
+        <span class="order-total-price" id="orderTotal">0원</span>
+      </div>
+    </div>
+
+    <!-- STEPS -->
+    <div class="steps-wrap">
+      <div class="step-item">
+        <div class="step-num active" id="s1">1</div>
+        <div class="step-info">
+          <div class="step-name active-text" id="s1n">시작 화면</div>
+          <div class="step-desc">화면을 터치해 시작</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="s2">2</div>
+        <div class="step-info">
+          <div class="step-name" id="s2n">식사 유형 선택</div>
+          <div class="step-desc">매장 / 포장 선택</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="s3">3</div>
+        <div class="step-info">
+          <div class="step-name" id="s3n">메뉴 선택</div>
+          <div class="step-desc">빅맥 세트 담기</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="s4">4</div>
+        <div class="step-info">
+          <div class="step-name" id="s4n">옵션 선택</div>
+          <div class="step-desc">음료 콜라 선택</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="s5">5</div>
+        <div class="step-info">
+          <div class="step-name" id="s5n">주문 확인</div>
+          <div class="step-desc">장바구니 확인 후 결제</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" id="s6">6</div>
+        <div class="step-info">
+          <div class="step-name" id="s6n">결제 방법</div>
+          <div class="step-desc">카드 결제 선택</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-board">
+      <div class="score-item">
+        <div class="score-label">단계</div>
+        <div class="score-value blue" id="stepDisp">1 / 6</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">정확도</div>
+        <div class="score-value green" id="accDisp">100%</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">시간</div>
+        <div class="score-value" id="timerDisp">00:00</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">실수</div>
+        <div class="score-value amber" id="mistDisp">0</div>
+      </div>
+    </div>
+
+    <button class="hint-btn" onclick="toggleHint()">💡 힌트</button>
+    <div class="hint-box" id="hintBox">화면 중앙의 노란 버튼을 눌러 시작해요!</div>
+  </aside>
+
+  <!-- CENTER: KIOSK -->
+  <div class="simulator-wrap">
+    <div class="kiosk-frame">
+      <div class="kiosk-top-bar">
+        <div class="kiosk-brand">Mc<span>D</span>onald's</div>
+        <div class="kiosk-time" id="clockDisp">--:--</div>
+      </div>
+      <div class="kiosk-screen">
+
+        <!-- S1: WELCOME -->
+        <div class="kscreen active" id="ks-welcome">
+          <div class="welcome-bg">
+            <div class="welcome-logo">🍔</div>
+            <div class="welcome-name">Mc<span>Donald's</span></div>
+            <div class="welcome-sub">맥도날드에 오신 것을 환영합니다</div>
+            <button class="welcome-btn" onclick="doStep1()">화면을 터치하여 시작</button>
+          </div>
+        </div>
+
+        <!-- S2: DINE TYPE -->
+        <div class="kscreen" id="ks-dine">
+          <div class="dine-header">
+            <button class="dine-back" onclick="goKBack('ks-welcome', 0)">←</button>
+            <div class="dine-title">어디서 드시겠어요?</div>
+          </div>
+          <div class="dine-options">
+            <div class="dine-card target-dine" onclick="doStep2('매장')">
+              <div class="dine-icon">🏠</div>
+              <div class="dine-label">매장에서 식사</div>
+              <div class="dine-sub">자리에 앉아서 드세요</div>
+            </div>
+            <div class="dine-card" onclick="wrongStep('포장 선택')">
+              <div class="dine-icon">🛍️</div>
+              <div class="dine-label">포장해서 가기</div>
+              <div class="dine-sub">가지고 나가세요</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S3: MENU -->
+        <div class="kscreen" id="ks-menu">
+          <div class="menu-header">
+            <button class="dine-back" onclick="goKBack('ks-dine', 1)">←</button>
+            <div class="menu-title">메뉴 선택</div>
+            <button class="cart-chip" onclick="goToCart()" id="cartBtn">
+              🛒 장바구니
+              <div class="cart-count" id="cartCount">0</div>
+            </button>
+          </div>
+          <div class="cat-tabs">
+            <button class="cat-tab active">🍔 버거</button>
+            <button class="cat-tab">🍟 사이드</button>
+            <button class="cat-tab">🥤 음료</button>
+            <button class="cat-tab">🍦 디저트</button>
+          </div>
+          <div class="menu-grid">
+            <div class="menu-item target" id="bigmacItem" onclick="selectBigMac()">
+              <div class="menu-badge">세트</div>
+              <div class="menu-emoji">🍔</div>
+              <div class="menu-name">빅맥 세트</div>
+              <div class="menu-price">7,500원</div>
+              <div class="menu-cal">563 kcal</div>
+              <button class="add-btn" onclick="selectBigMac()">+</button>
+            </div>
+            <div class="menu-item" onclick="wrongStep('빅맥세트 외 메뉴')">
+              <div class="menu-emoji">🍗</div>
+              <div class="menu-name">맥스파이시 상하이 버거</div>
+              <div class="menu-price">6,900원</div>
+              <div class="menu-cal">497 kcal</div>
+              <button class="add-btn" onclick="wrongStep('빅맥세트 외 메뉴')">+</button>
+            </div>
+            <div class="menu-item" onclick="wrongStep('빅맥세트 외 메뉴')">
+              <div class="menu-emoji">🫔</div>
+              <div class="menu-name">불고기 버거 세트</div>
+              <div class="menu-price">6,200원</div>
+              <div class="menu-cal">512 kcal</div>
+              <button class="add-btn" onclick="wrongStep('빅맥세트 외 메뉴')">+</button>
+            </div>
+            <div class="menu-item" onclick="wrongStep('빅맥세트 외 메뉴')">
+              <div class="menu-emoji">🐟</div>
+              <div class="menu-name">필레오피쉬 세트</div>
+              <div class="menu-price">6,500원</div>
+              <div class="menu-cal">428 kcal</div>
+              <button class="add-btn" onclick="wrongStep('빅맥세트 외 메뉴')">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S4: OPTION (음료 선택) -->
+        <div class="kscreen" id="ks-option">
+          <div class="option-header">
+            <button class="dine-back" onclick="goKBack('ks-menu', 2)">←</button>
+            <div class="option-title">세트 옵션 선택</div>
+          </div>
+          <div class="option-body">
+            <div class="option-item-preview">
+              <div class="opt-emoji">🍔</div>
+              <div class="opt-info">
+                <div class="opt-name">빅맥 세트</div>
+                <div class="opt-price">7,500원</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="option-section-title">음료 선택 <span style="color:#DA291C;font-size:11px;">필수</span></div>
+              <div class="drink-options">
+                <div class="drink-opt" id="drinkCola" onclick="selectDrink('코카콜라','cola')">
+                  <div class="drink-emoji">🥤</div>
+                  <div class="drink-name">코카콜라</div>
+                </div>
+                <div class="drink-opt" onclick="wrongStep('코카콜라 외 음료')">
+                  <div class="drink-emoji">🍊</div>
+                  <div class="drink-name">환타 오렌지</div>
+                </div>
+                <div class="drink-opt" onclick="wrongStep('코카콜라 외 음료')">
+                  <div class="drink-emoji">☕</div>
+                  <div class="drink-name">아메리카노</div>
+                </div>
+                <div class="drink-opt" onclick="wrongStep('코카콜라 외 음료')">
+                  <div class="drink-emoji">💧</div>
+                  <div class="drink-name">생수</div>
+                </div>
+                <div class="drink-opt" onclick="wrongStep('코카콜라 외 음료')">
+                  <div class="drink-emoji">🍵</div>
+                  <div class="drink-name">아이스티</div>
+                </div>
+                <div class="drink-opt" onclick="wrongStep('코카콜라 외 음료')">
+                  <div class="drink-emoji">🥛</div>
+                  <div class="drink-name">초코쉐이크</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="option-section-title">수량</div>
+              <div class="qty-row">
+                <div class="qty-label">빅맥 세트</div>
+                <div class="qty-ctrl">
+                  <button class="qty-btn-k" onclick="changeKQty(-1)">−</button>
+                  <div class="qty-num-k" id="kQtyNum">1</div>
+                  <button class="qty-btn-k" onclick="changeKQty(1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="option-footer">
+            <button class="btn-cancel" onclick="goKBack('ks-menu', 2)">취소</button>
+            <button class="btn-add-cart" id="addCartBtn" onclick="addToKCart()" disabled
+              style="opacity:0.5;cursor:not-allowed;">음료를 선택하세요</button>
+          </div>
+        </div>
+
+        <!-- S5: CART -->
+        <div class="kscreen" id="ks-cart">
+          <div class="cart-header-bar">
+            <button class="dine-back" onclick="goKBack('ks-menu', 2)">←</button>
+            <div class="cart-title-bar">주문 확인</div>
+          </div>
+          <div class="cart-body">
+            <div class="cart-row">
+              <div class="cart-emoji">🍔</div>
+              <div class="cart-item-info">
+                <div class="cart-item-name">빅맥 세트</div>
+                <div class="cart-item-opt" id="cartOptLabel">음료: 코카콜라 · 수량 1개</div>
+              </div>
+              <div class="cart-item-price">7,500원</div>
+            </div>
+            <div class="cart-price-box">
+              <div class="cprice-row"><span>상품금액</span><span>7,500원</span></div>
+              <div class="cprice-row"><span>할인</span><span style="color:#27AE60;">−0원</span></div>
+              <div class="cprice-row total"><span>결제금액</span><span>7,500원</span></div>
+            </div>
+            <div style="background:var(--kk-card);border-radius:12px;padding:12px;font-size:11px;color:var(--kk-gray);line-height:1.7;">
+              📍 수령 방법: 매장 식사<br>
+              ✅ 주문 내용을 확인하고 결제해주세요
+            </div>
+          </div>
+          <div class="cart-footer">
+            <button class="pay-btn" onclick="doStep5()">7,500원 결제하기</button>
+          </div>
+        </div>
+
+        <!-- S6: PAYMENT -->
+        <div class="kscreen" id="ks-pay">
+          <div class="option-header">
+            <button class="dine-back" onclick="goKBack('ks-cart', 4)">←</button>
+            <div class="option-title">결제 방법 선택</div>
+          </div>
+          <div class="pay-screen-body">
+            <div style="font-size:13px;color:var(--kk-gray);">결제 금액</div>
+            <div class="pay-amount">7,500원</div>
+            <div class="pay-methods">
+              <div class="pay-method target-pay" onclick="doStep6('카드')">
+                <div class="pay-method-icon">💳</div>
+                <div class="pay-method-label">카드 결제</div>
+                <div class="pay-method-sub">신용카드·체크카드</div>
+              </div>
+              <div class="pay-method" onclick="wrongStep('현금 결제')">
+                <div class="pay-method-icon">💵</div>
+                <div class="pay-method-label">현금 결제</div>
+                <div class="pay-method-sub">동전·지폐</div>
+              </div>
+              <div class="pay-method" onclick="wrongStep('삼성페이')">
+                <div class="pay-method-icon">📱</div>
+                <div class="pay-method-label">삼성페이</div>
+                <div class="pay-method-sub">스마트폰 결제</div>
+              </div>
+              <div class="pay-method" onclick="wrongStep('카카오페이')">
+                <div class="pay-method-icon">🟡</div>
+                <div class="pay-method-label">카카오페이</div>
+                <div class="pay-method-sub">QR 결제</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S7: COMPLETE -->
+        <div class="kscreen" id="ks-complete">
+          <div class="complete-screen">
+            <div class="complete-ring">✅</div>
+            <div class="complete-title">주문이 완료되었어요!</div>
+            <div class="complete-num" id="orderNumDisp">대기번호 23</div>
+            <div class="complete-sub">빅맥 세트 · 코카콜라<br>번호가 호출되면 수령해주세요 🍔</div>
+            <button class="complete-restart" onclick="triggerResult()">훈련 결과 보기 →</button>
+          </div>
+        </div>
+
+      </div><!-- /kiosk-screen -->
+    </div><!-- /kiosk-frame -->
+  </div>
+
+  <!-- RIGHT -->
+  <aside class="panel-right">
+    <div>
+      <div class="feedback-tag">Live Feedback</div>
+      <div class="feedback-title">행동 기록</div>
+    </div>
+    <div class="action-log" id="actionLog">
+      <div class="log-item info">
+        <span class="log-icon">🎮</span>
+        <div class="log-text">훈련을 시작합니다. 화면을 눌러봐요!</div>
+        <span class="log-time">00:00</span>
+      </div>
+    </div>
+
+    <div class="cognition-box">
+      <div class="cog-title">인지 기능 분석</div>
+      <div class="cog-row"><span class="cog-label">절차적 기억</span><span class="cog-val" id="cog1" style="color:var(--mint);">측정중</span></div>
+      <div class="cog-bar-wrap"><div class="cog-bar" id="cogBar1" style="width:0%"></div></div>
+      <div class="cog-row"><span class="cog-label">순서화</span><span class="cog-val" id="cog2" style="color:var(--mint);">측정중</span></div>
+      <div class="cog-bar-wrap"><div class="cog-bar" id="cogBar2" style="width:0%"></div></div>
+      <div class="cog-row"><span class="cog-label">선택적 주의</span><span class="cog-val" id="cog3" style="color:var(--mint);">측정중</span></div>
+      <div class="cog-bar-wrap"><div class="cog-bar" id="cogBar3" style="width:0%"></div></div>
+      <div class="cog-row"><span class="cog-label">의사결정</span><span class="cog-val" id="cog4" style="color:var(--mint);">측정중</span></div>
+      <div class="cog-bar-wrap"><div class="cog-bar" id="cogBar4" style="width:0%"></div></div>
+    </div>
+  </aside>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-modal">
+    <div class="result-stars" id="rStars">⭐⭐⭐</div>
+    <div class="result-title" id="rTitle">완벽해요!</div>
+    <div class="result-sub" id="rSub">키오스크 주문을 완성했어요</div>
+    <div class="result-scores">
+      <div class="rs-item">
+        <div class="rs-val" id="rAcc">—<span>%</span></div>
+        <div class="rs-label">정확도</div>
+      </div>
+      <div class="rs-item">
+        <div class="rs-val" id="rTime">—<span>초</span></div>
+        <div class="rs-label">소요시간</div>
+      </div>
+      <div class="rs-item">
+        <div class="rs-val" id="rMist">—<span>회</span></div>
+        <div class="rs-label">실수</div>
+      </div>
+    </div>
+    <button class="result-btn" onclick="restartGame()">🔄 다시 훈련하기</button>
+    <button class="result-btn-sec" onclick="location.href='hub.html'">← 허브로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+  /* ── STATE ── */
+  let currentStep = 1;
+  let mistakes = 0;
+  let totalActs = 0;
+  let startTime = Date.now();
+  let timerInt;
+  let kQty = 1;
+  let selectedDrink = null;
+  let cartItems = [];
+
+  /* ── CLOCK ── */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clockDisp').textContent =
+      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+  updateClock(); setInterval(updateClock, 10000);
+
+  /* ── TIMER ── */
+  timerInt = setInterval(() => {
+    const el = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('timerDisp').textContent =
+      String(Math.floor(el/60)).padStart(2,'0') + ':' + String(el%60).padStart(2,'0');
+  }, 1000);
+
+  /* ── HINTS ── */
+  const HINTS = [
+    '화면 중앙의 노란 버튼을 눌러 시작해요!',
+    '"매장에서 식사" 카드를 눌러봐요!',
+    '"빅맥 세트"를 찾아서 + 버튼을 눌러봐요!',
+    '음료 중에서 "코카콜라"를 선택해야 해요!',
+    '"7,500원 결제하기" 버튼을 눌러봐요!',
+    '"카드 결제"를 선택해서 결제해요!',
+  ];
+  function toggleHint() {
+    const box = document.getElementById('hintBox');
+    box.textContent = HINTS[currentStep - 1] || '잘 하고 있어요!';
+    box.classList.toggle('show');
+  }
+
+  /* ── SCREEN SWITCH ── */
+  function showKScreen(id) {
+    document.querySelectorAll('.kscreen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function goKBack(screenId, stepBack) {
+    addLog('↩️', '이전 화면으로 돌아갔어요', '', false, true);
+    showKScreen(screenId);
+  }
+
+  /* ── STEP ADVANCE ── */
+  function advanceStep(n) {
+    const sn = document.getElementById('s' + n);
+    const nn = document.getElementById('s' + n + 'n');
+    sn.classList.remove('active'); sn.classList.add('done'); sn.textContent = '✓';
+    nn.classList.remove('active-text'); nn.classList.add('done-text');
+    currentStep = n + 1;
+    document.getElementById('stepDisp').textContent = `${Math.min(currentStep,6)} / 6`;
+    if (currentStep <= 6) {
+      const next = document.getElementById('s' + currentStep);
+      const nextn = document.getElementById('s' + currentStep + 'n');
+      if (next)  next.classList.add('active');
+      if (nextn) nextn.classList.add('active-text');
+    }
+    updateCognition(n);
+  }
+
+  /* ── COGNITION ── */
+  function updateCognition(step) {
+    const map = {
+      1: [10,0,10,0],
+      2: [20,20,30,10],
+      3: [40,40,60,30],
+      4: [60,60,80,60],
+      5: [80,80,90,80],
+      6: [100,100,100,100],
+    };
+    const vals = map[step] || [0,0,0,0];
+    const labels = ['측정중','활성화','활성화','완료 ✓'];
+    const pick = (v) => v === 0 ? '측정중' : v < 50 ? '활성화' : v < 100 ? '향상중' : '완료 ✓';
+    ['cog1','cog2','cog3','cog4'].forEach((id,i) => {
+      document.getElementById(id).textContent = pick(vals[i]);
+    });
+    ['cogBar1','cogBar2','cogBar3','cogBar4'].forEach((id,i) => {
+      document.getElementById(id).style.width = vals[i] + '%';
+    });
+  }
+
+  /* ── STEP ACTIONS ── */
+  function doStep1() {
+    addLog('✅', '화면을 터치해 시작했어요!', '시작 화면 통과', true);
+    advanceStep(1);
+    showKScreen('ks-dine');
+  }
+
+  function doStep2(type) {
+    addLog('✅', `"${type}에서 식사"를 선택했어요!`, '올바른 선택', true);
+    advanceStep(2);
+    showKScreen('ks-menu');
+  }
+
+  function selectBigMac() {
+    if (currentStep !== 3) { wrongStep('메뉴 중복 선택'); return; }
+    addLog('✅', '"빅맥 세트"를 선택했어요!', '정확한 메뉴 선택', true);
+    advanceStep(3);
+    selectedDrink = null;
+    document.getElementById('addCartBtn').disabled = true;
+    document.getElementById('addCartBtn').style.opacity = '0.5';
+    document.getElementById('addCartBtn').style.cursor = 'not-allowed';
+    document.getElementById('addCartBtn').textContent = '음료를 선택하세요';
+    document.querySelectorAll('.drink-opt').forEach(d => d.classList.remove('selected'));
+    kQty = 1; document.getElementById('kQtyNum').textContent = '1';
+    showKScreen('ks-option');
+  }
+
+  function selectDrink(name, id) {
+    if (currentStep !== 4) { wrongStep('이미 음료 선택 완료'); return; }
+    document.querySelectorAll('.drink-opt').forEach(d => d.classList.remove('selected'));
+    document.getElementById('drink' + id.charAt(0).toUpperCase() + id.slice(1)).classList.add('selected');
+    selectedDrink = name;
+    document.getElementById('addCartBtn').disabled = false;
+    document.getElementById('addCartBtn').style.opacity = '1';
+    document.getElementById('addCartBtn').style.cursor = 'pointer';
+    document.getElementById('addCartBtn').textContent = `장바구니 담기 (7,500원)`;
+    addLog('✅', `음료 "${name}"을 선택했어요!`, '올바른 음료', true);
+  }
+
+  function addToKCart() {
+    if (!selectedDrink) return;
+    advanceStep(4);
+    cartItems = [{name:'빅맥 세트', drink: selectedDrink, qty: kQty, price: 7500}];
+    document.getElementById('cartCount').textContent = cartItems.length;
+    document.getElementById('cartOptLabel').textContent = `음료: ${selectedDrink} · 수량 ${kQty}개`;
+
+    // Order summary in left panel
+    document.getElementById('orderSummary').style.display = 'block';
+    document.getElementById('orderItems').innerHTML = `
+      <div class="order-item-row">
+        <span class="order-item-name">🍔 빅맥 세트 (${kQty})</span>
+        <span class="order-item-price">7,500원</span>
+      </div>
+      <div class="order-item-row">
+        <span class="order-item-name">🥤 ${selectedDrink}</span>
+        <span class="order-item-price">포함</span>
+      </div>`;
+    document.getElementById('orderTotal').textContent = (7500 * kQty).toLocaleString() + '원';
+
+    addLog('✅', '장바구니에 담았어요!', `빅맥세트 + ${selectedDrink}`, true);
+    showKScreen('ks-cart');
+  }
+
+  function goToCart() {
+    if (cartItems.length === 0) { wrongStep('빈 장바구니'); return; }
+    showKScreen('ks-cart');
+  }
+
+  function doStep5() {
+    if (currentStep !== 5) return;
+    addLog('✅', '주문 확인 후 결제 버튼을 눌렀어요!', '7,500원', true);
+    advanceStep(5);
+    showKScreen('ks-pay');
+  }
+
+  function doStep6(method) {
+    addLog('✅', `"${method} 결제"를 선택했어요!`, '결제 완료!', true);
+    advanceStep(6);
+    const orderNums = [17,23,31,42,8];
+    document.getElementById('orderNumDisp').textContent =
+      '대기번호 ' + orderNums[Math.floor(Math.random() * orderNums.length)];
+    showKScreen('ks-complete');
+    clearInterval(timerInt);
+  }
+
+  function triggerResult() { showResult(); }
+
+  /* ── WRONG ── */
+  function wrongStep(action) {
+    mistakes++;
+    totalActs++;
+    document.getElementById('mistDisp').textContent = mistakes;
+    const acc = Math.max(0, Math.round(100 - (mistakes / Math.max(1, totalActs)) * 100));
+    document.getElementById('accDisp').textContent = acc + '%';
+    addLog('❌', `실수: ${action}`, '다시 시도해봐요!', false);
+  }
+
+  /* ── LOG ── */
+  function addLog(icon, text, sub, correct, isInfo=false) {
+    totalActs++;
+    const el = Math.floor((Date.now() - startTime) / 1000);
+    const t = String(Math.floor(el/60)).padStart(2,'0') + ':' + String(el%60).padStart(2,'0');
+    const log = document.getElementById('actionLog');
+    const item = document.createElement('div');
+    item.className = 'log-item' + (isInfo ? ' info' : correct ? ' correct' : ' wrong');
+    item.innerHTML = `
+      <span class="log-icon">${icon}</span>
+      <div class="log-text">${text}${sub ? `<br><em>${sub}</em>` : ''}</div>
+      <span class="log-time">${t}</span>`;
+    log.appendChild(item);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function changeKQty(d) {
+    kQty = Math.max(1, Math.min(3, kQty + d));
+    document.getElementById('kQtyNum').textContent = kQty;
+  }
+
+  /* ── RESULT ── */
+  function showResult() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const acc = Math.max(0, Math.round(100 - (mistakes / Math.max(1, totalActs)) * 60));
+    document.getElementById('rStars').textContent = acc >= 90 ? '⭐⭐⭐' : acc >= 70 ? '⭐⭐' : '⭐';
+    document.getElementById('rTitle').textContent = acc >= 90 ? '완벽해요!' : acc >= 70 ? '잘 했어요!' : '다시 연습해봐요';
+    document.getElementById('rAcc').innerHTML  = `${acc}<span>%</span>`;
+    document.getElementById('rTime').innerHTML = `${elapsed}<span>초</span>`;
+    document.getElementById('rMist').innerHTML = `${mistakes}<span>회</span>`;
+    document.getElementById('resultOverlay').classList.add('show');
+  }
+
+  /* ── RESTART ── */
+  function restartGame() {
+    document.getElementById('resultOverlay').classList.remove('show');
+    currentStep = 1; mistakes = 0; totalActs = 0; kQty = 1;
+    selectedDrink = null; cartItems = [];
+    startTime = Date.now();
+
+    for (let i = 1; i <= 6; i++) {
+      const sn = document.getElementById('s' + i);
+      const nn = document.getElementById('s' + i + 'n');
+      sn.className = 'step-num' + (i === 1 ? ' active' : '');
+      sn.textContent = i;
+      nn.className = 'step-name' + (i === 1 ? ' active-text' : '');
+    }
+    document.getElementById('stepDisp').textContent = '1 / 6';
+    document.getElementById('accDisp').textContent  = '100%';
+    document.getElementById('mistDisp').textContent = '0';
+    document.getElementById('cartCount').textContent = '0';
+    document.getElementById('orderSummary').style.display = 'none';
+    document.getElementById('actionLog').innerHTML = `
+      <div class="log-item info">
+        <span class="log-icon">🔄</span>
+        <div class="log-text">다시 시작했어요. 파이팅!</div>
+        <span class="log-time">00:00</span>
+      </div>`;
+    ['cog1','cog2','cog3','cog4'].forEach(id => document.getElementById(id).textContent = '측정중');
+    ['cogBar1','cogBar2','cogBar3','cogBar4'].forEach(id => document.getElementById(id).style.width = '0%');
+    document.getElementById('hintBox').classList.remove('show');
+    clearInterval(timerInt);
+    timerInt = setInterval(() => {
+      const el = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timerDisp').textContent =
+        String(Math.floor(el/60)).padStart(2,'0') + ':' + String(el%60).padStart(2,'0');
+    }, 1000);
+    showKScreen('ks-welcome');
+  }
+</script>
+</body>
+</html>

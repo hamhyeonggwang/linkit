@@ -1,0 +1,2206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CU 셀프계산대 훈련</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="kiosk-image-save.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* =========================================
+   BASE
+   ========================================= */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --cu-purple: #6B21A8;
+  --cu-purple2: #7C3AED;
+  --cu-purple-light: #EDE9FE;
+  --cu-green: #00703c;
+  --cu-green2: #00a651;
+  --cu-green-light: #e6f4ed;
+  --cu-red: #E11D48;
+  --cu-yellow: #F59E0B;
+  --cu-dark: #1a1a2e;
+  --cu-gray1: #f4f4f4;
+  --cu-gray2: #e5e5e5;
+  --cu-gray3: #9ca3af;
+  --cu-text: #111827;
+  --cu-text2: #4b5563;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: #2d2d2d;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* =========================================
+   TWO-PANEL LAYOUT
+   ========================================= */
+#app-root {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  gap: 0;
+}
+
+/* -------- THERAPIST SIDEBAR -------- */
+#therapist-panel {
+  width: 270px;
+  min-width: 270px;
+  background: var(--cu-dark);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.35s cubic-bezier(.4,0,.2,1), min-width 0.35s;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+#therapist-panel.collapsed {
+  width: 0;
+  min-width: 0;
+}
+
+.tp-header {
+  background: #0f0f1a;
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  flex-shrink: 0;
+}
+.tp-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,.4);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tp-subtitle {
+  font-size: 16px;
+  font-weight: 900;
+  color: #FFD166;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.tp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.tp-body::-webkit-scrollbar { width: 3px; }
+.tp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); }
+
+.tp-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.tp-sec-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,.35);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+
+/* WM toggles */
+.tp-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 6px;
+}
+.tp-tog-text { flex: 1; }
+.tp-tog-label { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.tp-tog-sub { font-size: 10px; color: rgba(255,255,255,.4); white-space: nowrap; }
+.tp-switch {
+  width: 38px; height: 20px; border-radius: 10px;
+  background: rgba(255,255,255,.2); border: none; cursor: pointer;
+  position: relative; transition: background .25s; flex-shrink: 0;
+}
+.tp-switch.on { background: #00a651; }
+.tp-switch::after {
+  content: ''; position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: white; transition: transform .25s;
+}
+.tp-switch.on::after { transform: translateX(18px); }
+
+/* difficulty */
+.diff-row { display: flex; gap: 5px; }
+.diff-btn {
+  flex: 1; padding: 7px 0; text-align: center;
+  border-radius: 8px; border: 1.5px solid rgba(255,255,255,.15);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  color: rgba(255,255,255,.5); background: transparent;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: all .2s; white-space: nowrap;
+}
+.diff-btn.active-e { border-color: #00a651; background: rgba(0,166,81,.2); color: #4ade80; }
+.diff-btn.active-m { border-color: #F59E0B; background: rgba(245,158,11,.2); color: #FCD34D; }
+.diff-btn.active-h { border-color: #E11D48; background: rgba(225,29,72,.2); color: #FB7185; }
+
+/* stats */
+.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.stat-card { background: rgba(255,255,255,.08); border-radius: 8px; padding: 8px 4px; text-align: center; }
+.stat-num { font-size: 22px; font-weight: 900; color: #FFD166; }
+.stat-lbl { font-size: 9px; color: rgba(255,255,255,.4); font-weight: 700; text-transform: uppercase; }
+
+/* bottom buttons */
+.tp-btn {
+  margin: 6px 14px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  width: calc(100% - 28px);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity .2s;
+  white-space: nowrap;
+}
+.tp-btn:hover { opacity: .85; }
+.tp-btn-barcode { background: linear-gradient(135deg,#7C3AED,#4F46E5); color: white; }
+.tp-btn-reset { background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); border: 1.5px solid rgba(255,255,255,.2); }
+.tp-btn-reset:hover { background: rgba(255,255,255,.18); color: white; }
+
+/* -------- SIDEBAR TOGGLE -------- */
+#panel-toggle {
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 300;
+  width: 42px; height: 42px; border-radius: 11px;
+  background: #1a1a2e;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.5);
+  transition: left .35s cubic-bezier(.4,0,.2,1);
+  color: white;
+}
+#panel-toggle.open { left: 282px; }
+
+/* -------- KIOSK SCREEN -------- */
+#kiosk-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 16px 40px;
+  min-height: 100vh;
+}
+
+/* WM Mission bar */
+#wm-bar {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 10px;
+  padding-left: 60px;
+}
+.wm-inner {
+  background: linear-gradient(135deg,#5B21B6,#7C3AED);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 16px rgba(91,33,182,.4);
+}
+.wm-icon { font-size: 22px; flex-shrink: 0; }
+.wm-texts { flex: 1; }
+.wm-label { font-size: 10px; color: rgba(255,255,255,.6); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.wm-task { font-size: 14px; font-weight: 700; color: white; margin-top: 1px; }
+.wm-task.blurred { filter: blur(5px); user-select: none; }
+.wm-reveal {
+  padding: 5px 12px; border-radius: 20px;
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+  color: white; font-size: 11px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* The actual kiosk frame */
+#kiosk-frame {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  min-height: 700px;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid #444;
+}
+
+/* CU Header */
+.cu-header {
+  background: linear-gradient(135deg, #6B21A8, #7C3AED);
+  padding: 0;
+  flex-shrink: 0;
+}
+.cu-header-top {
+  padding: 12px 18px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cu-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.cu-logo-box {
+  background: white;
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.cu-logo-text {
+  font-size: 22px;
+  font-weight: 900;
+  color: #6B21A8;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.cu-logo-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.75);
+  font-weight: 500;
+}
+.cu-clock {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+
+/* Step progress */
+.cu-step-bar {
+  background: rgba(0,0,0,.25);
+  padding: 8px 18px;
+  display: flex; align-items: center; gap: 0;
+}
+.cu-step {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,255,255,.45);
+  flex-shrink: 0;
+}
+.cu-step.active { color: white; }
+.cu-step.done { color: #86efac; }
+.cu-step-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900; flex-shrink: 0;
+}
+.cu-step.active .cu-step-dot { background: white; color: #6B21A8; }
+.cu-step.done .cu-step-dot { background: #86efac; color: #14532d; }
+.cu-step-line { flex: 1; height: 1px; background: rgba(255,255,255,.2); margin: 0 3px; }
+.cu-step-line.done { background: #86efac; }
+.cu-step span { white-space: nowrap; }
+
+/* Screen body */
+.cu-body {
+  flex: 1;
+  background: #f8f8f8;
+  overflow-y: auto;
+}
+.cu-body::-webkit-scrollbar { width: 4px; }
+.cu-body::-webkit-scrollbar-thumb { background: #ddd; }
+
+/* =========================================
+   SCREEN: IDLE / START
+   ========================================= */
+.screen-idle {
+  background: linear-gradient(180deg, #6B21A8 0%, #4C1D95 100%);
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 24px; padding: 32px;
+  text-align: center;
+}
+.idle-logo-big {
+  background: white; border-radius: 20px;
+  padding: 16px 32px;
+  font-size: 48px; font-weight: 900;
+  color: #6B21A8; letter-spacing: 3px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
+.idle-title {
+  font-size: 26px; font-weight: 900;
+  color: white; line-height: 1.4;
+}
+.idle-sub { font-size: 14px; color: rgba(255,255,255,.7); }
+.idle-start-btn {
+  background: white; color: #6B21A8;
+  border: none; border-radius: 16px;
+  padding: 20px 48px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 22px; font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  transition: transform .15s;
+  animation: pulse-btn 2s infinite;
+}
+.idle-start-btn:hover { transform: scale(1.04); }
+@keyframes pulse-btn {
+  0%,100% { box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+  50% { box-shadow: 0 8px 36px rgba(255,255,255,.4); }
+}
+.idle-help { font-size: 13px; color: rgba(255,255,255,.55); }
+
+/* =========================================
+   SCREEN: SCAN
+   ========================================= */
+.screen-scan {
+  background: #1a1a2e;
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  padding: 0;
+}
+
+.scan-top-guide {
+  background: #111;
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid #333;
+}
+.scan-guide-icon { font-size: 28px; }
+.scan-guide-text { color: white; font-size: 15px; font-weight: 700; }
+.scan-guide-sub { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 2px; }
+
+/* scanner viewport */
+.scan-viewport-wrap {
+  padding: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.scan-viewport {
+  width: 100%; max-width: 360px;
+  aspect-ratio: 4/3;
+  background: #0a0a0a;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #333;
+  display: flex; align-items: center; justify-content: center;
+}
+.scan-corner {
+  position: absolute;
+  width: 32px; height: 32px;
+  border-color: #00a651;
+  border-style: solid;
+  z-index: 3;
+}
+.scan-corner.tl { top: 10px; left: 10px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.scan-corner.tr { top: 10px; right: 10px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.scan-corner.bl { bottom: 10px; left: 10px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.scan-corner.br { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+.scan-line {
+  position: absolute;
+  width: 75%; height: 2px;
+  background: linear-gradient(90deg, transparent, #00FF88 50%, transparent);
+  z-index: 2;
+  animation: scanline 2.2s infinite ease-in-out;
+}
+@keyframes scanline {
+  0%,100% { top: 18%; opacity: 1; }
+  50% { top: 76%; opacity: .7; }
+}
+#scan-video {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; top: 0; left: 0;
+  display: none;
+}
+#scan-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; color: rgba(255,255,255,.35);
+  text-align: center; padding: 20px;
+  position: relative; z-index: 1;
+}
+#scan-placeholder .ph-icon { font-size: 52px; }
+#scan-placeholder p { font-size: 12px; line-height: 1.6; }
+
+/* scan controls */
+.scan-btn-row {
+  display: flex; gap: 10px; width: 100%; max-width: 360px;
+}
+.scan-start-btn {
+  flex: 1; padding: 14px;
+  background: #00a651; border: none; border-radius: 12px;
+  color: white; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background .2s;
+}
+.scan-start-btn:hover { background: #00703c; }
+.scan-start-btn.scanning { background: #E11D48; }
+.scan-start-btn.scanning:hover { background: #be123c; }
+.scan-manual-btn {
+  padding: 14px 16px;
+  background: #333; border: none; border-radius: 12px;
+  color: white; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s;
+}
+.scan-manual-btn:hover { background: #444; }
+
+/* scan success feedback */
+.scan-success-pop {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  background: rgba(0,166,81,.92); color: white;
+  border-radius: 12px; padding: 12px 20px;
+  font-size: 16px; font-weight: 700;
+  z-index: 10; text-align: center;
+  pointer-events: none;
+  transition: transform .2s, opacity .3s;
+  white-space: nowrap;
+}
+.scan-success-pop.show {
+  transform: translate(-50%,-50%) scale(1);
+}
+
+/* scanned items list */
+.scanned-list-wrap {
+  margin: 0 16px 16px;
+  background: #111;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #2a2a2a;
+}
+.scanned-list-header {
+  background: #0a0a0a;
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.scanned-list-title { color: rgba(255,255,255,.6); font-size: 12px; font-weight: 700; }
+.scanned-count { color: #FFD166; font-size: 13px; font-weight: 900; }
+
+.scanned-items { max-height: 180px; overflow-y: auto; }
+.scanned-items::-webkit-scrollbar { width: 3px; }
+.scanned-items::-webkit-scrollbar-thumb { background: #333; }
+.scanned-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #1a1a1a;
+  animation: item-appear .25s ease;
+}
+@keyframes item-appear {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.scanned-item:last-child { border-bottom: none; }
+.si-emoji { font-size: 22px; flex-shrink: 0; }
+.si-name { flex: 1; color: white; font-size: 14px; font-weight: 600; }
+.si-qty-row { display: flex; align-items: center; gap: 6px; }
+.si-qty-btn {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: #333; border: none; color: white;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.si-qty-btn:hover { background: #555; }
+.si-qty { color: white; font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; }
+.si-price { color: #00a651; font-size: 14px; font-weight: 700; min-width: 52px; text-align: right; }
+
+/* scan total bar */
+.scan-total-bar {
+  margin: 0 16px 14px;
+  background: #00703c;
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.scan-total-label { color: rgba(255,255,255,.8); font-size: 14px; font-weight: 700; }
+.scan-total-price { color: white; font-size: 24px; font-weight: 900; }
+
+.scan-pay-btn {
+  margin: 0 16px 20px;
+  width: calc(100% - 32px);
+  padding: 16px;
+  background: linear-gradient(135deg,#6B21A8,#7C3AED);
+  border: none; border-radius: 14px;
+  color: white; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 18px; font-weight: 900; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(107,33,168,.5);
+  transition: opacity .2s;
+}
+.scan-pay-btn:hover { opacity: .88; }
+.scan-pay-btn:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
+
+/* =========================================
+   SCREEN: BAG
+   ========================================= */
+.screen-bag {
+  background: #f4f4f4;
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px; gap: 24px; text-align: center;
+}
+.bag-icon { font-size: 80px; }
+.bag-question { font-size: 22px; font-weight: 900; color: var(--cu-text); line-height: 1.4; }
+.bag-sub { font-size: 13px; color: var(--cu-text2); }
+.bag-price-note {
+  background: #FEF3C7; border: 1.5px solid #F59E0B;
+  border-radius: 10px; padding: 10px 18px;
+  font-size: 14px; font-weight: 700; color: #92400E;
+}
+.bag-btn-row { display: flex; gap: 14px; width: 100%; }
+.bag-btn {
+  flex: 1; padding: 20px;
+  border-radius: 16px; border: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 18px; font-weight: 900; cursor: pointer;
+  transition: transform .15s;
+}
+.bag-btn:hover { transform: scale(1.03); }
+.bag-yes { background: #6B21A8; color: white; }
+.bag-no { background: #e5e5e5; color: var(--cu-text2); }
+
+/* =========================================
+   SCREEN: PAYMENT METHOD
+   ========================================= */
+.screen-paymethod {
+  background: #f4f4f4;
+  min-height: 600px;
+  padding: 24px 20px;
+}
+.pm-title { font-size: 20px; font-weight: 900; color: var(--cu-text); margin-bottom: 6px; }
+.pm-sub { font-size: 13px; color: var(--cu-text2); margin-bottom: 20px; }
+.pm-amount-box {
+  background: #1a1a2e; border-radius: 14px;
+  padding: 16px 20px; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pm-amount-label { font-size: 13px; color: rgba(255,255,255,.6); font-weight: 600; }
+.pm-amount-num { font-size: 30px; font-weight: 900; color: #FFD166; }
+
+.pm-options { display: flex; flex-direction: column; gap: 12px; }
+.pm-card {
+  background: white; border-radius: 14px;
+  border: 2.5px solid #e5e5e5;
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer; transition: all .2s;
+}
+.pm-card:hover { border-color: #6B21A8; box-shadow: 0 4px 14px rgba(107,33,168,.12); }
+.pm-card.selected { border-color: #6B21A8; background: #f5f3ff; }
+.pm-card-icon { font-size: 36px; flex-shrink: 0; }
+.pm-card-name { font-size: 16px; font-weight: 700; color: var(--cu-text); }
+.pm-card-desc { font-size: 12px; color: var(--cu-text2); margin-top: 2px; }
+.pm-card-check {
+  margin-left: auto; width: 28px; height: 28px; border-radius: 50%;
+  background: #6B21A8; color: white;
+  display: none; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; flex-shrink: 0;
+}
+.pm-card.selected .pm-card-check { display: flex; }
+
+.pm-next-btn {
+  margin-top: 24px; width: 100%; padding: 17px;
+  background: linear-gradient(135deg,#6B21A8,#7C3AED);
+  border: none; border-radius: 14px;
+  color: white; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 17px; font-weight: 900; cursor: pointer;
+  transition: opacity .2s;
+}
+.pm-next-btn:hover { opacity: .88; }
+.pm-next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+/* =========================================
+   SCREEN: MEMBERSHIP
+   ========================================= */
+.screen-membership {
+  background: #f4f4f4;
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px; gap: 20px; text-align: center;
+}
+.ms-icon { font-size: 72px; }
+.ms-question { font-size: 22px; font-weight: 900; color: var(--cu-text); line-height: 1.4; }
+.ms-sub { font-size: 13px; color: var(--cu-text2); line-height: 1.6; }
+.ms-btn-row { display: flex; gap: 14px; width: 100%; }
+.ms-btn {
+  flex: 1; padding: 18px;
+  border-radius: 16px; border: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 17px; font-weight: 900; cursor: pointer;
+  transition: transform .15s;
+}
+.ms-btn:hover { transform: scale(1.03); }
+.ms-yes { background: linear-gradient(135deg,#6B21A8,#7C3AED); color: white; }
+.ms-no { background: #e5e5e5; color: var(--cu-text2); }
+
+/* =========================================
+   SCREEN: MEMBERSHIP SCAN
+   ========================================= */
+.screen-ms-scan {
+  background: #f4f4f4;
+  min-height: 600px;
+  padding: 24px 20px;
+}
+.ms-scan-title { font-size: 20px; font-weight: 900; color: var(--cu-text); margin-bottom: 6px; }
+.ms-scan-sub { font-size: 13px; color: var(--cu-text2); margin-bottom: 20px; }
+.ms-scan-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.ms-opt {
+  background: white; border-radius: 14px; border: 2.5px solid #e5e5e5;
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all .2s;
+}
+.ms-opt:hover { border-color: #6B21A8; }
+.ms-opt.selected { border-color: #6B21A8; background: #f5f3ff; }
+.ms-opt-icon { font-size: 30px; flex-shrink: 0; }
+.ms-opt-name { font-size: 15px; font-weight: 700; }
+.ms-opt-desc { font-size: 11px; color: var(--cu-text2); margin-top: 2px; }
+
+.ms-scan-viewport {
+  width: 100%;
+  background: #1a1a2e; border-radius: 14px;
+  padding: 20px; text-align: center;
+  border: 2px solid #333;
+  margin-bottom: 14px;
+}
+.ms-scan-inst { color: rgba(255,255,255,.7); font-size: 13px; margin-bottom: 12px; }
+.ms-scan-anim {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(0,166,81,.15); border: 3px solid #00a651;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; margin: 0 auto;
+  animation: scan-pulse 1.5s infinite;
+}
+@keyframes scan-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,166,81,.4); }
+  50% { box-shadow: 0 0 0 16px rgba(0,166,81,0); }
+}
+.ms-skip-btn {
+  width: 100%; padding: 14px;
+  background: #e5e5e5; border: none; border-radius: 12px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  color: var(--cu-text2);
+  transition: background .2s;
+}
+.ms-skip-btn:hover { background: #d5d5d5; }
+
+/* =========================================
+   SCREEN: SAVE/USE
+   ========================================= */
+.screen-saveuse {
+  background: #f4f4f4;
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px; gap: 20px; text-align: center;
+}
+.su-points-box {
+  background: linear-gradient(135deg,#6B21A8,#4C1D95);
+  border-radius: 16px; padding: 16px 32px; color: white;
+}
+.su-points-label { font-size: 12px; color: rgba(255,255,255,.7); font-weight: 700; }
+.su-points-num { font-size: 36px; font-weight: 900; color: #FFD166; }
+.su-question { font-size: 20px; font-weight: 900; color: var(--cu-text); }
+.su-btn-row { display: flex; gap: 14px; width: 100%; }
+.su-btn {
+  flex: 1; padding: 18px;
+  border-radius: 16px; border: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 16px; font-weight: 900; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: transform .15s;
+}
+.su-btn:hover { transform: scale(1.03); }
+.su-save { background: linear-gradient(135deg,#6B21A8,#7C3AED); color: white; }
+.su-use { background: linear-gradient(135deg,#059669,#10B981); color: white; }
+.su-btn .su-icon { font-size: 28px; }
+.su-btn .su-lbl { font-size: 16px; }
+.su-btn .su-desc { font-size: 11px; opacity: .8; }
+
+/* =========================================
+   SCREEN: FINAL PAY
+   ========================================= */
+.screen-finalpay {
+  background: #1a1a2e;
+  min-height: 600px;
+  padding: 24px 20px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.fp-title { font-size: 20px; font-weight: 900; color: white; }
+.fp-sub { font-size: 13px; color: rgba(255,255,255,.55); margin-top: 2px; }
+.fp-amount-box {
+  background: #0f0f1a; border-radius: 14px;
+  padding: 20px; text-align: center;
+  border: 1px solid #333;
+}
+.fp-amount-label { font-size: 13px; color: rgba(255,255,255,.5); font-weight: 600; }
+.fp-amount-num { font-size: 44px; font-weight: 900; color: #FFD166; }
+.fp-method-used {
+  background: rgba(107,33,168,.3); border: 1.5px solid #7C3AED;
+  border-radius: 10px; padding: 10px 16px;
+  font-size: 14px; font-weight: 700; color: rgba(255,255,255,.85);
+  display: flex; align-items: center; gap: 8px;
+}
+.fp-method-icon { font-size: 22px; }
+
+.fp-instructions { display: flex; flex-direction: column; gap: 10px; }
+.fp-instr-card {
+  background: #111; border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid #2a2a2a;
+}
+.fp-instr-icon { font-size: 28px; flex-shrink: 0; }
+.fp-instr-text { font-size: 14px; color: rgba(255,255,255,.8); font-weight: 600; line-height: 1.5; }
+.fp-instr-step {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #6B21A8; color: white;
+  font-size: 12px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-left: auto;
+}
+
+.fp-sim-btn {
+  width: 100%; padding: 17px;
+  background: linear-gradient(135deg,#6B21A8,#7C3AED);
+  border: none; border-radius: 14px;
+  color: white; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 17px; font-weight: 900; cursor: pointer;
+  margin-top: auto;
+  box-shadow: 0 4px 20px rgba(107,33,168,.5);
+  transition: opacity .2s;
+}
+.fp-sim-btn:hover { opacity: .88; }
+
+/* =========================================
+   SCREEN: COMPLETE
+   ========================================= */
+.screen-complete {
+  background: linear-gradient(180deg,#00703c 0%,#004d2a 100%);
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px; gap: 18px; text-align: center;
+}
+.comp-check {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+  animation: pop-in .5s cubic-bezier(.4,0,.2,1);
+}
+@keyframes pop-in {
+  from { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); }
+  to { transform: scale(1); opacity: 1; }
+}
+.comp-title { font-size: 28px; font-weight: 900; color: white; }
+.comp-sub { font-size: 14px; color: rgba(255,255,255,.75); }
+
+.comp-receipt {
+  background: rgba(255,255,255,.12);
+  border-radius: 16px; padding: 18px 20px;
+  width: 100%; text-align: left;
+}
+.comp-receipt-title {
+  font-size: 11px; color: rgba(255,255,255,.55);
+  font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+}
+.comp-item-row {
+  display: flex; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.1);
+  font-size: 13px; color: rgba(255,255,255,.85);
+}
+.comp-item-row:last-child { border-bottom: none; }
+.comp-total-row {
+  display: flex; justify-content: space-between;
+  padding: 12px 0 0;
+  margin-top: 8px;
+  border-top: 2px solid rgba(255,255,255,.2);
+}
+.comp-total-label { font-size: 15px; font-weight: 900; color: white; }
+.comp-total-price { font-size: 22px; font-weight: 900; color: #FFD166; }
+
+.comp-receipt-notice { font-size: 12px; color: rgba(255,255,255,.55); text-align: center; }
+
+.comp-btn-row { display: flex; gap: 10px; width: 100%; }
+.tp-btn-save-result {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.tp-btn-save-result:hover { background: rgba(255, 255, 255, 0.18); }
+.comp-receipt-btn {
+  flex: 1; padding: 14px;
+  background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 12px; color: white;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.comp-receipt-btn:hover { background: rgba(255,255,255,.25); }
+.comp-home-btn {
+  flex: 2; padding: 14px;
+  background: white; border: none; border-radius: 12px;
+  color: #00703c; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; font-weight: 900; cursor: pointer;
+  transition: opacity .2s;
+}
+.comp-home-btn:hover { opacity: .88; }
+
+/* =========================================
+   MODAL (manual barcode input)
+   ========================================= */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: white; border-radius: 20px;
+  padding: 28px 24px;
+  width: 90%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  transform: scale(.92); transition: transform .25s;
+}
+.modal-overlay.show .modal-box { transform: scale(1); }
+.modal-title { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--cu-text2); margin-bottom: 18px; }
+.modal-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.modal-item {
+  padding: 12px 14px; border-radius: 12px; border: 2px solid #e5e5e5;
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  transition: all .2s;
+}
+.modal-item:hover { border-color: #6B21A8; background: #f5f3ff; }
+.modal-item-emoji { font-size: 26px; flex-shrink: 0; }
+.modal-item-name { font-size: 14px; font-weight: 700; flex: 1; }
+.modal-item-price { font-size: 14px; font-weight: 700; color: #6B21A8; }
+.modal-close {
+  width: 100%; padding: 12px;
+  background: #f4f4f4; border: none; border-radius: 12px;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; color: var(--cu-text2);
+  transition: background .2s;
+}
+.modal-close:hover { background: #e5e5e5; }
+
+/* =========================================
+   QUIZ OVERLAY
+   ========================================= */
+.quiz-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.quiz-overlay.show { opacity: 1; pointer-events: all; }
+.quiz-box {
+  background: white; border-radius: 22px;
+  padding: 28px 24px; width: 90%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  transform: scale(.92); transition: transform .25s;
+}
+.quiz-overlay.show .quiz-box { transform: scale(1); }
+.quiz-icon { font-size: 48px; text-align: center; margin-bottom: 8px; }
+.quiz-title { font-size: 20px; font-weight: 900; text-align: center; margin-bottom: 6px; }
+.quiz-sub { font-size: 13px; color: var(--cu-text2); text-align: center; margin-bottom: 18px; }
+.quiz-choices { display: flex; flex-direction: column; gap: 8px; }
+.quiz-choice {
+  padding: 13px 16px; border-radius: 12px;
+  border: 2px solid #e5e5e5;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  background: #fafafa; transition: all .2s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.quiz-choice:hover:not(:disabled) { border-color: #6B21A8; background: #f5f3ff; }
+.quiz-choice.correct { border-color: #00a651; background: #ecfdf5; color: #065f46; }
+.quiz-choice.wrong { border-color: #E11D48; background: #fff1f2; color: #9f1239; }
+.quiz-feedback {
+  margin-top: 12px; padding: 12px 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 700; text-align: center;
+  display: none;
+}
+.quiz-feedback.show.good { display: block; background: #ecfdf5; color: #065f46; }
+.quiz-feedback.show.bad { display: block; background: #fff1f2; color: #9f1239; }
+.quiz-next {
+  margin-top: 12px; width: 100%; padding: 13px;
+  background: #6B21A8; border: none; border-radius: 12px;
+  color: white; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  display: none;
+}
+.quiz-next.show { display: block; }
+
+/* =========================================
+   BARCODE PRINT PAGE
+   ========================================= */
+#barcode-page {
+  display: none;
+  position: fixed; inset: 0; z-index: 600;
+  background: white;
+  overflow-y: auto;
+}
+.bp-header {
+  background: linear-gradient(135deg,#6B21A8,#7C3AED);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  position: sticky; top: 0; z-index: 10;
+}
+.bp-back-btn {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,.15); border: none;
+  color: white; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.bp-title { font-size: 18px; font-weight: 900; color: white; flex: 1; }
+.bp-print-btn {
+  padding: 8px 16px; border-radius: 10px;
+  background: white; color: #6B21A8;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px; font-weight: 700; border: none; cursor: pointer;
+}
+.bp-print-btn:hover { background: #f5f3ff; }
+
+.bp-body { padding: 20px; }
+.bp-intro {
+  background: #f5f3ff; border-radius: 14px; padding: 16px; margin-bottom: 24px;
+  border: 1.5px solid #DDD6FE;
+}
+.bp-intro-title { font-size: 15px; font-weight: 900; color: #4C1D95; margin-bottom: 6px; }
+.bp-intro-text { font-size: 13px; color: #5B21B6; line-height: 1.6; }
+
+.bp-section-title {
+  font-size: 13px; font-weight: 700;
+  color: var(--cu-text2); letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 12px; margin-top: 24px;
+  padding-bottom: 8px; border-bottom: 2px solid #e5e5e5;
+}
+.bp-section-title:first-of-type { margin-top: 0; }
+
+.bp-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+.bp-card {
+  background: white; border-radius: 14px;
+  border: 2px solid #e5e5e5; padding: 16px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.bp-card-emoji { font-size: 32px; }
+.bp-card-name { font-size: 14px; font-weight: 700; color: var(--cu-text); text-align: center; }
+.bp-card-price { font-size: 13px; font-weight: 700; color: #6B21A8; }
+.bp-card-code-label { font-size: 10px; color: var(--cu-text2); }
+.bp-qr-host {
+  display: flex; justify-content: center; align-items: center;
+  width: 100%; max-width: 168px; min-height: 136px;
+  padding: 6px; background: #fff; border-radius: 10px;
+}
+.bp-qr-host img.qr-bitmap, .bp-qr-host canvas.qr-bitmap { display: block !important; margin: 0 auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+.bp-print-area {
+  margin-top: 28px;
+  background: #f4f4f4; border-radius: 14px;
+  padding: 20px; border: 2px dashed #ccc;
+}
+.bp-print-area-title {
+  font-size: 14px; font-weight: 700; color: var(--cu-text2); margin-bottom: 14px; text-align: center;
+}
+.bp-print-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.bp-print-item {
+  background: white; border-radius: 10px; border: 1.5px solid #ddd;
+  padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.bp-print-emoji { font-size: 22px; }
+.bp-print-name { font-size: 11px; font-weight: 700; text-align: center; }
+.bp-print-price { font-size: 11px; color: #6B21A8; font-weight: 700; }
+.bp-print-qr {
+  display: flex; justify-content: center; align-items: center;
+  width: 100%; min-height: 108px; padding: 4px; background: #fff; border-radius: 8px;
+}
+.bp-print-qr img.qr-bitmap, .bp-print-qr canvas.qr-bitmap { display: block !important; margin: 0 auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+@media print {
+  #app-root, #panel-toggle { display: none !important; }
+  #barcode-page { display: block !important; position: static; }
+  .bp-header { display: none; }
+  .bp-intro { display: none; }
+  .bp-print-area { border: none; background: none; }
+  .bp-card { break-inside: avoid; }
+  .bp-qr-host img.qr-bitmap, .bp-qr-host canvas.qr-bitmap, .bp-print-qr img.qr-bitmap, .bp-print-qr canvas.qr-bitmap {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    width: 38mm !important; height: 38mm !important; max-width: none !important;
+  }
+  .bp-print-qr img.qr-bitmap, .bp-print-qr canvas.qr-bitmap { width: 32mm !important; height: 32mm !important; }
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: rgba(26,26,46,.95); color: white;
+  padding: 12px 22px; border-radius: 50px;
+  font-size: 14px; font-weight: 700;
+  z-index: 700; pointer-events: none;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Fade in animation for screens */
+.fade-enter { animation: fade-in .3s ease; }
+@keyframes fade-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- ===================== BARCODE PRINT PAGE ===================== -->
+<div id="barcode-page">
+  <div class="bp-header">
+    <button class="bp-back-btn" onclick="closeBarcodePageFn()">←</button>
+    <div class="bp-title">🏷️ 상품 QR 출력</div>
+    <button type="button" class="bp-print-btn" onclick="printBarcodeToPdfCu()">📄 인쇄·PDF 저장</button>
+  </div>
+  <div class="bp-body">
+    <div class="bp-intro">
+      <div class="bp-intro-title">📋 치료사 안내</div>
+      <div class="bp-intro-text">
+        아래 <strong>QR 코드</strong>에는 앱 상품과 같은 <strong>상품 ID</strong>가 들어 있습니다. 1D 바코드보다 카메라 인식이 보통 수월합니다.<br>
+        인쇄 후 오려서 상품 카드로 활용하세요.<br>
+        <strong>PDF로 저장:</strong> 「인쇄·PDF 저장」→ 인쇄 창에서 <strong>대상</strong>을 <strong>PDF로 저장</strong>(또는 Microsoft Print to PDF)으로 선택하세요.<br>
+        <strong>스캔·인쇄 팁:</strong> 인쇄 <strong>배율 100%</strong>·<strong>고품질/표준</strong>(초절약·초안 끔)·QR <strong>잘림 없음</strong>·카메라 <strong>25~40cm</strong>·밝은 곳에서 정면으로 맞추세요.<br>
+        <strong>난이도별 미션에 맞는 상품을 골라 제공하세요.</strong>
+      </div>
+    </div>
+
+    <div class="bp-section-title">과자 / 음료</div>
+    <div class="bp-grid" id="bp-grid-snack"></div>
+
+    <div class="bp-section-title">유제품 / 아이스크림</div>
+    <div class="bp-grid" id="bp-grid-dairy"></div>
+
+    <div class="bp-section-title">간편식 / 라면</div>
+    <div class="bp-grid" id="bp-grid-instant"></div>
+
+    <div class="bp-section-title">과일 / 기타</div>
+    <div class="bp-grid" id="bp-grid-fruit"></div>
+
+    <div class="bp-print-area">
+      <div class="bp-print-area-title">✂️ 인쇄 후 오려서 사용하세요</div>
+      <div class="bp-print-grid" id="bp-print-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app-root">
+
+  <!-- THERAPIST PANEL -->
+  <div id="therapist-panel">
+    <div class="tp-header">
+      <div class="tp-title">치료사 컨트롤 패널</div>
+      <div class="tp-subtitle">🛒 CU 셀프계산대 훈련</div>
+    </div>
+    <div class="tp-body">
+
+      <!-- WM Options -->
+      <div class="tp-section">
+        <div class="tp-sec-label">🧠 워킹메모리 옵션</div>
+        <div class="tp-toggle-row">
+          <div class="tp-tog-text">
+            <div class="tp-tog-label">미션 제시</div>
+            <div class="tp-tog-sub">주문 전 목표 보여주기</div>
+          </div>
+          <button class="tp-switch on" id="sw-mission" onclick="toggleOpt('mission',this)"></button>
+        </div>
+        <div class="tp-toggle-row">
+          <div class="tp-tog-text">
+            <div class="tp-tog-label">지연회상 퀴즈</div>
+            <div class="tp-tog-sub">완료 후 내용 테스트</div>
+          </div>
+          <button class="tp-switch on" id="sw-quiz" onclick="toggleOpt('quiz',this)"></button>
+        </div>
+        <div class="tp-toggle-row">
+          <div class="tp-tog-text">
+            <div class="tp-tog-label">미션 숨김</div>
+            <div class="tp-tog-sub">기억 후 블러 처리</div>
+          </div>
+          <button class="tp-switch" id="sw-hide" onclick="toggleOpt('hide',this)"></button>
+        </div>
+        <div class="tp-toggle-row">
+          <div class="tp-tog-text">
+            <div class="tp-tog-label">오류 피드백</div>
+            <div class="tp-tog-sub">틀린 선택 시 힌트</div>
+          </div>
+          <button class="tp-switch on" id="sw-feedback" onclick="toggleOpt('feedback',this)"></button>
+        </div>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="tp-section">
+        <div class="tp-sec-label">⚡ 난이도</div>
+        <div class="diff-row">
+          <button class="diff-btn active-e" onclick="setDiff('e',this)">쉬움</button>
+          <button class="diff-btn" onclick="setDiff('m',this)">보통</button>
+          <button class="diff-btn" onclick="setDiff('h',this)">어려움</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:10px;line-height:1.6" id="diff-desc">
+          상품 1가지를 사 오세요
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="tp-section">
+        <div class="tp-sec-label">📊 세션 기록</div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num" id="st-trials">0</div><div class="stat-lbl">시도</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-correct">0</div><div class="stat-lbl">정답</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-pct">0%</div><div class="stat-lbl">정확도</div></div>
+        </div>
+        <button type="button" class="tp-btn-save-result" onclick="kioskSaveResultScreen('cu', showToast)">📷 결과 화면 저장</button>
+      </div>
+
+    </div><!-- /tp-body -->
+
+    <div style="padding: 8px 0 14px;">
+      <button class="tp-btn tp-btn-barcode" onclick="openBarcodePageFn()">🏷️ QR 카드 출력</button>
+      <button class="tp-btn tp-btn-reset" style="margin-top:6px" onclick="resetAll()">🔄 새 세션 시작</button>
+    </div>
+  </div><!-- /therapist-panel -->
+
+  <!-- PANEL TOGGLE -->
+  <button id="panel-toggle" class="open" onclick="togglePanel()">☰</button>
+
+  <!-- KIOSK WRAP -->
+  <div id="kiosk-wrap">
+
+    <!-- WM BAR -->
+    <div id="wm-bar">
+      <div class="wm-inner">
+        <span class="wm-icon">🎯</span>
+        <div class="wm-texts">
+          <div class="wm-label">오늘의 미션</div>
+          <div class="wm-task" id="wm-task-text">우유 1개를 사 오세요!</div>
+        </div>
+        <button class="wm-reveal" id="wm-reveal-btn" onclick="revealMission()" style="display:none">보기</button>
+      </div>
+    </div>
+
+    <!-- KIOSK FRAME -->
+    <div id="kiosk-frame">
+      <!-- CU Header -->
+      <div class="cu-header">
+        <div class="cu-header-top">
+          <div class="cu-logo">
+            <div class="cu-logo-box">
+              <div class="cu-logo-text">CU</div>
+            </div>
+            <div class="cu-logo-sub">셀프계산대</div>
+          </div>
+          <div class="cu-clock" id="cu-clock">00:00</div>
+        </div>
+        <div class="cu-step-bar" id="cu-step-bar">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Screen content -->
+      <div class="cu-body" id="cu-body">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+  </div><!-- /kiosk-wrap -->
+</div><!-- /app-root -->
+
+<!-- MODAL: manual product select -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">📦 상품 직접 선택</div>
+    <div class="modal-sub">카메라 없이 상품을 선택하세요</div>
+    <div class="modal-items" id="modal-items-list"></div>
+    <button class="modal-close" onclick="closeModal()">닫기</button>
+  </div>
+</div>
+
+<!-- QUIZ OVERLAY -->
+<div class="quiz-overlay" id="quiz-overlay">
+  <div class="quiz-box">
+    <div class="quiz-icon" id="quiz-icon">🧠</div>
+    <div class="quiz-title" id="quiz-title">기억해 볼까요?</div>
+    <div class="quiz-sub" id="quiz-sub">아까 산 물건 중에 있었던 것은?</div>
+    <div class="quiz-choices" id="quiz-choices"></div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <button class="quiz-next" id="quiz-next" onclick="closeQuiz()">다음 →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ 스캔 완료!</div>
+
+<!-- ===================== HTML5 QR DIV ===================== -->
+<div id="html5-qrcode-reader" style="display:none;"></div>
+
+<script>
+// =============================================
+//  PRODUCTS DATABASE (with barcode IDs)
+// =============================================
+const PRODUCTS = [
+  { id:'4901201',  name:'초코파이',    emoji:'🍫', price:1200, cat:'snack'   },
+  { id:'4900001',  name:'새우깡',      emoji:'🦐', price:1000, cat:'snack'   },
+  { id:'4900002',  name:'포카칩',      emoji:'🥔', price:1500, cat:'snack'   },
+  { id:'4900003',  name:'꼬깔콘',      emoji:'🌽', price:1200, cat:'snack'   },
+  { id:'4900004',  name:'콜라 500ml',  emoji:'🥤', price:1800, cat:'snack'   },
+  { id:'4900005',  name:'오렌지주스',  emoji:'🍊', price:2000, cat:'snack'   },
+  { id:'4900011',  name:'우유 1L',     emoji:'🥛', price:2500, cat:'dairy'   },
+  { id:'4900012',  name:'딸기우유',    emoji:'🍓', price:1800, cat:'dairy'   },
+  { id:'4900013',  name:'요거트',      emoji:'🫙', price:1500, cat:'dairy'   },
+  { id:'4900014',  name:'수박바',      emoji:'🍉', price:800,  cat:'dairy'   },
+  { id:'4900015',  name:'메로나',      emoji:'🍈', price:800,  cat:'dairy'   },
+  { id:'4900021',  name:'신라면',      emoji:'🍜', price:1200, cat:'instant' },
+  { id:'4900022',  name:'삼각김밥',    emoji:'🍙', price:1000, cat:'instant' },
+  { id:'4900023',  name:'핫도그',      emoji:'🌭', price:2000, cat:'instant' },
+  { id:'4900024',  name:'컵라면',      emoji:'🥡', price:1300, cat:'instant' },
+  { id:'4900031',  name:'사과',        emoji:'🍎', price:1500, cat:'fruit'   },
+  { id:'4900032',  name:'바나나',      emoji:'🍌', price:1200, cat:'fruit'   },
+  { id:'4900033',  name:'귤',          emoji:'🍊', price:800,  cat:'fruit'   },
+];
+
+// Product lookup by barcode ID
+const productMap = {};
+PRODUCTS.forEach(p => { productMap[p.id] = p; });
+
+// =============================================
+//  STATE
+// =============================================
+const state = {
+  screen: 'idle',           // idle | scan | bag | paymethod | membership | msscan | saveuse | finalpay | complete
+  cart: [],
+  bag: false,
+  payMethod: null,          // 0=card 1=pocketCU 2=transit
+  hasMembership: false,
+  membershipAction: null,   // 'save' | 'use'
+  currentScan: null,
+  difficulty: 'e',
+  mission: '',
+  opts: { mission:true, quiz:true, hide:false, feedback:true },
+  stats: { trials:0, correct:0 },
+  panelOpen: true,
+  scanner: null,
+  scannerActive: false,
+};
+
+// Step definitions
+const STEPS = ['스캔','봉투','결제수단','멤버십','결제','완료'];
+
+// Missions per difficulty
+const MISSIONS = {
+  e: ['우유 1개를 사 오세요!','새우깡 1개를 사 오세요!','수박바 1개를 사 오세요!','삼각김밥 1개를 사 오세요!'],
+  m: ['우유와 과자를 1개씩 사 오세요!','신라면과 삼각김밥을 1개씩 사 오세요!','음료수와 아이스크림을 1개씩 사 오세요!'],
+  h: ['과자류 2가지와 음료 1개를 사 오세요!','5000원 이내로 상품 3가지를 골라보세요!','우유, 과자, 라면을 각각 1개씩 사 오세요!'],
+};
+const DIFF_DESC = {
+  e: '상품 1가지를 사 오세요',
+  m: '상품 2가지를 사 오세요',
+  h: '상품 3가지 (또는 금액 조건)',
+};
+
+// =============================================
+//  CLOCK
+// =============================================
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('cu-clock');
+  if (el) el.textContent = h + ':' + m;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// =============================================
+//  STEP BAR
+// =============================================
+const SCREEN_STEP = { idle:-1, scan:0, bag:1, paymethod:2, membership:3, msscan:3, saveuse:3, finalpay:4, complete:5 };
+function renderStepBar() {
+  const cur = SCREEN_STEP[state.screen];
+  const bar = document.getElementById('cu-step-bar');
+  if (!bar) return;
+  bar.innerHTML = STEPS.map((s,i) => {
+    const cls = i < cur ? 'done' : i === cur ? 'active' : '';
+    const dot = i < cur ? '✓' : (i+1);
+    const line = i < STEPS.length-1 ? `<div class="cu-step-line ${i<cur?'done':''}"></div>` : '';
+    return `<div class="cu-step ${cls}"><div class="cu-step-dot">${dot}</div><span>${s}</span></div>${line}`;
+  }).join('');
+}
+
+// =============================================
+//  TOAST
+// =============================================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =============================================
+//  RENDER ROUTER
+// =============================================
+function render() {
+  renderStepBar();
+  const body = document.getElementById('cu-body');
+  body.className = 'cu-body fade-enter';
+  void body.offsetWidth;
+
+  switch(state.screen) {
+    case 'idle':      body.innerHTML = renderIdle(); break;
+    case 'scan':      body.innerHTML = renderScan(); bindScanEvents(); break;
+    case 'bag':       body.innerHTML = renderBag(); break;
+    case 'paymethod': body.innerHTML = renderPayMethod(); break;
+    case 'membership':body.innerHTML = renderMembership(); break;
+    case 'msscan':    body.innerHTML = renderMsScan(); break;
+    case 'saveuse':   body.innerHTML = renderSaveUse(); break;
+    case 'finalpay':  body.innerHTML = renderFinalPay(); break;
+    case 'complete':  body.innerHTML = renderComplete();
+      if(state.opts.quiz) setTimeout(triggerQuiz, 1800);
+      break;
+  }
+}
+
+// =============================================
+//  SCREEN: IDLE
+// =============================================
+function renderIdle() {
+  return `
+    <div class="screen-idle">
+      <div class="idle-logo-big">CU</div>
+      <div class="idle-title">셀프계산대에<br>오신 것을 환영합니다!</div>
+      <div class="idle-sub">상품 스캔부터 결제까지<br>쉽고 빠르게 이용하세요</div>
+      <button class="idle-start-btn" onclick="goScreen('scan')">시작하기</button>
+      <div class="idle-help">화면을 터치하여 시작하세요</div>
+    </div>`;
+}
+
+// =============================================
+//  SCREEN: SCAN
+// =============================================
+function renderScan() {
+  const total = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const totalFmt = total.toLocaleString()+'원';
+
+  const itemsHTML = state.cart.length === 0
+    ? `<div style="padding:16px;text-align:center;color:rgba(255,255,255,.35);font-size:13px;">스캔한 상품이 없습니다</div>`
+    : state.cart.map(item => `
+        <div class="scanned-item">
+          <span class="si-emoji">${item.emoji}</span>
+          <span class="si-name">${item.name}</span>
+          <div class="si-qty-row">
+            <button class="si-qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+            <span class="si-qty">${item.qty}</span>
+            <button class="si-qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+          </div>
+          <span class="si-price">${(item.price*item.qty).toLocaleString()}원</span>
+        </div>`).join('');
+
+  return `
+    <div class="screen-scan">
+      <div class="scan-top-guide">
+        <span class="scan-guide-icon">📦</span>
+        <div>
+          <div class="scan-guide-text">상품 QR을 스캔하세요</div>
+          <div class="scan-guide-sub">인쇄한 QR 카드를 카메라에 비춰 주세요</div>
+        </div>
+      </div>
+
+      <div class="scan-viewport-wrap">
+        <div class="scan-viewport" id="scan-viewport">
+          <div class="scan-corner tl"></div>
+          <div class="scan-corner tr"></div>
+          <div class="scan-corner bl"></div>
+          <div class="scan-corner br"></div>
+          <div class="scan-line" id="scan-line"></div>
+          <video id="scan-video" autoplay playsinline muted></video>
+          <div id="scan-placeholder">
+            <div class="ph-icon">📷</div>
+            <p>카메라 버튼을 눌러<br>QR을 스캔하세요</p>
+          </div>
+          <div class="scan-success-pop" id="scan-success-pop">✅ 스캔됨!</div>
+        </div>
+
+        <div class="scan-btn-row">
+          <button class="scan-start-btn" id="scan-cam-btn" onclick="toggleCamera()">
+            📷 카메라 스캔
+          </button>
+          <button class="scan-manual-btn" onclick="openModal()">직접 선택</button>
+        </div>
+      </div>
+
+      <!-- scanned list -->
+      <div class="scanned-list-wrap">
+        <div class="scanned-list-header">
+          <span class="scanned-list-title">스캔된 상품</span>
+          <span class="scanned-count">${state.cart.length}개</span>
+        </div>
+        <div class="scanned-items" id="scanned-items-list">${itemsHTML}</div>
+      </div>
+
+      <!-- total -->
+      ${state.cart.length > 0 ? `
+      <div class="scan-total-bar">
+        <span class="scan-total-label">합계</span>
+        <span class="scan-total-price">${totalFmt}</span>
+      </div>` : ''}
+
+      <!-- pay button -->
+      <button class="scan-pay-btn" onclick="goScreen('bag')" ${state.cart.length===0?'disabled':''}>
+        결제하기 →
+      </button>
+    </div>`;
+}
+
+function bindScanEvents() {
+  // Restore camera if was active
+  if (state.scannerActive) {
+    startCamera();
+  }
+}
+
+// =============================================
+//  CAMERA / BARCODE SCAN
+// =============================================
+async function toggleCamera() {
+  if (state.scannerActive) {
+    stopCamera();
+  } else {
+    startCamera();
+  }
+}
+
+async function startCamera() {
+  const btn = document.getElementById('scan-cam-btn');
+  const video = document.getElementById('scan-video');
+  const placeholder = document.getElementById('scan-placeholder');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 }
+      }
+    });
+    video.srcObject = stream;
+    video.style.display = 'block';
+    placeholder.style.display = 'none';
+    if(btn) { btn.textContent = '⏹ 스캔 중지'; btn.classList.add('scanning'); }
+    state.scannerActive = true;
+    state._stream = stream;
+    startBarcodeDetection(video);
+  } catch(e) {
+    showToast('📷 카메라 접근 불가 — "직접 선택"을 이용하세요');
+    console.warn('Camera error:', e);
+  }
+}
+
+function stopCamera() {
+  if (state._stream) {
+    state._stream.getTracks().forEach(t => t.stop());
+    state._stream = null;
+  }
+  const video = document.getElementById('scan-video');
+  const placeholder = document.getElementById('scan-placeholder');
+  const btn = document.getElementById('scan-cam-btn');
+  if(video) { video.srcObject = null; video.style.display = 'none'; }
+  if(placeholder) placeholder.style.display = 'flex';
+  if(btn) { btn.textContent = '📷 카메라 스캔'; btn.classList.remove('scanning'); }
+  state.scannerActive = false;
+  clearInterval(state._bcInterval);
+}
+
+var _cuScanCanvas = null, _cuScanCtx = null;
+function startBarcodeDetection(video) {
+  // Use BarcodeDetector if available (Chrome/Edge)
+  if ('BarcodeDetector' in window) {
+    const detector = new BarcodeDetector({ formats: ['qr_code','code_128','ean_13','ean_8','upc_a','upc_e','code_39'] });
+    state._bcInterval = setInterval(async () => {
+      try {
+        if (video.readyState < 2) return;
+        const vw = video.videoWidth, vh = video.videoHeight;
+        if (!vw || !vh) return;
+        var src = video, scale = vw < 1280 ? 2 : 1;
+        if (scale > 1) {
+          if (!_cuScanCanvas) { _cuScanCanvas = document.createElement('canvas'); _cuScanCtx = _cuScanCanvas.getContext('2d'); }
+          _cuScanCanvas.width = vw * scale;
+          _cuScanCanvas.height = vh * scale;
+          _cuScanCtx.imageSmoothingEnabled = false;
+          _cuScanCtx.drawImage(video, 0, 0, _cuScanCanvas.width, _cuScanCanvas.height);
+          src = _cuScanCanvas;
+        }
+        const codes = await detector.detect(src);
+        if (codes.length > 0) {
+          handleScannedBarcode(codes[0].rawValue);
+        }
+      } catch(e) {}
+    }, 220);
+  } else {
+    // Fallback: html5-qrcode library via canvas
+    state._bcInterval = setInterval(() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      if (canvas.width === 0) return;
+      canvas.getContext('2d').drawImage(video,0,0);
+      // html5-qrcode not easily called per-frame; show hint
+    }, 800);
+    showToast('💡 이 기기는 "직접 선택"을 권장합니다');
+  }
+}
+
+let lastScanId = null;
+let lastScanTime = 0;
+function normalizeScanCodeCu(raw) {
+  if (raw == null || raw === undefined) return '';
+  var s = String(raw).trim().replace(/[\s\r\n\u200B-\u200D\uFEFF]/g, '');
+  s = s.replace(/[０-９]/g, function (ch) { return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0); });
+  return s;
+}
+function resolveProductFromScanCu(raw) {
+  var c0 = normalizeScanCodeCu(raw);
+  if (!c0) return null;
+  if (productMap[c0]) return productMap[c0];
+  if (/^\d+$/.test(c0)) {
+    var noZero = c0.replace(/^0+/, '') || '0';
+    if (noZero !== c0 && productMap[noZero]) return productMap[noZero];
+    for (var i = 0; i < PRODUCTS.length; i++) {
+      var p = PRODUCTS[i];
+      if (c0 === p.id || (c0.length >= p.id.length && c0.endsWith(p.id) && c0.length <= p.id.length + 6)) return p;
+    }
+  }
+  return PRODUCTS.find(function (p) { return c0 === p.id || c0.indexOf(p.id) >= 0 || p.id.indexOf(c0) >= 0; }) || null;
+}
+function handleScannedBarcode(code) {
+  var norm = normalizeScanCodeCu(code);
+  var now = Date.now();
+  if (norm === lastScanId && now - lastScanTime < 2000) return;
+  lastScanId = norm;
+  lastScanTime = now;
+
+  var product = resolveProductFromScanCu(code);
+  if (!product) {
+    showToast('⚠️ 등록되지 않은 코드: ' + norm);
+    return;
+  }
+  addProductToCart(product);
+}
+
+function addProductToCart(product) {
+  const existing = state.cart.find(c => c.id === product.id);
+  if (existing) {
+    existing.qty++;
+  } else {
+    state.cart.push({...product, qty:1});
+  }
+  // Show success pop
+  const pop = document.getElementById('scan-success-pop');
+  if (pop) {
+    pop.textContent = '✅ ' + product.emoji + ' ' + product.name;
+    pop.classList.add('show');
+    setTimeout(() => pop.classList.remove('show'), 1200);
+  }
+  showToast('🛒 ' + product.name + ' 담았어요!');
+  // Re-render list only
+  renderScanList();
+}
+
+function renderScanList() {
+  const list = document.getElementById('scanned-items-list');
+  const countEl = document.querySelector('.scanned-count');
+  const totalBarEl = document.querySelector('.scan-total-bar');
+  const payBtn = document.querySelector('.scan-pay-btn');
+  if (!list) return;
+
+  const total = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+
+  if (state.cart.length === 0) {
+    list.innerHTML = `<div style="padding:16px;text-align:center;color:rgba(255,255,255,.35);font-size:13px;">스캔한 상품이 없습니다</div>`;
+  } else {
+    list.innerHTML = state.cart.map(item => `
+      <div class="scanned-item">
+        <span class="si-emoji">${item.emoji}</span>
+        <span class="si-name">${item.name}</span>
+        <div class="si-qty-row">
+          <button class="si-qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+          <span class="si-qty">${item.qty}</span>
+          <button class="si-qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+        </div>
+        <span class="si-price">${(item.price*item.qty).toLocaleString()}원</span>
+      </div>`).join('');
+  }
+  if (countEl) countEl.textContent = state.cart.length + '개';
+  if (payBtn) payBtn.disabled = state.cart.length === 0;
+
+  // update total bar
+  const existingTotalBar = document.querySelector('.scan-total-bar');
+  if (state.cart.length > 0) {
+    if (existingTotalBar) {
+      existingTotalBar.querySelector('.scan-total-price').textContent = total.toLocaleString()+'원';
+    }
+  }
+}
+
+function changeQty(id, delta) {
+  const item = state.cart.find(c => c.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) state.cart = state.cart.filter(c => c.id !== id);
+  renderScanList();
+}
+
+// =============================================
+//  MODAL: direct select
+// =============================================
+function openModal() {
+  const list = document.getElementById('modal-items-list');
+  list.innerHTML = PRODUCTS.map(p => `
+    <div class="modal-item" onclick="addProductToCart(productMap['${p.id}']); closeModal();">
+      <span class="modal-item-emoji">${p.emoji}</span>
+      <span class="modal-item-name">${p.name}</span>
+      <span class="modal-item-price">${p.price.toLocaleString()}원</span>
+    </div>`).join('');
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+// =============================================
+//  SCREEN: BAG
+// =============================================
+function renderBag() {
+  return `
+    <div class="screen-bag">
+      <div class="bag-icon">🛍️</div>
+      <div class="bag-question">봉투가 필요하신가요?</div>
+      <div class="bag-sub">일회용 봉투는 환경 보호를 위해 유료입니다</div>
+      <div class="bag-price-note">📌 비닐봉투 1장 = <strong>50원</strong></div>
+      <div class="bag-btn-row">
+        <button class="bag-btn bag-yes" onclick="selectBag(true)">네, 필요해요</button>
+        <button class="bag-btn bag-no" onclick="selectBag(false)">아니오</button>
+      </div>
+    </div>`;
+}
+function selectBag(need) {
+  state.bag = need;
+  if (need) state.cart.push({id:'bag', name:'비닐봉투', emoji:'🛍️', price:50, qty:1});
+  goScreen('paymethod');
+}
+
+// =============================================
+//  SCREEN: PAY METHOD
+// =============================================
+const PAY_OPTIONS = [
+  { emoji:'💳', name:'신용 / 체크카드', desc:'카드를 단말기에 삽입하세요' },
+  { emoji:'📱', name:'포켓CU 앱', desc:'앱 바코드로 한번에 결제' },
+  { emoji:'🚌', name:'교통카드', desc:'티머니 · 캐시비 이용 가능' },
+];
+function renderPayMethod() {
+  const total = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  return `
+    <div class="screen-paymethod">
+      <div class="pm-title">결제 수단을 선택하세요</div>
+      <div class="pm-sub">원하시는 결제 방법을 터치해주세요</div>
+      <div class="pm-amount-box">
+        <span class="pm-amount-label">결제 금액</span>
+        <span class="pm-amount-num">${total.toLocaleString()}원</span>
+      </div>
+      <div class="pm-options">
+        ${PAY_OPTIONS.map((p,i)=>`
+          <div class="pm-card ${state.payMethod===i?'selected':''}" onclick="selectPayMethod(${i})">
+            <span class="pm-card-icon">${p.emoji}</span>
+            <div>
+              <div class="pm-card-name">${p.name}</div>
+              <div class="pm-card-desc">${p.desc}</div>
+            </div>
+            <div class="pm-card-check">✓</div>
+          </div>`).join('')}
+      </div>
+      <button class="pm-next-btn" onclick="goScreen('membership')" ${state.payMethod===null?'disabled':''}>
+        다음 →
+      </button>
+    </div>`;
+}
+function selectPayMethod(idx) {
+  state.payMethod = idx;
+  render();
+}
+
+// =============================================
+//  SCREEN: MEMBERSHIP
+// =============================================
+function renderMembership() {
+  return `
+    <div class="screen-membership">
+      <div class="ms-icon">🏷️</div>
+      <div class="ms-question">멤버십 할인 / 적립을<br>하시겠어요?</div>
+      <div class="ms-sub">CU 멤버십 카드나 T멤버십이 있으면<br>포인트를 적립하거나 사용할 수 있어요</div>
+      <div class="ms-btn-row">
+        <button class="ms-btn ms-yes" onclick="goScreen('msscan')">네</button>
+        <button class="ms-btn ms-no" onclick="skipMembership()">아니오</button>
+      </div>
+    </div>`;
+}
+function skipMembership() {
+  state.hasMembership = false;
+  goScreen('finalpay');
+}
+
+// =============================================
+//  SCREEN: MEMBERSHIP SCAN
+// =============================================
+function renderMsScan() {
+  return `
+    <div class="screen-ms-scan">
+      <div class="ms-scan-title">멤버십 카드 스캔</div>
+      <div class="ms-scan-sub">가지고 있는 멤버십 카드를 선택하세요</div>
+      <div class="ms-scan-options">
+        <div class="ms-opt ${state._msType===0?'selected':''}" onclick="selectMsType(0)">
+          <span class="ms-opt-icon">💜</span>
+          <div>
+            <div class="ms-opt-name">CU 멤버십 카드</div>
+            <div class="ms-opt-desc">플라스틱 카드 또는 모바일 바코드</div>
+          </div>
+        </div>
+        <div class="ms-opt ${state._msType===1?'selected':''}" onclick="selectMsType(1)">
+          <span class="ms-opt-icon">📱</span>
+          <div>
+            <div class="ms-opt-name">T멤버십</div>
+            <div class="ms-opt-desc">T월드 앱 바코드로 스캔</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ms-scan-viewport">
+        <div class="ms-scan-inst">바코드 리더기로 멤버십 카드를 스캔하세요</div>
+        <div class="ms-scan-anim">📲</div>
+      </div>
+
+      <button class="ms-skip-btn" style="margin-top:12px" onclick="completeMs()">
+        스캔 완료 (시뮬레이션)
+      </button>
+    </div>`;
+}
+function selectMsType(t) { state._msType = t; render(); }
+function completeMs() {
+  state.hasMembership = true;
+  goScreen('saveuse');
+}
+
+// =============================================
+//  SCREEN: SAVE/USE
+// =============================================
+function renderSaveUse() {
+  const points = Math.floor(Math.random()*900+100)*10;
+  state._points = points;
+  return `
+    <div class="screen-saveuse">
+      <div class="ms-icon">💜</div>
+      <div class="su-points-box">
+        <div class="su-points-label">보유 포인트</div>
+        <div class="su-points-num">${points.toLocaleString()}P</div>
+      </div>
+      <div class="su-question">포인트를 어떻게 하시겠어요?</div>
+      <div class="su-btn-row">
+        <button class="su-btn su-save" onclick="saveuseAction('save')">
+          <span class="su-icon">⭐</span>
+          <span class="su-lbl">적립</span>
+          <span class="su-desc">포인트 쌓기</span>
+        </button>
+        <button class="su-btn su-use" onclick="saveuseAction('use')">
+          <span class="su-icon">💰</span>
+          <span class="su-lbl">사용</span>
+          <span class="su-desc">포인트 쓰기</span>
+        </button>
+      </div>
+    </div>`;
+}
+function saveuseAction(action) {
+  state.membershipAction = action;
+  if (action === 'use') {
+    const useAmt = Math.min(state._points, Math.floor(state.cart.reduce((s,i)=>s+i.price*i.qty,0)*0.1/100)*100);
+    state._usePoints = useAmt;
+    showToast('💰 ' + useAmt.toLocaleString() + 'P 사용 적용!');
+  }
+  goScreen('finalpay');
+}
+
+// =============================================
+//  SCREEN: FINAL PAY
+// =============================================
+function renderFinalPay() {
+  const rawTotal = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const discount = (state.membershipAction==='use' && state._usePoints) ? state._usePoints : 0;
+  const finalTotal = rawTotal - discount;
+  const payOpt = PAY_OPTIONS[state.payMethod] || PAY_OPTIONS[0];
+
+  const instructions = [
+    { icon:'💳', text:payOpt.name + '을 준비하세요' },
+    { icon:'📟', text:'아래 카드 단말기에 결제해주세요' },
+    { icon:'✅', text:'결제 완료 후 영수증을 확인하세요' },
+  ];
+
+  return `
+    <div class="screen-finalpay">
+      <div>
+        <div class="fp-title">결제를 진행하세요</div>
+        <div class="fp-sub">선택하신 결제 수단으로 결제해주세요</div>
+      </div>
+      <div class="fp-amount-box">
+        <div class="fp-amount-label">${discount>0?`(${discount.toLocaleString()}P 사용됨) 최종 금액`:'결제 금액'}</div>
+        <div class="fp-amount-num">${finalTotal.toLocaleString()}원</div>
+      </div>
+      <div class="fp-method-used">
+        <span class="fp-method-icon">${payOpt.emoji}</span>
+        <span>${payOpt.name}</span>
+      </div>
+      <div class="fp-instructions">
+        ${instructions.map((ins,i)=>`
+          <div class="fp-instr-card">
+            <span class="fp-instr-icon">${ins.icon}</span>
+            <span class="fp-instr-text">${ins.text}</span>
+            <div class="fp-instr-step">${i+1}</div>
+          </div>`).join('')}
+      </div>
+      <button class="fp-sim-btn" onclick="goScreen('complete')">
+        💳 결제 완료 (시뮬레이션)
+      </button>
+    </div>`;
+}
+
+// =============================================
+//  SCREEN: COMPLETE
+// =============================================
+function renderComplete() {
+  const rawTotal = state.cart.filter(i=>i.id!=='bag').reduce((s,i)=>s+i.price*i.qty,0);
+  const discount = (state.membershipAction==='use' && state._usePoints) ? state._usePoints : 0;
+  const finalTotal = state.cart.reduce((s,i)=>s+i.price*i.qty,0) - discount;
+  const payOpt = PAY_OPTIONS[state.payMethod] || PAY_OPTIONS[0];
+  state.stats.trials++;
+  state._lastOrderNo = String(Math.floor(Math.random() * 9000000) + 1000000);
+  updateStats();
+
+  return `
+    <div class="screen-complete">
+      <div id="kiosk-result-capture">
+        <div class="comp-check">✅</div>
+        <div class="comp-title">결제 완료!</div>
+        <div class="comp-sub">${payOpt.name}으로 결제되었습니다</div>
+        <div class="comp-receipt">
+          <div class="comp-receipt-title">영수증</div>
+          ${state.cart.map(item=>`
+            <div class="comp-item-row">
+              <span>${item.emoji} ${item.name} × ${item.qty}</span>
+              <span>${(item.price*item.qty).toLocaleString()}원</span>
+            </div>`).join('')}
+          ${discount>0?`<div class="comp-item-row"><span>포인트 사용</span><span style="color:#10B981">-${discount.toLocaleString()}원</span></div>`:''}
+          <div class="comp-total-row">
+            <span class="comp-total-label">합계</span>
+            <span class="comp-total-price">${finalTotal.toLocaleString()}원</span>
+          </div>
+        </div>
+        <div class="comp-receipt-notice">영수증이 필요하시면 아래 버튼을 눌러주세요<br>(3~4초 내로 화면이 변경됩니다)</div>
+      </div>
+      <div class="comp-btn-row">
+        <button class="comp-receipt-btn" onclick="cuOpenReceiptPrint()">영수증 출력</button>
+        <button class="comp-home-btn" onclick="resetAll()">🔄 처음으로</button>
+      </div>
+    </div>`;
+}
+
+function cuOpenReceiptPrint() {
+  if (state.screen !== 'complete') {
+    showToast('완료 화면에서 출력해 주세요');
+    return;
+  }
+  const discount = (state.membershipAction === 'use' && state._usePoints) ? state._usePoints : 0;
+  const finalTotal = state.cart.reduce((s, i) => s + i.price * i.qty, 0) - discount;
+  const items = state.cart.map(function (i) {
+    return {
+      name: (i.emoji ? i.emoji + ' ' : '') + i.name,
+      unitPrice: i.price,
+      qty: i.qty,
+      lineTotal: i.price * i.qty
+    };
+  });
+  if (discount > 0) {
+    items.push({ name: '포인트 사용', unitPrice: 0, qty: '-', lineTotal: -discount });
+  }
+  openKioskReceiptModal({
+    toast: showToast,
+    filenameBase: 'cu-receipt',
+    orderNo: state._lastOrderNo,
+    purchaseDate: new Date(),
+    items: items,
+    total: finalTotal
+  });
+}
+
+// =============================================
+//  QUIZ
+// =============================================
+function triggerQuiz() {
+  if (state.cart.length === 0) return;
+  const realItems = state.cart.filter(i=>i.id!=='bag');
+  if (realItems.length === 0) return;
+
+  const correct = realItems[Math.floor(Math.random()*realItems.length)];
+  const distractors = PRODUCTS.filter(p=>p.id!==correct.id).sort(()=>Math.random()-.5).slice(0,3);
+  const choices = [...distractors.map(p=>({...p,isCorrect:false})), {...correct,isCorrect:true}].sort(()=>Math.random()-.5);
+
+  document.getElementById('quiz-title').textContent = '아까 산 물건이 뭐였지?';
+  document.getElementById('quiz-sub').textContent = '방금 결제한 내용을 떠올려 보세요!';
+  document.getElementById('quiz-choices').innerHTML = choices.map((c,i)=>`
+    <button class="quiz-choice" onclick="answerQuiz(this,${c.isCorrect})" data-correct="${c.isCorrect}">
+      <span>${c.emoji}</span>${c.name}
+    </button>`).join('');
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  document.getElementById('quiz-next').className = 'quiz-next';
+  document.getElementById('quiz-overlay').classList.add('show');
+}
+
+function answerQuiz(el, isCorrect) {
+  document.querySelectorAll('.quiz-choice').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+  if (!isCorrect) el.classList.add('wrong');
+
+  const fb = document.getElementById('quiz-feedback');
+  if (isCorrect) {
+    fb.textContent = '🎉 정답! 기억력이 좋네요!';
+    fb.className = 'quiz-feedback show good';
+    state.stats.correct++;
+  } else {
+    fb.textContent = '🤔 아쉬워요! 다음엔 더 잘 기억해봐요!';
+    fb.className = 'quiz-feedback show bad';
+  }
+  document.getElementById('quiz-next').className = 'quiz-next show';
+  updateStats();
+}
+function closeQuiz() { document.getElementById('quiz-overlay').classList.remove('show'); }
+
+// =============================================
+//  NAVIGATION
+// =============================================
+function goScreen(name) {
+  stopCamera();
+  state.screen = name;
+  render();
+}
+
+function resetAll() {
+  stopCamera();
+  state.screen = 'idle';
+  state.cart = [];
+  state.bag = false;
+  state.payMethod = null;
+  state.hasMembership = false;
+  state.membershipAction = null;
+  state._msType = null;
+  state._usePoints = 0;
+  setMission();
+  render();
+  showToast('🔄 새 세션 시작!');
+}
+
+// =============================================
+//  SIDEBAR / PANEL
+// =============================================
+function togglePanel() {
+  const panel = document.getElementById('therapist-panel');
+  const btn = document.getElementById('panel-toggle');
+  panel.classList.toggle('collapsed');
+  state.panelOpen = !panel.classList.contains('collapsed');
+  btn.classList.toggle('open', state.panelOpen);
+  btn.textContent = state.panelOpen ? '☰' : '☰';
+}
+
+function toggleOpt(key, el) {
+  state.opts[key] = !state.opts[key];
+  el.classList.toggle('on');
+  if (key==='mission') document.getElementById('wm-bar').style.display = state.opts.mission?'block':'none';
+  if (key==='hide') updateMissionBar();
+}
+
+function setDiff(d, el) {
+  state.difficulty = d;
+  document.querySelectorAll('.diff-btn').forEach(b => b.className = 'diff-btn');
+  el.className = `diff-btn active-${d}`;
+  document.getElementById('diff-desc').textContent = DIFF_DESC[d];
+  setMission();
+}
+
+function setMission() {
+  const list = MISSIONS[state.difficulty];
+  state.mission = list[Math.floor(Math.random()*list.length)];
+  updateMissionBar();
+}
+
+function updateMissionBar() {
+  const txt = document.getElementById('wm-task-text');
+  const revBtn = document.getElementById('wm-reveal-btn');
+  if (!txt) return;
+  txt.textContent = state.mission;
+  if (state.opts.hide) {
+    txt.classList.add('blurred');
+    revBtn.style.display = 'block';
+  } else {
+    txt.classList.remove('blurred');
+    revBtn.style.display = 'none';
+  }
+  document.getElementById('wm-bar').style.display = state.opts.mission ? 'block' : 'none';
+}
+
+function revealMission() {
+  const txt = document.getElementById('wm-task-text');
+  const revBtn = document.getElementById('wm-reveal-btn');
+  txt.classList.remove('blurred');
+  revBtn.style.display = 'none';
+  setTimeout(() => {
+    if (state.opts.hide) {
+      txt.classList.add('blurred');
+      revBtn.style.display = 'block';
+    }
+  }, 3000);
+}
+
+function updateStats() {
+  document.getElementById('st-trials').textContent = state.stats.trials;
+  document.getElementById('st-correct').textContent = state.stats.correct;
+  const pct = state.stats.trials > 0 ? Math.round(state.stats.correct/state.stats.trials*100) : 0;
+  document.getElementById('st-pct').textContent = pct + '%';
+}
+
+// =============================================
+//  QR CARD PRINT PAGE
+// =============================================
+function renderProductQrCu(hostEl, text, displayPx) {
+  if (!hostEl || typeof QRCode === 'undefined') return;
+  hostEl.innerHTML = '';
+  var d = displayPx || 132;
+  var internal = Math.max(400, Math.round(d * 3));
+  try {
+    new QRCode(hostEl, {
+      text: String(text),
+      width: internal,
+      height: internal,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    var img = hostEl.querySelector('img'), cv = hostEl.querySelector('canvas');
+    if (img) {
+      img.classList.add('qr-bitmap');
+      img.style.width = d + 'px';
+      img.style.height = d + 'px';
+      img.alt = 'QR';
+    }
+    if (cv) {
+      cv.classList.add('qr-bitmap');
+      if (!img) { cv.style.width = d + 'px'; cv.style.height = d + 'px'; }
+    }
+  } catch (e) { console.warn('QR', e); }
+}
+function printBarcodeToPdfCu() {
+  showToast('인쇄 창에서 «대상» → PDF로 저장을 선택하세요');
+  setTimeout(function () { window.print(); }, 450);
+}
+function openBarcodePageFn() {
+  buildBarcodePage();
+  document.getElementById('barcode-page').style.display = 'block';
+  document.getElementById('app-root').style.display = 'none';
+  document.getElementById('panel-toggle').style.display = 'none';
+}
+function closeBarcodePageFn() {
+  document.getElementById('barcode-page').style.display = 'none';
+  document.getElementById('app-root').style.display = 'flex';
+  document.getElementById('panel-toggle').style.display = 'flex';
+}
+
+function makeBarcodeCard(product, containerSel) {
+  const container = document.querySelector(containerSel);
+  if (!container) return;
+  const card = document.createElement('div');
+  card.className = 'bp-card';
+  card.innerHTML = `
+    <span class="bp-card-emoji">${product.emoji}</span>
+    <div class="bp-card-name">${product.name}</div>
+    <div class="bp-card-price">${product.price.toLocaleString()}원</div>
+    <div class="bp-card-code-label">QR · ${product.id}</div>
+    <div class="bp-qr-host" id="bc-${product.id}"></div>`;
+  container.appendChild(card);
+  setTimeout(function () {
+    var el = document.getElementById('bc-' + product.id);
+    if (el) renderProductQrCu(el, product.id, 132);
+  }, 50);
+}
+
+function buildBarcodePage() {
+  const cats = { snack:'#bp-grid-snack', dairy:'#bp-grid-dairy', instant:'#bp-grid-instant', fruit:'#bp-grid-fruit' };
+  Object.values(cats).forEach(sel => { const el = document.querySelector(sel); if(el) el.innerHTML=''; });
+  document.getElementById('bp-print-grid').innerHTML = '';
+
+  PRODUCTS.forEach(p => {
+    const sel = cats[p.cat];
+    if (sel) makeBarcodeCard(p, sel);
+
+    // Print strip
+    const strip = document.getElementById('bp-print-grid');
+    const item = document.createElement('div');
+    item.className = 'bp-print-item';
+    item.innerHTML = `
+      <span class="bp-print-emoji">${p.emoji}</span>
+      <div class="bp-print-name">${p.name}</div>
+      <div class="bp-print-price">${p.price.toLocaleString()}원</div>
+      <div class="bp-print-qr" id="bcp-${p.id}"></div>`;
+    strip.appendChild(item);
+    setTimeout(function () {
+      var el = document.getElementById('bcp-' + p.id);
+      if (el) renderProductQrCu(el, p.id, 104);
+    }, 80);
+  });
+}
+
+// =============================================
+//  INIT
+// =============================================
+setMission();
+render();
+</script>
+</body>
+</html>
