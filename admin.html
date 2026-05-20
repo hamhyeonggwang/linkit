@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>링키월드 - 관리자 페이지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #5BB8F5;
+  --sky-dark: #2D8CC4;
+  --yellow: #FFD93D;
+  --ink: #1E293B;
+  --muted: #64748B;
+  --bg: #F8FBFF;
+  --line: #DDE7F2;
+  --card: #FFFFFF;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: 'Noto Sans KR', sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(91, 184, 245, .2), transparent 34%),
+    linear-gradient(135deg, #F8FBFF 0%, #EEF7FF 100%);
+  color: var(--ink);
+}
+
+nav {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  background: rgba(255, 255, 255, .86);
+  border-bottom: 1px solid rgba(221, 231, 242, .8);
+  backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav-links { display: flex; align-items: center; gap: 10px; }
+
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 999px;
+}
+
+.nav-link:hover { background: rgba(91, 184, 245, .12); color: var(--sky-dark); }
+
+.nav-cta {
+  background: var(--yellow);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 11px 18px;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(255, 217, 61, .35);
+}
+
+main {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 48px 0 56px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.panel {
+  background: rgba(255, 255, 255, .88);
+  border: 1px solid rgba(221, 231, 242, .95);
+  border-radius: 28px;
+  box-shadow: 0 20px 60px rgba(45, 140, 196, .12);
+}
+
+.intro { padding: 34px; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(91, 184, 245, .12);
+  color: var(--sky-dark);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+h1 {
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -1.6px;
+  margin-bottom: 14px;
+}
+
+h1 span { color: var(--sky-dark); }
+
+.desc {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 680px;
+}
+
+.setup {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.setup-title {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+input {
+  width: 100%;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 13px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+}
+
+input:focus { border-color: var(--sky); box-shadow: 0 0 0 4px rgba(91, 184, 245, .14); }
+
+.button-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button, .sheet-link {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 15px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button.primary, .sheet-link {
+  background: var(--sky);
+  color: white;
+}
+
+button.secondary {
+  background: #EAF4FF;
+  color: var(--sky-dark);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.status {
+  min-height: 22px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.status.ok { color: #0F9F6E; }
+.status.error { color: #DC2626; }
+
+.sheet-area {
+  overflow: hidden;
+  min-height: 620px;
+}
+
+.sheet-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sheet-title {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.empty-state {
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 40px;
+  line-height: 1.7;
+}
+
+iframe {
+  display: block;
+  width: 100%;
+  height: 620px;
+  border: 0;
+  background: white;
+}
+
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links { gap: 4px; }
+  .nav-link { display: none; }
+  main { width: min(100% - 24px, 1180px); padding-top: 28px; }
+  .hero { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <path d="M14 3 L17 10.5 L25 11 L19 17 L21 24.5 L14 20.5 L7 24.5 L9 17 L3 11 L11 10.5 Z" fill="#5BB8F5" stroke="#2D8CC4" stroke-width="1.2" stroke-linejoin="round"/>
+    </svg>
+    링키월드
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">홈</a>
+    <a href="apps.html" class="nav-link">훈련 앱</a>
+    <a href="admin.html" class="nav-cta">관리자 페이지 ▸</a>
+  </div>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="panel intro">
+      <div class="eyebrow">Google Sheets 연동</div>
+      <h1>관리 데이터를<br><span>스프레드시트</span>로 확인하세요</h1>
+      <p class="desc">
+        Google 스프레드시트 공유 링크를 입력하면 이 관리자 페이지에서 바로 확인할 수 있습니다.
+        수정 권한은 스프레드시트의 Google 공유 설정을 따릅니다.
+      </p>
+    </div>
+
+    <aside class="panel setup">
+      <div class="setup-title">스프레드시트 연결</div>
+      <div class="field">
+        <label for="sheetUrl">Google 스프레드시트 URL</label>
+        <input id="sheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/..." autocomplete="off">
+      </div>
+      <div class="button-row">
+        <button class="primary" type="button" id="saveSheet">저장하고 보기</button>
+        <button class="secondary" type="button" id="clearSheet">연결 해제</button>
+      </div>
+      <p class="hint">
+        시트를 iframe으로 보려면 Google Sheets에서 `공유` 또는 `웹에 게시` 설정이 필요할 수 있습니다.
+      </p>
+      <div class="status" id="status" aria-live="polite"></div>
+    </aside>
+  </section>
+
+  <section class="panel sheet-area">
+    <div class="sheet-toolbar">
+      <div class="sheet-title">연결된 스프레드시트</div>
+      <a class="sheet-link" id="openSheet" href="#" target="_blank" rel="noopener" hidden>새 탭에서 열기</a>
+    </div>
+    <div class="empty-state" id="emptyState">
+      아직 연결된 스프레드시트가 없습니다.<br>
+      오른쪽 입력창에 Google 스프레드시트 URL을 붙여넣어 주세요.
+    </div>
+    <iframe id="sheetFrame" title="Google Spreadsheet" hidden></iframe>
+  </section>
+</main>
+
+<script>
+const STORAGE_KEY = 'linkit-admin-sheet-url';
+
+const sheetUrlInput = document.getElementById('sheetUrl');
+const saveButton = document.getElementById('saveSheet');
+const clearButton = document.getElementById('clearSheet');
+const statusEl = document.getElementById('status');
+const frameEl = document.getElementById('sheetFrame');
+const emptyStateEl = document.getElementById('emptyState');
+const openSheetEl = document.getElementById('openSheet');
+
+function normalizeSheetUrl(rawUrl) {
+  const value = rawUrl.trim();
+  if (!value) return '';
+
+  let url;
+  try {
+    url = new URL(value);
+  } catch (error) {
+    throw new Error('올바른 URL을 입력해 주세요.');
+  }
+
+  if (url.hostname !== 'docs.google.com' || !url.pathname.includes('/spreadsheets/d/')) {
+    throw new Error('Google 스프레드시트 공유 URL만 연결할 수 있습니다.');
+  }
+
+  return url.toString();
+}
+
+function toEmbedUrl(sheetUrl) {
+  const url = new URL(sheetUrl);
+  const sheetId = url.pathname.match(/\/spreadsheets\/d\/([^/]+)/)?.[1];
+  const gid = url.searchParams.get('gid');
+
+  if (!sheetId) return sheetUrl;
+
+  const embedUrl = new URL(`https://docs.google.com/spreadsheets/d/${sheetId}/edit`);
+  embedUrl.searchParams.set('usp', 'sharing');
+  if (gid) embedUrl.hash = `gid=${gid}`;
+  return embedUrl.toString();
+}
+
+function setStatus(message, type) {
+  statusEl.textContent = message;
+  statusEl.className = `status ${type || ''}`.trim();
+}
+
+function renderSheet(sheetUrl) {
+  if (!sheetUrl) {
+    frameEl.hidden = true;
+    frameEl.removeAttribute('src');
+    emptyStateEl.hidden = false;
+    openSheetEl.hidden = true;
+    openSheetEl.href = '#';
+    return;
+  }
+
+  sheetUrlInput.value = sheetUrl;
+  frameEl.src = toEmbedUrl(sheetUrl);
+  frameEl.hidden = false;
+  emptyStateEl.hidden = true;
+  openSheetEl.href = sheetUrl;
+  openSheetEl.hidden = false;
+}
+
+saveButton.addEventListener('click', () => {
+  try {
+    const sheetUrl = normalizeSheetUrl(sheetUrlInput.value);
+    localStorage.setItem(STORAGE_KEY, sheetUrl);
+    renderSheet(sheetUrl);
+    setStatus('스프레드시트가 연결되었습니다.', 'ok');
+  } catch (error) {
+    setStatus(error.message, 'error');
+  }
+});
+
+clearButton.addEventListener('click', () => {
+  localStorage.removeItem(STORAGE_KEY);
+  sheetUrlInput.value = '';
+  renderSheet('');
+  setStatus('연결을 해제했습니다.', 'ok');
+});
+
+renderSheet(localStorage.getItem(STORAGE_KEY) || '');
+</script>
+</body>
+</html>
