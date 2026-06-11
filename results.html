@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link IT 2.0 — 수행결과</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg:#F2F4FF; --surface:#FFFFFF; --surface-alt:#F8F9FF;
+  --border:#E2E5F4; --border-mid:#C8CEEA;
+  --accent:#7B68EE; --accent-2:#9B8BF4; --accent-dim:#F0EEFF; --accent-ring:rgba(123,104,238,.18); --accent-dark:#5A4BD1;
+  --teal:#0EA5A0; --teal-dim:#F0FAFA;
+  --green:#12B76A; --green-dim:#ECFDF5;
+  --amber:#F59E0B; --amber-dim:#FFFBEB;
+  --red:#F04438; --red-dim:#FEF3F2;
+  --purp:#9B6EFF; --purp-dim:#F3EFFF;
+  --t1:#1A1B2E; --t2:#4A4E6B; --t3:#9093B0; --t4:#C5C8DC;
+  --r-xs:6px; --r-sm:10px; --r:14px; --r-lg:20px; --r-xl:26px;
+  --sh-xs:0 1px 3px rgba(30,30,80,.06); --sh:0 3px 14px rgba(30,30,80,.08); --sh-lg:0 8px 32px rgba(30,30,80,.11);
+  --font:'Pretendard',-apple-system,sans-serif; --tr:.18s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:var(--font);}
+
+.top-strip{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--teal));}
+
+/* NAV */
+.nav{
+  position:sticky;top:0;z-index:200;height:52px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:10px;
+  box-shadow:var(--sh-xs);
+}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;}
+.nav-title{font-size:14px;font-weight:800;color:var(--t1);}
+.nav-ver{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:20px;}
+.nav-links{display:flex;gap:2px;list-style:none;margin-left:16px;}
+.nav-links a{font-size:13px;font-weight:500;color:var(--t2);padding:5px 12px;border-radius:var(--r-sm);transition:all var(--tr);}
+.nav-links a:hover{background:var(--surface-alt);color:var(--accent);}
+.nav-links a.active{color:var(--accent);font-weight:700;}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.user-chip{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-alt);color:var(--t2);font-size:12px;font-weight:600;}
+.user-chip .u-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+
+/* MAIN */
+.wrap{max-width:1080px;margin:0 auto;padding:32px 28px 72px;}
+.page-top{margin-bottom:24px;}
+.page-tag{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.page-title{font-size:24px;font-weight:800;color:var(--t1);letter-spacing:-.5px;}
+.page-desc{font-size:13px;color:var(--t3);margin-top:4px;}
+
+/* SUMMARY CARDS */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.sum-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 18px 16px;box-shadow:var(--sh-xs);
+}
+.sum-ico{font-size:18px;margin-bottom:8px;display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;border-radius:10px;background:var(--accent-dim);}
+.sum-val{font-size:26px;font-weight:800;color:var(--t1);letter-spacing:-.5px;}
+.sum-lbl{font-size:12px;color:var(--t3);margin-top:2px;font-weight:500;}
+
+/* TABLE */
+.panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--sh);overflow:hidden;
+}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.panel-title{font-size:15px;font-weight:800;color:var(--t1);}
+.panel-tools{display:flex;gap:8px;}
+.btn{
+  font-size:12px;font-weight:600;padding:7px 14px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface-alt);color:var(--t2);transition:all var(--tr);
+}
+.btn:hover{border-color:var(--border-mid);color:var(--t1);}
+.btn-danger:hover{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+
+table{width:100%;border-collapse:collapse;}
+thead th{
+  font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--t3);text-transform:uppercase;
+  text-align:left;padding:12px 20px;background:var(--surface-alt);border-bottom:1px solid var(--border);
+}
+tbody td{font-size:13px;color:var(--t2);padding:14px 20px;border-bottom:1px solid var(--border);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--surface-alt);}
+.cell-game{font-weight:600;color:var(--t1);display:flex;align-items:center;gap:8px;}
+.cell-game .g-emoji{font-size:16px;}
+.area-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.score-pill{font-weight:800;}
+.s-hi{color:var(--green);} .s-mid{color:var(--accent);} .s-lo{color:var(--amber);}
+.empty{padding:48px 20px;text-align:center;color:var(--t3);font-size:13px;}
+.empty .e-emoji{font-size:34px;display:block;margin-bottom:10px;}
+
+.foot-note{margin-top:18px;font-size:12px;color:var(--t4);text-align:center;}
+
+@media (max-width:760px){
+  .summary{grid-template-columns:repeat(2,1fr);}
+  .nav-links{display:none;}
+}
+
+/* 학생 선택 드롭다운 */
+.user-chip{cursor:pointer;}
+.user-chip:hover{border-color:var(--border-mid);}
+.user-chip .u-caret{color:var(--t3);font-size:9px;margin-left:1px;}
+.nav-right{position:relative;}
+.student-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:230px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh-lg);padding:6px;z-index:300;display:none;}
+.student-menu.show{display:block;}
+.sm-label{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;padding:6px 8px 4px;}
+.sm-item{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:var(--r-sm);}
+.sm-item:hover{background:var(--surface-alt);}
+.sm-item.active{background:var(--accent-dim);}
+.sm-name{flex:1;font-size:13px;font-weight:600;color:var(--t1);cursor:pointer;}
+.sm-item.active .sm-name{color:var(--accent);}
+.sm-check{color:var(--accent);font-size:10px;}
+.sm-del{color:var(--t4);font-size:12px;border:none;background:none;padding:2px 5px;border-radius:6px;cursor:pointer;font-family:var(--font);}
+.sm-del:hover{color:var(--red);background:var(--red-dim);}
+.sm-sep{height:1px;background:var(--border);margin:6px 4px;}
+.sm-add{display:flex;gap:6px;padding:6px 4px 4px;}
+.sm-add input{flex:1;min-width:0;border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 8px;font-size:12px;font-family:var(--font);outline:none;background:var(--surface-alt);color:var(--t1);}
+.sm-add input:focus{border-color:var(--accent);}
+.sm-add-age{width:54px;flex:none;}
+.sm-add-btn{border:none;background:var(--accent);color:#fff;border-radius:var(--r-sm);padding:7px 12px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;}
+.sm-add-btn:hover{background:var(--accent-dark);}
+</style>
+</head>
+<body>
+<div class="top-strip"></div>
+
+<nav class="nav">
+  <a href="index.html" style="display:flex;align-items:center;gap:8px;">
+    <div class="logo-mark">LIT</div>
+    <span class="nav-title">Link IT</span>
+    <span class="nav-ver">2.0</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">홈</a></li>
+    <li><a href="apps.html">훈련 앱</a></li>
+    <li><a href="hub.html">훈련 허브</a></li>
+    <li><a href="results.html" class="active">수행결과</a></li>
+    <li><a href="index.html#program">소개</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="user-chip" id="studentChip" onclick="toggleStudentMenu(event)">
+      <span class="u-dot"></span>
+      <span id="activeStudentLabel">학생</span>
+      <span class="u-caret">▾</span>
+    </button>
+    <div class="student-menu" id="studentMenu">
+      <div class="sm-label">학생 선택</div>
+      <div id="studentList"></div>
+      <div class="sm-sep"></div>
+      <form class="sm-add" id="addStudentForm" onsubmit="return onAddStudent(event)">
+        <input type="text" id="newStudentName" placeholder="이름" maxlength="20" required>
+        <input type="number" id="newStudentAge" class="sm-add-age" placeholder="나이" min="0" max="30">
+        <button type="submit" class="sm-add-btn">추가</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-top">
+    <div class="page-tag">Results</div>
+    <h1 class="page-title">수행결과</h1>
+    <p class="page-desc"><strong id="resultsStudentName">학생</strong> · 완료한 훈련 세션의 정확도와 추이를 한눈에 확인하세요.</p>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">세션 기록</div>
+      <div class="panel-tools">
+        <button class="btn" id="btn-refresh">↻ 새로고침</button>
+        <button class="btn btn-danger" id="btn-clear">기록 비우기</button>
+      </div>
+    </div>
+    <div id="table-host"></div>
+  </div>
+
+  <p class="foot-note">
+    기록은 이 기기의 브라우저(localStorage)에 학생별로 저장됩니다.
+  </p>
+</div>
+
+<script src="linkit-students.js"></script>
+<script src="linkit-results.js"></script>
+<script>
+/* ====================================================
+   수행결과 데이터 (학생별)
+   - 활성 학생의 결과만 LinkitResults 에서 읽어 표시
+   - 학생 미지정(레거시) 기록은 함께 포함
+   ==================================================== */
+var AREA_META = {
+  a: { label: '시지각·공간', color: 'var(--accent)', dim: 'var(--accent-dim)' },
+  b: { label: '주의·반응',   color: 'var(--amber)',  dim: 'var(--amber-dim)'  },
+  c: { label: '기억·순서',   color: 'var(--purp)',   dim: 'var(--purp-dim)'   },
+  d: { label: '일상참여',    color: 'var(--teal)',   dim: 'var(--teal-dim)'   }
+};
+
+function loadResults(){
+  var s = LinkitStudents.getActive();
+  var rows = (s && window.LinkitResults) ? LinkitResults.getForStudent(s.id, true) : [];
+  return { rows: rows, student: s };
+}
+
+function scoreClass(s){ return s >= 85 ? 's-hi' : (s >= 70 ? 's-mid' : 's-lo'); }
+
+function fmtDuration(sec){
+  if (sec == null) return '—';
+  var m = Math.floor(sec / 60), s = sec % 60;
+  return m + '분 ' + (s < 10 ? '0' + s : s) + '초';
+}
+
+function esc(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function renderSummary(rows){
+  var host = document.getElementById('summary');
+  var total = rows.length;
+  var avg = total ? Math.round(rows.reduce(function(a,r){ return a + (Number(r.score)||0); }, 0) / total) : 0;
+  var best = total ? Math.max.apply(null, rows.map(function(r){ return Number(r.score)||0; })) : 0;
+  var areas = {};
+  rows.forEach(function(r){ if (r.area) areas[r.area] = true; });
+  var areaCount = Object.keys(areas).length;
+
+  var cards = [
+    { ico:'📋', val:total,        lbl:'완료 세션' },
+    { ico:'📈', val:avg + '%',    lbl:'평균 정확도' },
+    { ico:'🏆', val:best + '%',   lbl:'최고 정확도' },
+    { ico:'🧩', val:areaCount + ' / 4', lbl:'참여 훈련 영역' }
+  ];
+  host.innerHTML = cards.map(function(c){
+    return '<div class="sum-card">' +
+      '<div class="sum-ico">' + c.ico + '</div>' +
+      '<div class="sum-val">' + c.val + '</div>' +
+      '<div class="sum-lbl">' + c.lbl + '</div></div>';
+  }).join('');
+}
+
+function renderTable(rows){
+  var host = document.getElementById('table-host');
+  if (!rows.length){
+    host.innerHTML = '<div class="empty"><span class="e-emoji">🗂️</span>아직 저장된 수행 기록이 없어요.<br>훈련을 완료하면 여기에 결과가 쌓입니다.</div>';
+    return;
+  }
+  var sorted = rows.slice().sort(function(a,b){
+    return String(b.date || '').localeCompare(String(a.date || ''));
+  });
+  var body = sorted.map(function(r){
+    var meta = AREA_META[r.area] || { label:'기타', color:'var(--t3)', dim:'var(--surface-alt)' };
+    var sc = Number(r.score) || 0;
+    return '<tr>' +
+      '<td>' + esc(r.date) + '</td>' +
+      '<td><span class="cell-game"><span class="g-emoji">' + esc(r.emoji || '🎮') + '</span>' + esc(r.game) + '</span></td>' +
+      '<td><span class="area-tag" style="color:' + meta.color + ';background:' + meta.dim + ';">' + esc(meta.label) + '</span></td>' +
+      '<td><span class="score-pill ' + scoreClass(sc) + '">' + sc + '%</span></td>' +
+      '<td>' + fmtDuration(r.durationSec) + '</td>' +
+    '</tr>';
+  }).join('');
+  host.innerHTML =
+    '<table><thead><tr>' +
+      '<th>일시</th><th>훈련</th><th>영역</th><th>정확도</th><th>소요시간</th>' +
+    '</tr></thead><tbody>' + body + '</tbody></table>';
+}
+
+function render(){
+  var data = loadResults();
+  document.getElementById('resultsStudentName').textContent = LinkitStudents.label(data.student);
+  renderSummary(data.rows);
+  renderTable(data.rows);
+  document.getElementById('btn-clear').style.display = data.rows.length ? '' : 'none';
+  renderStudentChip();
+}
+
+document.getElementById('btn-refresh').addEventListener('click', render);
+document.getElementById('btn-clear').addEventListener('click', function(){
+  var s = LinkitStudents.getActive();
+  if (!s) return;
+  if (confirm('"' + LinkitStudents.label(s) + '" 학생의 수행 기록을 모두 삭제할까요?')){
+    try {
+      var keep = LinkitResults.getAll().filter(function(r){
+        return r.studentId !== s.id && !(!r.studentId || r.studentId === '');
+      });
+      localStorage.setItem('linkit_results', JSON.stringify(keep));
+    } catch (e) {}
+    render();
+  }
+});
+
+/* ─────────────── 학생(세션) 관리 ─────────────── */
+function renderStudentChip(){
+  document.getElementById('activeStudentLabel').textContent = LinkitStudents.label(LinkitStudents.getActive());
+}
+function renderStudentList(){
+  var list = LinkitStudents.getStudents();
+  var activeId = LinkitStudents.getActiveId();
+  document.getElementById('studentList').innerHTML = list.map(function(s){
+    return '<div class="sm-item' + (s.id===activeId?' active':'') + '">'
+      + '<span class="sm-name" onclick="selectStudent(\'' + s.id + '\')">' + esc(LinkitStudents.label(s)) + '</span>'
+      + (s.id===activeId?'<span class="sm-check">●</span>':'')
+      + '<button class="sm-del" title="삭제" onclick="deleteStudent(event,\'' + s.id + '\')">✕</button>'
+      + '</div>';
+  }).join('');
+}
+function toggleStudentMenu(e){
+  e.stopPropagation();
+  var m = document.getElementById('studentMenu');
+  var open = !m.classList.contains('show');
+  m.classList.toggle('show', open);
+  if (open) renderStudentList();
+}
+function closeStudentMenu(){ document.getElementById('studentMenu').classList.remove('show'); }
+function selectStudent(id){ LinkitStudents.setActiveId(id); render(); closeStudentMenu(); }
+function deleteStudent(e, id){
+  e.stopPropagation();
+  var list = LinkitStudents.getStudents();
+  if (list.length <= 1){ alert('마지막 학생은 삭제할 수 없어요.'); return; }
+  var s = list.filter(function(x){ return x.id===id; })[0];
+  if (confirm('"' + (s?s.name:'') + '" 학생을 삭제할까요? (기록은 남아 있어요)')){
+    LinkitStudents.removeStudent(id); render(); renderStudentList();
+  }
+}
+function onAddStudent(e){
+  e.preventDefault();
+  var nameEl = document.getElementById('newStudentName');
+  var ageEl = document.getElementById('newStudentAge');
+  var s = LinkitStudents.addStudent(nameEl.value, ageEl.value);
+  if (s){ nameEl.value=''; ageEl.value=''; render(); renderStudentList(); }
+  return false;
+}
+document.addEventListener('click', function(e){
+  var m = document.getElementById('studentMenu');
+  var chip = document.getElementById('studentChip');
+  if (m && m.classList.contains('show') && !m.contains(e.target) && !chip.contains(e.target)) closeStudentMenu();
+});
+document.addEventListener('keydown', function(e){ if (e.key==='Escape') closeStudentMenu(); });
+
+render();
+</script>
+</body>
+</html>

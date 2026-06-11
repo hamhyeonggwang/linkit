@@ -1,0 +1,124 @@
+/* ====================================================
+   linkit-theme.css
+   Link IT 2.0 공용 상단 네비게이션 / 브랜드 테마
+
+   링키월드 계열 페이지(index/apps/admin)의 스카이블루 네비를
+   Link IT 2.0(퍼플 · Pretendard) 정체성으로 통일합니다.
+   각 페이지의 <style> 블록 "뒤"에 link 로 포함하여
+   기존 네비 규칙을 source-order 로 덮어씁니다.
+
+   대상 마크업(세 페이지 공통):
+     <div class="top-strip"></div>
+     <nav>
+       <a class="nav-logo">
+         <span class="nav-logo-mark">LIT</span>
+         <span class="nav-logo-title">Link IT</span>
+         <span class="nav-ver">2.0</span>
+       </a>
+       <div class="nav-links">
+         <a class="nav-link">…</a>
+         <a class="nav-cta">…</a>
+       </div>
+     </nav>
+   ==================================================== */
+
+:root {
+  --lk-accent:#7B68EE;
+  --lk-accent-2:#9B8BF4;
+  --lk-accent-dim:#F0EEFF;
+  --lk-accent-dark:#5A4BD1;
+  --lk-teal:#0EA5A0;
+  --lk-surface:#FFFFFF;
+  --lk-surface-alt:#F8F9FF;
+  --lk-border:#E2E5F4;
+  --lk-t1:#1A1B2E;
+  --lk-t2:#4A4E6B;
+  --lk-font:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+/* 상단 그라데이션 스트립 */
+.top-strip{
+  height:3px;
+  background:linear-gradient(90deg,var(--lk-accent),var(--lk-accent-2),var(--lk-teal));
+}
+
+/* NAV 컨테이너 (기존 skyblue 네비 덮어쓰기) */
+nav{
+  background:var(--lk-surface);
+  border-bottom:1px solid var(--lk-border);
+  box-shadow:0 1px 3px rgba(30,30,80,.06);
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  height:56px;
+  padding:0 24px;
+}
+
+/* 로고: LIT 마크 + Link IT + 2.0 배지 */
+.nav-logo{
+  font-family:var(--lk-font);
+  color:var(--lk-t1);
+  gap:8px;
+  font-weight:800;
+}
+.nav-logo-mark{
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--lk-accent),var(--lk-accent-2));
+  display:inline-flex;align-items:center;justify-content:center;
+  color:#fff;font-size:11px;font-weight:800;letter-spacing:.02em;
+  font-family:var(--lk-font);
+}
+.nav-logo-title{
+  font-size:16px;font-weight:800;color:var(--lk-t1);
+  font-family:var(--lk-font);
+}
+.nav-ver{
+  font-size:10px;font-weight:700;color:var(--lk-accent);
+  background:var(--lk-accent-dim);
+  padding:1px 6px;border-radius:20px;
+  font-family:var(--lk-font);
+}
+
+/* 링크 */
+.nav-links{gap:2px;}
+.nav-link{
+  font-family:var(--lk-font);
+  font-size:13px;font-weight:500;
+  color:var(--lk-t2);
+  padding:6px 12px;
+  border-radius:10px;
+  border:1px solid transparent;
+  transition:background .18s ease,color .18s ease;
+}
+.nav-link:hover{
+  background:var(--lk-surface-alt);
+  color:var(--lk-accent);
+  border-color:transparent;
+  transform:none;
+}
+.nav-link.active{
+  color:var(--lk-accent);
+  font-weight:700;
+  background:transparent;
+}
+
+/* CTA (관리자 페이지 등) — 퍼플 솔리드 */
+.nav-cta{
+  font-family:var(--lk-font);
+  background:var(--lk-accent);
+  color:#fff;
+  font-size:13px;font-weight:700;
+  padding:7px 16px;
+  border-radius:10px;
+  border:1px solid transparent;
+  box-shadow:none;
+  transition:background .18s ease,transform .18s ease;
+}
+.nav-cta:hover{
+  background:var(--lk-accent-dark);
+  transform:translateY(-1px);
+  box-shadow:none;
+}
+.nav-cta:active{
+  transform:translateY(0);
+  box-shadow:none;
+}

@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link IT 2.0 — KIOSK</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="linkit-results.js"></script>
 <style>
   :root {
     --navy:   #0D2B4E;
@@ -1432,6 +1433,7 @@ nav + .top-strip { display: block !important; }
     document.getElementById('rAcc').innerHTML  = `${acc}<span>%</span>`;
     document.getElementById('rTime').innerHTML = `${elapsed}<span>초</span>`;
     document.getElementById('rMist').innerHTML = `${mistakes}<span>회</span>`;
+    try{ window.LinkitResults && LinkitResults.save({game:'패스트푸드 키오스크',emoji:'🍔',area:'d',score:acc,durationSec:elapsed}); }catch(e){}
     document.getElementById('resultOverlay').classList.add('show');
   }
 

@@ -6,6 +6,7 @@
 <title>문구야놀자 키오스크 훈련</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="kiosk-image-save.js"></script>
+<script src="linkit-results.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -1406,6 +1407,7 @@ function answerQuiz(el,isOk){
   else{fb.textContent='🤔 아쉬워요! 다음에 더 잘 기억해봐요!';fb.className='quiz-fb show bad';}
   document.getElementById('quiz-nxt').className='quiz-nxt show';
   updateStats();
+  try{ if(window.LinkitResults){ const tr=S.stats.trials, co=S.stats.correct; LinkitResults.save({game:'문구야놀자 키오스크',emoji:'👻',area:'d',score:tr>0?Math.round(co/tr*100):0}); } }catch(e){}
 }
 function closeQuiz(){document.getElementById('quiz-ov').classList.remove('show');}
 

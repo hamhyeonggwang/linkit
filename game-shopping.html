@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link IT 2.0 — SHOPPING</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="linkit-results.js"></script>
 <style>
   :root {
     --navy:   #0D2B4E;
@@ -1325,6 +1326,7 @@ nav + .top-strip { display: block !important; }
     document.getElementById('resAcc').innerHTML  = `${acc}<span>%</span>`;
     document.getElementById('resTime').innerHTML = `${elapsed}<span>초</span>`;
     document.getElementById('resMist').innerHTML = `${mistakeCount}<span>회</span>`;
+    try{ window.LinkitResults && LinkitResults.save({game:'쇼핑몰 앱 사용',emoji:'🛒',area:'d',score:acc,durationSec:elapsed}); }catch(e){}
     document.getElementById('resultOverlay').classList.add('show');
   }
 

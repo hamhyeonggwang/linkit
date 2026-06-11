@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link IT 2.0 — MEMORY</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="linkit-results.js"></script>
 <style>
   :root {
     --navy:   #0D2B4E;
@@ -1154,6 +1155,8 @@ function showResult() {
   document.getElementById('rcSpa').textContent = lv(Math.round(effN*85+prog*15));
   document.getElementById('rcStr').textContent = lv(Math.round(Math.min(100,maxConsec/3*100*0.6+effN*40)));
   document.getElementById('rcFoc').textContent = lv(Math.round(prog*70+effN*30));
+
+  try{ window.LinkitResults && LinkitResults.save({game:'카드 뒤집기',emoji:'🃏',area:'c',score:eff,durationSec:elapsed}); }catch(e){}
 
   setTimeout(() => document.getElementById('resultOverlay').classList.add('show'), 400);
 }

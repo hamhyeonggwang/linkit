@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link IT 2.0 — 모양 찾기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<script src="linkit-results.js"></script>
 <style>
 :root {
   --bg:#F2F4FF; --surface:#FFFFFF; --surface-alt:#F8F9FF;
@@ -858,6 +859,8 @@ function endGame(){
   document.getElementById('rAcc').innerHTML=`${acc}<span>%</span>`;
   document.getElementById('rRT').innerHTML=`${avgRT}<span>초</span>`;
   document.getElementById('rStreak').textContent=maxStreak;
+
+  try{ window.LinkitResults && LinkitResults.save({game:'모양 찾기',emoji:'🔺',area:'a',score:acc,durationSec:Math.floor((Date.now()-globalStart)/1000)}); }catch(e){}
 
   setTimeout(()=>document.getElementById('resultOverlay').classList.add('show'),700);
 }

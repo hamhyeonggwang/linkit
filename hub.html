@@ -42,8 +42,30 @@ button{cursor:pointer;font-family:var(--font);}
 .nav-links a:hover{background:var(--surface-alt);color:var(--accent);}
 .nav-links a.active{color:var(--accent);font-weight:700;}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.user-chip{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-alt);color:var(--t2);font-size:12px;font-weight:600;}
+.user-chip{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-alt);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;}
+.user-chip:hover{border-color:var(--border-mid);}
 .user-chip .u-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+.user-chip .u-caret{color:var(--t3);font-size:9px;margin-left:1px;}
+.nav-right{position:relative;}
+.student-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:230px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh-lg);padding:6px;z-index:300;display:none;}
+.student-menu.show{display:block;}
+.sm-label{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;padding:6px 8px 4px;}
+.sm-item{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:var(--r-sm);}
+.sm-item:hover{background:var(--surface-alt);}
+.sm-item.active{background:var(--accent-dim);}
+.sm-name{flex:1;font-size:13px;font-weight:600;color:var(--t1);cursor:pointer;}
+.sm-item.active .sm-name{color:var(--accent);}
+.sm-check{color:var(--accent);font-size:10px;}
+.sm-del{color:var(--t4);font-size:12px;border:none;background:none;padding:2px 5px;border-radius:6px;cursor:pointer;}
+.sm-del:hover{color:var(--red);background:var(--red-dim);}
+.sm-sep{height:1px;background:var(--border);margin:6px 4px;}
+.sm-add{display:flex;gap:6px;padding:6px 4px 4px;}
+.sm-add input{flex:1;min-width:0;border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 8px;font-size:12px;font-family:var(--font);outline:none;background:var(--surface-alt);color:var(--t1);}
+.sm-add input:focus{border-color:var(--accent);}
+.sm-add-age{width:54px;flex:none;}
+.sm-add-btn{border:none;background:var(--accent);color:#fff;border-radius:var(--r-sm);padding:7px 12px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;}
+.sm-add-btn:hover{background:var(--accent-dark);}
+.recent-empty{font-size:12px;color:var(--t4);padding:4px 0;}
 
 /* LAYOUT */
 .layout{display:flex;min-height:calc(100vh - 55px);}
@@ -198,6 +220,28 @@ button{cursor:pointer;font-family:var(--font);}
 }
 .area-d-card:hover .gc-btn{background:var(--teal-dim);border-color:rgba(14,165,160,0.3);color:var(--teal);}
 
+/* COMING SOON (미연결 훈련) */
+.game-card.soon{cursor:default;opacity:.72;}
+.game-card.soon:hover{border-color:var(--border);box-shadow:var(--sh-xs);transform:none;}
+.game-card.soon:hover::before{opacity:0;}
+.game-card.soon .gc-icon{filter:grayscale(.35);}
+.soon-badge{
+  position:absolute;top:10px;right:10px;
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;
+  background:var(--surface-alt);color:var(--t3);border:1px solid var(--border-mid);
+}
+.gc-btn[disabled]{cursor:default;color:var(--t4);background:var(--surface-alt);border-color:var(--border);}
+.game-card.soon:hover .gc-btn[disabled]{background:var(--surface-alt);border-color:var(--border);color:var(--t4);}
+
+/* AVAILABILITY TOGGLE */
+.avail-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;user-select:none;}
+.avail-toggle input{position:absolute;opacity:0;width:0;height:0;}
+.avail-track{width:34px;height:20px;border-radius:20px;background:var(--border-mid);position:relative;transition:background var(--tr);flex-shrink:0;}
+.avail-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:var(--sh-xs);transition:transform var(--tr);}
+.avail-toggle input:checked + .avail-track{background:var(--accent);}
+.avail-toggle input:checked + .avail-track::after{transform:translateX(14px);}
+.avail-label{font-size:13px;font-weight:500;color:var(--t2);}
+
 /* EMPTY STATE */
 .empty-state{display:none;flex-direction:column;align-items:center;padding:60px 20px;gap:10px;color:var(--t3);}
 .empty-state.show{display:flex;}
@@ -220,12 +264,27 @@ button{cursor:pointer;font-family:var(--font);}
   </a>
   <ul class="nav-links">
     <li><a href="index.html">홈</a></li>
+    <li><a href="apps.html">훈련 앱</a></li>
     <li><a href="#" class="active">훈련 허브</a></li>
     <li><a href="results.html">수행결과</a></li>
     <li><a href="index.html#program">소개</a></li>
   </ul>
   <div class="nav-right">
-    <div class="user-chip"><span class="u-dot"></span> 김은총 (9세)</div>
+    <button class="user-chip" id="studentChip" onclick="toggleStudentMenu(event)">
+      <span class="u-dot"></span>
+      <span id="activeStudentLabel">학생</span>
+      <span class="u-caret">▾</span>
+    </button>
+    <div class="student-menu" id="studentMenu">
+      <div class="sm-label">학생 선택</div>
+      <div id="studentList"></div>
+      <div class="sm-sep"></div>
+      <form class="sm-add" id="addStudentForm" onsubmit="return onAddStudent(event)">
+        <input type="text" id="newStudentName" placeholder="이름" maxlength="20" required>
+        <input type="number" id="newStudentAge" class="sm-add-age" placeholder="나이" min="0" max="30">
+        <button type="submit" class="sm-add-btn">추가</button>
+      </form>
+    </div>
   </div>
 </nav>
 
@@ -272,11 +331,17 @@ button{cursor:pointer;font-family:var(--font);}
     </div>
 
     <div class="sb-section">
+      <div class="sb-label">표시 옵션</div>
+      <label class="avail-toggle">
+        <input type="checkbox" id="availOnly" onchange="applyFilter()">
+        <span class="avail-track"></span>
+        <span class="avail-label">이용 가능만 보기</span>
+      </label>
+    </div>
+
+    <div class="sb-section">
       <div class="sb-label">최근 기록</div>
-      <div class="recent-item">🍔 키오스크<span class="recent-score rs-mid">80%</span></div>
-      <div class="recent-item">🔍 숨은그림<span class="recent-score rs-hi">93%</span></div>
-      <div class="recent-item">🧠 N-Back<span class="recent-score rs-mid">72%</span></div>
-      <div class="recent-item">🎯 Go/No-Go<span class="recent-score rs-hi">84%</span></div>
+      <div id="recentList"></div>
     </div>
   </aside>
 
@@ -285,7 +350,7 @@ button{cursor:pointer;font-family:var(--font);}
     <div class="page-top">
       <div class="page-tag">Training Hub</div>
       <h1 class="page-title">훈련 허브</h1>
-      <p class="page-desc">4개 영역 20개 훈련 · 난이도별 선택 가능</p>
+      <p class="page-desc">현재 6개 이용 가능 · 나머지는 순차 오픈</p>
     </div>
 
     <div class="search-wrap">
@@ -295,6 +360,8 @@ button{cursor:pointer;font-family:var(--font);}
 
     <div class="results-bar">
       <strong id="visibleCount">20</strong>개 훈련
+      <span class="rb-sep">|</span>
+      <span id="availInfo">이용 가능 <strong>6</strong>개</span>
       <span class="rb-sep">|</span>
       <span id="activeFilterLabel">전체 영역</span>
     </div>
@@ -314,33 +381,37 @@ button{cursor:pointer;font-family:var(--font);}
           <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
           <button class="gc-btn" onclick="location.href='game-shapes.html'">▶ 훈련 시작</button>
         </div>
-        <div class="game-card area-a-card" data-area="a" data-diff="1">
+        <div class="game-card area-a-card soon" data-area="a" data-diff="1" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🔍</div><span class="gc-id">A2</span></div>
           <div class="gc-name">숨은그림 찾기</div>
           <div class="gc-desc">복잡한 배경 속에 숨겨진 물체를 찾아 시각 탐색과 집중력을 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-a-card" data-area="a" data-diff="2">
+        <div class="game-card area-a-card soon" data-area="a" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🗺️</div><span class="gc-id">A3</span></div>
           <div class="gc-name">미로 탈출</div>
           <div class="gc-desc">복잡한 미로를 통해 공간 관계와 계획 능력을 체계적으로 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–15분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-a-card" data-area="a" data-diff="2">
+        <div class="game-card area-a-card soon" data-area="a" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🎨</div><span class="gc-id">A4</span></div>
           <div class="gc-name">패턴 완성</div>
           <div class="gc-desc">규칙적인 패턴의 빈 칸을 채워 패턴 인식과 시각 변별을 향상합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-a-card" data-area="a" data-diff="3">
+        <div class="game-card area-a-card soon" data-area="a" data-diff="3" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--accent-dim);">🧩</div><span class="gc-id">A5</span></div>
           <div class="gc-name">공간 퍼즐</div>
           <div class="gc-desc">조각을 회전·이동하여 완성하는 퍼즐로 공간 조작 능력을 향상합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐⭐</span><span class="gc-time">15–20분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
       </div>
     </div>
@@ -353,33 +424,37 @@ button{cursor:pointer;font-family:var(--font);}
         <div class="area-pill" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,158,11,0.2);">AREA B</div>
       </div>
       <div class="game-grid" id="grid-b">
-        <div class="game-card area-b-card" data-area="b" data-diff="1">
+        <div class="game-card area-b-card soon" data-area="b" data-diff="1" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">⚡</div><span class="gc-id">B1</span></div>
           <div class="gc-name">반응 속도</div>
           <div class="gc-desc">화면에 나타나는 자극에 최대한 빠르게 반응하여 처리 속도를 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-b-card" data-area="b" data-diff="2">
+        <div class="game-card area-b-card soon" data-area="b" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">🎯</div><span class="gc-id">B2</span></div>
           <div class="gc-name">집중 훈련</div>
           <div class="gc-desc">방해 자극 속에서 목표 자극만 선택하여 선택적 주의 능력을 향상합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-b-card" data-area="b" data-diff="2">
+        <div class="game-card area-b-card soon" data-area="b" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">👁️</div><span class="gc-id">B3</span></div>
           <div class="gc-name">타깃 추적</div>
           <div class="gc-desc">움직이는 목표물을 지속적으로 추적하여 시각적 주의 지속력을 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-b-card" data-area="b" data-diff="3">
+        <div class="game-card area-b-card soon" data-area="b" data-diff="3" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--amber-dim);">🎪</div><span class="gc-id">B4</span></div>
           <div class="gc-name">멀티 타깃</div>
           <div class="gc-desc">동시에 여러 목표물을 추적하여 분할 주의와 처리 속도를 강화합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐⭐</span><span class="gc-time">10–15분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
         <div class="game-card area-b-card" data-area="b" data-diff="3">
           <span class="new-badge">NEW</span>
@@ -400,19 +475,21 @@ button{cursor:pointer;font-family:var(--font);}
         <div class="area-pill" style="background:var(--purp-dim);color:var(--purp);border-color:rgba(155,110,255,0.2);">AREA C</div>
       </div>
       <div class="game-grid" id="grid-c">
-        <div class="game-card area-c-card" data-area="c" data-diff="1">
+        <div class="game-card area-c-card soon" data-area="c" data-diff="1" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">📋</div><span class="gc-id">C1</span></div>
           <div class="gc-name">순서 기억</div>
           <div class="gc-desc">제시된 순서를 기억하고 동일하게 재현하여 작업기억을 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">5–10분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-c-card" data-area="c" data-diff="2">
+        <div class="game-card area-c-card soon" data-area="c" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">🔊</div><span class="gc-id">C2</span></div>
           <div class="gc-name">소리 기억</div>
           <div class="gc-desc">들려주는 소리 순서를 기억하고 재현하여 청각 기억 능력을 향상합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
         <div class="game-card area-c-card" data-area="c" data-diff="3">
           <span class="new-badge">NEW</span>
@@ -430,12 +507,13 @@ button{cursor:pointer;font-family:var(--font);}
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–15분</span></div>
           <button class="gc-btn" onclick="location.href='game-memory.html'">▶ 훈련 시작</button>
         </div>
-        <div class="game-card area-c-card" data-area="c" data-diff="2">
+        <div class="game-card area-c-card soon" data-area="c" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--purp-dim);">📖</div><span class="gc-id">C5</span></div>
           <div class="gc-name">이야기 순서</div>
           <div class="gc-desc">순서가 뒤섞인 그림 카드를 올바른 이야기 흐름으로 배열하여 순서화와 추론을 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">8–12분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
       </div>
     </div>
@@ -456,29 +534,29 @@ button{cursor:pointer;font-family:var(--font);}
           <div class="gc-footer"><span class="gc-diff">⭐</span><span class="gc-time">10–15분</span></div>
           <button class="gc-btn" onclick="location.href='game-kiosk.html'">▶ 훈련 시작</button>
         </div>
-        <div class="game-card area-d-card" data-area="d" data-diff="2">
-          <span class="new-badge">NEW</span>
+        <div class="game-card area-d-card soon" data-area="d" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">🚌</div><span class="gc-id">D2</span></div>
           <div class="gc-name">버스 타기</div>
           <div class="gc-desc">목적지 검색, 노선 선택, 교통카드 태그까지 대중교통 이용 절차를 시뮬레이션합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-d-card" data-area="d" data-diff="2">
-          <span class="new-badge">NEW</span>
+        <div class="game-card area-d-card soon" data-area="d" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">📚</div><span class="gc-id">D3</span></div>
           <div class="gc-name">도서관 키오스크</div>
           <div class="gc-desc">도서 검색, 위치 확인, 대출 처리까지 도서관 이용 흐름을 단계별로 훈련합니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
-        <div class="game-card area-d-card" data-area="d" data-diff="2">
-          <span class="new-badge">NEW</span>
+        <div class="game-card area-d-card soon" data-area="d" data-diff="2" data-soon="1">
+          <span class="soon-badge">준비 중</span>
           <div class="gc-top"><div class="gc-icon" style="background:var(--teal-dim);">🏪</div><span class="gc-id">D4</span></div>
           <div class="gc-name">편의점 계산</div>
           <div class="gc-desc">물건을 고르고 금액을 계산하여 거스름돈을 확인하는 수 개념과 의사결정 훈련입니다.</div>
           <div class="gc-footer"><span class="gc-diff">⭐⭐</span><span class="gc-time">10–15분</span></div>
-          <button class="gc-btn">▶ 훈련 시작</button>
+          <button class="gc-btn" disabled>🔒 준비 중</button>
         </div>
         <div class="game-card area-d-card" data-area="d" data-diff="2">
           <span class="new-badge">NEW</span>
@@ -499,6 +577,8 @@ button{cursor:pointer;font-family:var(--font);}
   </main>
 </div>
 
+<script src="linkit-students.js"></script>
+<script src="linkit-results.js"></script>
 <script>
 let activeArea='all', activeDiff='all', searchQ='';
 
@@ -523,14 +603,16 @@ document.querySelectorAll('.diff-chip').forEach(btn=>{
 function filterCards(){ searchQ=document.getElementById('searchInput').value.toLowerCase(); applyFilter(); }
 
 function applyFilter(){
-  let vis=0;
+  const availOnly=document.getElementById('availOnly').checked;
+  let vis=0, availVis=0;
   document.querySelectorAll('.game-card').forEach(card=>{
+    const isSoon=card.dataset.soon==='1';
     const am=activeArea==='all'||card.dataset.area===activeArea;
     const dm=activeDiff==='all'||card.dataset.diff===activeDiff;
     const nm=!searchQ||card.querySelector('.gc-name').textContent.toLowerCase().includes(searchQ)||card.querySelector('.gc-desc').textContent.toLowerCase().includes(searchQ);
-    const show=am&&dm&&nm;
+    const show=am&&dm&&nm&&(!availOnly||!isSoon);
     card.style.display=show?'':'none';
-    if(show) vis++;
+    if(show){ vis++; if(!isSoon) availVis++; }
   });
   ['a','b','c','d'].forEach(a=>{
     const sec=document.getElementById('sec-'+a);
@@ -538,8 +620,75 @@ function applyFilter(){
     sec.style.display=any?'':'none';
   });
   document.getElementById('visibleCount').textContent=vis;
+  document.getElementById('availInfo').innerHTML='이용 가능 <strong>'+availVis+'</strong>개';
   document.getElementById('emptyState').classList.toggle('show',vis===0);
 }
+
+/* ─────────────── 학생(세션) 관리 ─────────────── */
+function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function renderStudentChip(){
+  const s=LinkitStudents.getActive();
+  document.getElementById('activeStudentLabel').textContent=LinkitStudents.label(s);
+}
+function renderStudentList(){
+  const list=LinkitStudents.getStudents();
+  const activeId=LinkitStudents.getActiveId();
+  document.getElementById('studentList').innerHTML=list.map(s=>
+    '<div class="sm-item'+(s.id===activeId?' active':'')+'">'
+    +'<span class="sm-name" onclick="selectStudent(\''+s.id+'\')">'+escapeHtml(LinkitStudents.label(s))+'</span>'
+    +(s.id===activeId?'<span class="sm-check">●</span>':'')
+    +'<button class="sm-del" title="삭제" onclick="deleteStudent(event,\''+s.id+'\')">✕</button>'
+    +'</div>'
+  ).join('');
+}
+function renderRecent(){
+  const host=document.getElementById('recentList');
+  const s=LinkitStudents.getActive();
+  let rows=(window.LinkitResults&&s)?LinkitResults.getForStudent(s.id,false):[];
+  rows=rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,4);
+  if(!rows.length){host.innerHTML='<div class="recent-empty">아직 기록이 없어요</div>';return;}
+  host.innerHTML=rows.map(r=>{
+    const cls=r.score>=85?'rs-hi':r.score>=70?'rs-mid':'rs-lo';
+    return '<div class="recent-item">'+escapeHtml((r.emoji||'🎮')+' '+r.game)+'<span class="recent-score '+cls+'">'+r.score+'%</span></div>';
+  }).join('');
+}
+function refreshStudentUI(){ renderStudentChip(); renderStudentList(); renderRecent(); }
+
+function toggleStudentMenu(e){
+  e.stopPropagation();
+  const m=document.getElementById('studentMenu');
+  const open=!m.classList.contains('show');
+  m.classList.toggle('show',open);
+  if(open) renderStudentList();
+}
+function closeStudentMenu(){ document.getElementById('studentMenu').classList.remove('show'); }
+function selectStudent(id){ LinkitStudents.setActiveId(id); refreshStudentUI(); closeStudentMenu(); }
+function deleteStudent(e,id){
+  e.stopPropagation();
+  const list=LinkitStudents.getStudents();
+  if(list.length<=1){ alert('마지막 학생은 삭제할 수 없어요.'); return; }
+  const s=list.find(x=>x.id===id);
+  if(confirm('"'+(s?s.name:'')+'" 학생을 삭제할까요? (기록은 남아 있어요)')){
+    LinkitStudents.removeStudent(id); refreshStudentUI(); renderStudentList();
+  }
+}
+function onAddStudent(e){
+  e.preventDefault();
+  const nameEl=document.getElementById('newStudentName');
+  const ageEl=document.getElementById('newStudentAge');
+  const s=LinkitStudents.addStudent(nameEl.value, ageEl.value);
+  if(s){ nameEl.value=''; ageEl.value=''; refreshStudentUI(); renderStudentList(); }
+  return false;
+}
+document.addEventListener('click',e=>{
+  const m=document.getElementById('studentMenu');
+  const chip=document.getElementById('studentChip');
+  if(m&&m.classList.contains('show')&&!m.contains(e.target)&&!chip.contains(e.target)) closeStudentMenu();
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeStudentMenu(); });
+
+refreshStudentUI();
 </script>
 </body>
 </html>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>마라탕 키오스크 훈련</title>
 <script src="kiosk-image-save.js"></script>
+<script src="linkit-results.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -948,6 +949,7 @@ function r_complete(b){
   S.stats.trials++;
   if(!isOver) S.stats.correct++;
   updateStats();
+  try{ if(window.LinkitResults){ const tr=S.stats.trials, co=S.stats.correct; LinkitResults.save({game:'마라탕 키오스크',emoji:'🌶️',area:'d',score:tr>0?Math.round(co/tr*100):0}); } }catch(e){}
 
   S._lastOrderNo=String(orderNum);
   b.innerHTML=`<div class="sc-comp">

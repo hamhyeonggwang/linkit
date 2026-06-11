@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script src="kiosk-image-save.js"></script>
+<script src="linkit-results.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* =========================================
@@ -2011,6 +2012,7 @@ function answerQuiz(el, isCorrect) {
   }
   document.getElementById('quiz-next').className = 'quiz-next show';
   updateStats();
+  try{ if(window.LinkitResults){ const tr=state.stats.trials, co=state.stats.correct; LinkitResults.save({game:'CU 셀프계산대',emoji:'🏪',area:'d',score:tr>0?Math.round(co/tr*100):0}); } }catch(e){}
 }
 function closeQuiz() { document.getElementById('quiz-overlay').classList.remove('show'); }
 

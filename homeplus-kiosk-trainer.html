@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>홈플러스 푸드코트 키오스크</title>
+<script src="linkit-results.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -871,6 +872,7 @@ function ansPickup(el,ok){
   else{fb.textContent='🤔 아쉬워요! 다시 한번 확인해볼까요?';fb.className='pqfb show b';}
   document.getElementById('pqnxt').className='pqnxt show';
   updateStats();
+  try{ if(window.LinkitResults){ const tr=S.stats.trials, co=S.stats.correct; LinkitResults.save({game:'홈플러스 푸드코트',emoji:'🍱',area:'d',score:tr>0?Math.round(co/tr*100):0}); } }catch(e){}
 }
 function closeQuiz(){document.getElementById('pquiz-ov').classList.remove('show');}
 

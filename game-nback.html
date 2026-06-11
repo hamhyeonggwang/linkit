@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link IT 2.0 — NBACK</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="linkit-results.js"></script>
 <style>
   :root {
     --navy:  #0D2B4E;
@@ -1503,6 +1504,8 @@ function endGame(){
   document.getElementById('rcUpd').textContent=lv(acc);
   document.getElementById('rcSpd').textContent=lv(Math.min(100,spd));
   document.getElementById('rcAll').textContent=lv(Math.round(hitRate*0.4+acc*0.4+Math.min(100,spd)*0.2));
+
+  try{ window.LinkitResults && LinkitResults.save({game:'N-Back',emoji:'🔄',area:'c',score:acc,durationSec:Math.floor((Date.now()-startTime)/1000)}); }catch(e){}
 
   setTimeout(()=>document.getElementById('resultOverlay').classList.add('show'),800);
 }
